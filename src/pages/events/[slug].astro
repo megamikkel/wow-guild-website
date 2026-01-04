@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+
+const { slug } = Astro.params;
+const entries = await Astro.glob("../../content/events/*.md");
+const entry = entries.find((e) => e.file.endsWith(`/${slug}.md`));
+
+if (!entry) {
+  throw new Error("Event not found");
+}
+
+const { Content, frontmatter } = await entry();
+---
+<BaseLayout title={frontmatter.title} description={frontmatter.summary}>
+  <Nav />
+  <main class="container" style="padding: 26px var(--pad);">
+    <div class="card" style="padding: 18px;">
+      <div class="badge" style="margin-bottom: 10px;">
+        {frontmatter.date} • {frontmatter.time} • {frontmatter.type} • {frontmatter.status}
+      </div>
+      <h1 class="h2" style="margin: 0 0 12px;">{frontmatter.title}</h1>
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

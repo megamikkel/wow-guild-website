@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import Section from "../components/Section.astro";
+---
+<BaseLayout title="Om" description="Om guildet">
+  <Nav />
+  <Section eyebrow="Om guildet" title="Vi spiller som voksne — uden at blive kedelige">
+    <div class="card" style="padding: 18px;">
+      <div class="prose">
+        <p>
+          <strong>[Guild Name]</strong> er et casual guild til folk, der gerne vil have fællesskab og stabilitet,
+          men også har arbejde, familie, studie eller bare brug for søvn.
+        </p>
+        <p>
+          Vi prøver at gøre det nemt: klare tider, venlig tone og plads til at man ikke altid kan være der.
+        </p>
+
+        <h3>Vores “regler”</h3>
+        <ul>
+          <li>Respekt for tiden: mød op eller meld afbud.</li>
+          <li>Respekt for hinanden: ingen toksisk tone.</li>
+          <li>Vi lærer sammen: fejl er en del af spillet.</li>
+        </ul>
+      </div>
+    </div>
+  </Section>
+  <Footer />
+</BaseLayout>

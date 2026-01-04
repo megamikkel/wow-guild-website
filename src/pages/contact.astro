@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import Section from "../components/Section.astro";
+---
+<BaseLayout title="Kontakt" description="Kontakt guildet">
+  <Nav />
+  <Section eyebrow="Kontakt" title="Skriv til os (vi bider ikke)">
+    <div class="card" style="padding: 18px;">
+      <p class="p">Vi er lettest at fange her:</p>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
+        <div class="badge">Discord: <span class="kbd">discord.gg/DIT-LINK</span></div>
+        <div class="badge">Officer: <span class="kbd">Navn#1234</span></div>
+        <div class="badge">In-game: <span class="kbd">Character-Name</span></div>
+      </div>
+      <hr class="sep" />
+      <p class="small">Tip: Skriv et par linjer om dig selv + hvad du gerne vil spille (raid/keys/social).</p>
+    </div>
+  </Section>
+  <Footer />
+</BaseLayout>

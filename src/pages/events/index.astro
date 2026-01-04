@@ -1,0 +1,33 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+import Section from "../../components/Section.astro";
+import Card from "../../components/Card.astro";
+
+const events = await Astro.glob("../../content/events/*.md");
+
+function byDateDesc(a, b) {
+  const da = new Date(a.frontmatter.date).getTime();
+  const db = new Date(b.frontmatter.date).getTime();
+  return db - da;
+}
+
+const sorted = events.sort(byDateDesc);
+---
+<BaseLayout title="Events" description="Events og raid nights">
+  <Nav />
+  <Section eyebrow="Events" title="Kalender-light (uden login)">
+    <div class="grid cols-3" style="margin-top: 12px;">
+      {sorted.map((e) => (
+        <Card
+          title={e.frontmatter.title}
+          desc={e.frontmatter.summary}
+          meta={`${e.frontmatter.date} • ${e.frontmatter.time} • ${e.frontmatter.type} • ${e.frontmatter.status}`}
+          href={`/events/${e.file.split("/").pop().replace(".md", "")}`}
+        />
+      ))}
+    </div>
+  </Section>
+  <Footer />
+</BaseLayout>

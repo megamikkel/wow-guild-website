@@ -1,0 +1,30 @@
+---
+const { title, desc, href, meta } = Astro.props;
+---
+<div class="card" style="padding: 16px;">
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+      "
+    >
+      <div>
+        <div style="font-weight: 800;">{title}</div>
+        {meta && <div class="small" style="margin-top: 4px;">{meta}</div>}
+      </div>
+      {href && (
+        <a
+          class="btn ghost"
+          href={href}
+          style="padding: 8px 10px; border-radius: 10px;"
+        >
+          Læs
+        </a>
+      )}
+    </div>
+    {desc && <div class="p">{desc}</div>}
+  </div>
+</div>
