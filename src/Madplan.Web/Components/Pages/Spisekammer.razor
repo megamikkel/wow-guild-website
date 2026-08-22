@@ -1,0 +1,137 @@
+@page "/spisekammer"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MadplanDbContext Db
+@inject FoodResolver Foods
+
+<PageTitle>Spisekammer · Madplan</PageTitle>
+
+<h1>Spisekammer</h1>
+<p class="sub">
+    Markerede varer springes over på indkøbslisten. Løber I tør, så slå den fra —
+    så kommer den med igen næste gang.
+</p>
+
+<div class="field">
+    <input placeholder="Søg i råvarer…" @bind="soeg" @bind:event="oninput" aria-label="Søg" />
+</div>
+
+@if (staples.Count > 0)
+{
+    <h2>Har vi altid</h2>
+    @foreach (var f in staples.Where(Match))
+    {
+        var toer = pantry.TryGetValue(f.Id, out var s) && s == PantryState.LoebetToer;
+        <div class="card tight row between">
+            <span class="grow @(toer ? "" : "strike")">@f.CanonicalName</span>
+            @if (toer)
+            {
+                <span class="pill warn" style="margin-right:.5rem">Løbet tør</span>
+                <button class="btn-sm" @onclick="() => Saet(f, PantryState.Har)">Har igen</button>
+            }
+            else
+            {
+                <button class="btn-sm" @onclick="() => Saet(f, PantryState.LoebetToer)">Løbet tør</button>
+            }
+        </div>
+    }
+}
+
+<h2>Alle råvarer</h2>
+<p class="small muted">
+    Ubekræftede råvarer er oprettet automatisk ud fra en opskrift. Tjek dem, og
+    slå dubletter sammen — ellers råddirer listen stille over et halvt år.
+</p>
+
+@foreach (var f in others.Where(Match).Take(200))
+{
+    <div class="card tight">
+        <div class="row between">
+            <div class="grow">
+                @f.CanonicalName
+                @if (f.IsUnconfirmed) { <span class="pill warn">ubekræftet</span> }
+            </div>
+            <div class="row">
+                <button class="btn-sm" @onclick="() => ToggleStaple(f)">Altid hjemme</button>
+                <button class="btn-sm btn-quiet" @onclick="() => StartMerge(f)">Flet</button>
+            </div>
+        </div>
+
+        @if (merging?.Id == f.Id)
+        {
+            <div class="stack" style="margin-top:.5rem">
+                <label>Flet «@f.CanonicalName» ind i:</label>
+                <select @bind="mergeTargetId">
+                    <option value="0">Vælg…</option>
+                    @foreach (var t in others.Where(o => o.Id != f.Id).OrderBy(o => o.CanonicalName))
+                    {
+                        <option value="@t.Id">@t.CanonicalName</option>
+                    }
+                </select>
+                <div class="row">
+                    <button class="btn-primary grow" @onclick="Flet" disabled="@(mergeTargetId == 0)">Flet</button>
+                    <button class="btn-quiet" @onclick="() => merging = null">Fortryd</button>
+                </div>
+                <p class="small muted" style="margin:0">
+                    Opskrifter, aliasser og mapninger flyttes med. «@f.CanonicalName» slettes.
+                </p>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    List<Food> staples = [];
+    List<Food> others = [];
+    Dictionary<int, PantryState> pantry = [];
+    string soeg = "";
+    Food? merging;
+    int mergeTargetId;
+
+    bool Match(Food f) => soeg.Length == 0
+        || f.CanonicalName.Contains(soeg, StringComparison.OrdinalIgnoreCase);
+
+    protected override async Task OnInitializedAsync() => await Hent();
+
+    async Task Hent()
+    {
+        var alle = await Db.Foods.OrderBy(f => f.CanonicalName).ToListAsync();
+        staples = [.. alle.Where(f => f.IsPantryStaple)];
+        others = [.. alle.Where(f => !f.IsPantryStaple)];
+        pantry = await Db.PantryItems.ToDictionaryAsync(p => p.FoodId, p => p.State);
+    }
+
+    async Task Saet(Food f, PantryState state)
+    {
+        var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+        var item = await Db.PantryItems.FirstOrDefaultAsync(p => p.FoodId == f.Id);
+        if (item is null)
+        {
+            item = new PantryItem { HouseholdId = householdId, FoodId = f.Id };
+            Db.PantryItems.Add(item);
+        }
+        item.State = state;
+        item.UpdatedAt = DateTime.UtcNow;
+        await Db.SaveChangesAsync();
+        pantry[f.Id] = state;
+    }
+
+    async Task ToggleStaple(Food f)
+    {
+        f.IsPantryStaple = !f.IsPantryStaple;
+        Db.Foods.Update(f);
+        await Db.SaveChangesAsync();
+        await Hent();
+    }
+
+    void StartMerge(Food f) { merging = f; mergeTargetId = 0; }
+
+    async Task Flet()
+    {
+        if (merging is null || mergeTargetId == 0) return;
+        await Foods.MergeAsync(mergeTargetId, merging.Id);
+        merging = null;
+        await Hent();
+    }
+}

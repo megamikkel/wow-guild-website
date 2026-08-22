@@ -1,0 +1,41 @@
+{
+  "Products": {
+    "Products": [
+      {
+        "Id": "5070417",
+        "Name": "Hakket oksekød 8-12%",
+        "Brand": "Danish Crown",
+        "Category": "Kød",
+        "SubCategory": "Hakket kød",
+        "Url": "hakket-oksekoed-5070417",
+        "Price": 41.75,
+        "UnitPriceCalc": 83.50,
+        "UnitPriceLabel": "kr/kg",
+        "Description": "500 g / 8-12%",
+        "PrimaryImage": "https://nemlig.com/img/hakket-oksekoed.jpg",
+        "Availability": { "IsDeliveryAvailable": true, "IsAvailableInStock": true },
+        "DiscountItem": false,
+        "Favorite": false,
+        "Labels": [],
+        "Campaign": null
+      },
+      {
+        "Id": "701025",
+        "Name": "Økologisk hakket oksekød 4-7%",
+        "Brand": "Änglamark",
+        "Category": "Kød",
+        "SubCategory": "Hakket kød",
+        "Price": 54.00,
+        "UnitPriceCalc": 135.00,
+        "UnitPriceLabel": "kr/kg",
+        "Description": "400 g / økologisk",
+        "Availability": { "IsDeliveryAvailable": true, "IsAvailableInStock": false },
+        "DiscountItem": true
+      }
+    ],
+    "Start": 0,
+    "NumFound": 2
+  },
+  "Facets": { "NumFound": 2, "SortingList": [], "FacetGroups": [] },
+  "Recipes": []
+}

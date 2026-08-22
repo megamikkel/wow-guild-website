@@ -1,0 +1,71 @@
+@page "/opskrifter"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MadplanDbContext Db
+
+<PageTitle>Opskrifter · Madplan</PageTitle>
+
+<div class="row between">
+    <h1>Opskrifter</h1>
+    <a class="btn btn-sm btn-primary" href="/opskrifter/ny">+ Ny</a>
+</div>
+
+<div class="field">
+    <input placeholder="Søg…" @bind="soeg" @bind:event="oninput" aria-label="Søg i opskrifter" />
+</div>
+
+<div class="row wrap" style="margin-bottom:1rem">
+    <button class="btn-sm @(filter is null ? "btn-primary" : "")" @onclick="() => filter = null">Alle</button>
+    <button class="btn-sm @(filter == "boern" ? "btn-primary" : "")" @onclick='() => filter = "boern"'>Børnevenlig</button>
+    <button class="btn-sm @(filter == "veg" ? "btn-primary" : "")" @onclick='() => filter = "veg"'>Vegetar</button>
+    <button class="btn-sm @(filter == "hurtig" ? "btn-primary" : "")" @onclick='() => filter = "hurtig"'>Under 30 min</button>
+</div>
+
+@if (Filtrerede.Count == 0)
+{
+    <p class="empty">
+        @(alle.Count == 0
+            ? "Ingen opskrifter endnu. Opret familiens første ret."
+            : "Ingen opskrifter matcher.")
+    </p>
+}
+else
+{
+    @foreach (var r in Filtrerede)
+    {
+        <a class="card row between" href="@($"/opskrifter/{r.Id}")" style="color:inherit;text-decoration:none">
+            <div class="grow">
+                <div>@r.Title</div>
+                <div class="small muted">
+                    @r.Servings pers.
+                    @if (r.TotalTimeMinutes is > 0) { <text> · @r.TotalTimeMinutes min</text> }
+                    @if (!r.IsOwn && r.SourceName is not null) { <text> · @r.SourceName</text> }
+                </div>
+            </div>
+            <div class="row">
+                @if (r.IsChildFriendly) { <span class="pill">Børn</span> }
+                @if (r.IsVegetarian) { <span class="pill muted">Veg</span> }
+            </div>
+        </a>
+    }
+}
+
+@code {
+    List<Recipe> alle = [];
+    string soeg = "";
+    string? filter;
+
+    List<Recipe> Filtrerede => [.. alle
+        .Where(r => soeg.Length == 0 || r.Title.Contains(soeg, StringComparison.OrdinalIgnoreCase))
+        .Where(r => filter switch
+        {
+            "boern" => r.IsChildFriendly,
+            "veg" => r.IsVegetarian,
+            "hurtig" => r.TotalTimeMinutes is > 0 and <= 30,
+            _ => true,
+        })];
+
+    protected override async Task OnInitializedAsync()
+        => alle = await Db.Recipes.OrderBy(r => r.Title).ToListAsync();
+}

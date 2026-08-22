@@ -1,0 +1,28 @@
+{
+  "BasketGuid": "e34fc914-0000-0000-0000-000000000000",
+  "InvoiceAddress": { "FirstName": "Anders", "StreetName": "Eksempelvej", "PostalCode": 1620 },
+  "Lines": [
+    {
+      "Id": "5070417",
+      "Name": "Hakket oksekød 8-12%",
+      "Brand": "Danish Crown",
+      "Quantity": 2,
+      "ItemPrice": 41.75,
+      "Price": 83.50,
+      "Description": "500 g / 8-12%",
+      "Campaign": null
+    },
+    {
+      "Id": "999999",
+      "Name": "Vaskepulver",
+      "Brand": "Neutral",
+      "Quantity": 1,
+      "ItemPrice": 49.95,
+      "Price": 49.95
+    }
+  ],
+  "NumberOfProducts": 3,
+  "TotalProductsPrice": 133.45,
+  "ValidationFailures": [],
+  "Recipes": []
+}

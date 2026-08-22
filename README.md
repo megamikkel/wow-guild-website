@@ -10,9 +10,22 @@ Hobbyprojekt til eget brug. Ikke et produkt.
 
 ## Status
 
-**Research og design. Ingen produktionskode endnu.**
+**Etape 1–3 er bygget og kører.** Ugeplan, opskrifter, aggregeret indkøbsliste,
+prisopslag og kurv-synkronisering. 79 tests grønne.
 
-Start i [`docs/plan.md`](docs/plan.md).
+⚠️ **Nemlig-laget er ikke live-verificeret.** Skemaerne stammer fra offentlig
+dokumentation og tre open source-klienter, ikke fra et kald mod nemlig.com —
+det var blokeret i miljøet koden blev skrevet i. **Kør etape 0 i
+[`docs/plan.md`](docs/plan.md) før du stoler på priser og kurv.** Alt der ikke
+rører nemlig er afprøvet i en rigtig browser.
+
+```bash
+cp .env.example .env      # udfyld MADPLAN_USERS
+dotnet run --project src/Madplan.Web
+```
+
+Uden nemlig-credentials kører appen i offline-tilstand: madplan, opskrifter og
+indkøbsliste virker, priser er ukendte, kurv-knappen er slået fra.
 
 | Dokument | Indhold |
 |---|---|
@@ -36,11 +49,28 @@ Disse gælder gennem hele projektet og er ikke til forhandling undervejs:
    kunne bruges til madplanlægning når nemlig er nede — prisen bliver bare ukendt.
 5. **Ingen tredjeparter får vores data.** Ingen analytics, ingen tracking.
 
+## Projekter
+
+| Projekt | Ansvar |
+|---|---|
+| `Madplan.Core` | Domænet. Enheder, parsing, aggregering, pakkematematik. **Ingen HTTP, ingen EF.** |
+| `Madplan.Data` | EF Core + SQLite, seed, råvareopslag og -fletning |
+| `Madplan.Nemlig` | Det eneste sted der kender nemlig. Egne DTO'er, tre interfaces |
+| `Madplan.Web` | Blazor Server. UI, auth, kurv-synkronisering |
+| `Madplan.Tests` | 79 tests, heriblandt vagthunden mod checkout |
+
+`Core` og `Nemlig` har **nul** projektreferencer. Isolationen er noget
+compileren håndhæver, ikke en aftale man indgår med sig selv.
+
 ## Kom i gang
 
-Der er ikke noget at køre endnu. Næste skridt er etape 0 i
-[`docs/plan.md`](docs/plan.md): en browser-session der verificerer at nemligs API
-ser ud som dokumenteret.
+```bash
+dotnet test                                  # 79 tests
+dotnet run --project src/Madplan.Web         # http://localhost:5265
+```
+
+Næste skridt er etape 0 i [`docs/plan.md`](docs/plan.md): en browser-session der
+verificerer at nemligs API ser ud som dokumenteret.
 
 ## Tak til
 

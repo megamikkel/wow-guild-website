@@ -1,0 +1,153 @@
+@page "/"
+@page "/uge/{IsoYear:int}/{IsoWeek:int}"
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MadplanDbContext Db
+@inject MealPlanService Plans
+@inject NavigationManager Nav
+
+<PageTitle>Uge @week · Madplan</PageTitle>
+
+<div class="row between">
+    <h1>Uge @week</h1>
+    <div class="row">
+        <button class="btn-sm" @onclick="() => Skift(-1)" aria-label="Forrige uge">‹</button>
+        <button class="btn-sm" @onclick="() => Skift(1)" aria-label="Næste uge">›</button>
+    </div>
+</div>
+<p class="sub">@Monday.ToString("d. MMMM", Da) – @Monday.AddDays(6).ToString("d. MMMM yyyy", Da)</p>
+
+@if (plan is null)
+{
+    <p class="empty">Henter…</p>
+}
+else
+{
+    @foreach (var date in Dates)
+    {
+        var dayEntries = plan.Entries.Where(e => e.Date == date).ToList();
+        <div class="day @(date == Today ? "today" : "")">
+            <div class="day-head">
+                <span class="day-name">@date.ToString("dddd", Da)</span>
+                <span class="day-date">@date.ToString("d/M", Da)</span>
+            </div>
+
+            @foreach (var e in dayEntries)
+            {
+                <div class="card tight row between">
+                    <div class="grow">
+                        <div>@e.Recipe?.Title</div>
+                        <div class="small muted">@e.Servings personer</div>
+                    </div>
+                    <div class="row">
+                        <button class="btn-sm" @onclick="() => JusterPortioner(e, -1)" disabled="@(e.Servings <= 1)">−</button>
+                        <button class="btn-sm" @onclick="() => JusterPortioner(e, 1)">+</button>
+                        <button class="btn-sm btn-danger" @onclick="() => Fjern(e)" aria-label="Fjern">×</button>
+                    </div>
+                </div>
+            }
+
+            @if (addingTo == date)
+            {
+                <div class="card tight stack">
+                    <select @bind="valgtOpskrift">
+                        <option value="0">Vælg en ret…</option>
+                        @foreach (var r in opskrifter)
+                        {
+                            <option value="@r.Id">@r.Title</option>
+                        }
+                    </select>
+                    <div class="row">
+                        <button class="btn-primary grow" @onclick="() => Tilfoej(date)" disabled="@(valgtOpskrift == 0)">Læg på</button>
+                        <button class="btn-quiet" @onclick="() => addingTo = null">Fortryd</button>
+                    </div>
+                    @if (opskrifter.Count == 0)
+                    {
+                        <p class="small muted">
+                            Du har ingen opskrifter endnu. <a href="/opskrifter/ny">Opret den første.</a>
+                        </p>
+                    }
+                </div>
+            }
+            else
+            {
+                <button class="btn-sm btn-quiet" @onclick="() => Start(date)">+ Tilføj ret</button>
+            }
+        </div>
+    }
+
+    <a class="btn btn-primary btn-block" href="/indkoeb">Se indkøbsliste for ugen →</a>
+}
+
+@code {
+    [Parameter] public int? IsoYear { get; set; }
+    [Parameter] public int? IsoWeek { get; set; }
+
+    static readonly CultureInfo Da = new("da-DK");
+    static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+
+    MealPlan? plan;
+    List<Recipe> opskrifter = [];
+    DateOnly? addingTo;
+    int valgtOpskrift;
+
+    int year, week;
+    DateOnly Monday => MealPlanService.MondayOf(year, week);
+    IEnumerable<DateOnly> Dates => Enumerable.Range(0, 7).Select(Monday.AddDays);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var current = MealPlanService.CurrentIsoWeek();
+        year = IsoYear ?? current.Year;
+        week = IsoWeek ?? current.Week;
+
+        // Husstanden er én; brugeren hører til den.
+        var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+        plan = await Plans.GetOrCreateAsync(householdId, year, week);
+        opskrifter = await Db.Recipes.OrderBy(r => r.Title).ToListAsync();
+    }
+
+    void Start(DateOnly date) { addingTo = date; valgtOpskrift = 0; }
+
+    async Task Tilfoej(DateOnly date)
+    {
+        if (valgtOpskrift == 0 || plan is null) return;
+
+        var recipe = await Db.Recipes.FindAsync(valgtOpskrift);
+        var entry = new MealPlanEntry
+        {
+            MealPlanId = plan.Id, Date = date, RecipeId = valgtOpskrift,
+            Servings = recipe?.Servings ?? 3,
+        };
+        Db.MealPlanEntries.Add(entry);
+        await Db.SaveChangesAsync();   // gem ved hver ændring, ikke ved en Gem-knap
+
+        // Ikke plan.Entries.Add(): EF's change tracker har allerede sat den ind i
+        // samlingen, fordi planen blev hentet med Include. Gør vi det selv igen,
+        // står retten to gange på skærmen indtil siden genindlæses.
+        entry.Recipe = recipe;
+        addingTo = null;
+    }
+
+    async Task JusterPortioner(MealPlanEntry e, int delta)
+    {
+        e.Servings = Math.Max(1, e.Servings + delta);
+        Db.MealPlanEntries.Update(e);
+        await Db.SaveChangesAsync();
+    }
+
+    async Task Fjern(MealPlanEntry e)
+    {
+        Db.MealPlanEntries.Remove(e);
+        await Db.SaveChangesAsync();
+        plan?.Entries.Remove(e);
+    }
+
+    void Skift(int delta)
+    {
+        var d = Monday.AddDays(7 * delta).ToDateTime(TimeOnly.MinValue);
+        Nav.NavigateTo($"/uge/{ISOWeek.GetYear(d)}/{ISOWeek.GetWeekOfYear(d)}");
+    }
+}

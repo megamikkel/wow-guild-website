@@ -1,0 +1,338 @@
+@page "/indkoeb"
+@page "/indkoeb/{IsoYear:int}/{IsoWeek:int}"
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MadplanDbContext Db
+@inject MealPlanService Plans
+@inject ProductSuggester Suggester
+@inject BasketSyncService Sync
+@inject INemligAuth NemligAuth
+
+<PageTitle>Indkøb uge @week · Madplan</PageTitle>
+
+<h1>Indkøb, uge @week</h1>
+<p class="sub">Aggregeret på tværs af ugens retter.</p>
+
+@if (!NemligAuth.IsConfigured)
+{
+    <div class="notice">
+        Nemlig er ikke konfigureret, så priser er ukendte og kurven kan ikke fyldes.
+        Alt andet virker. Sæt <code>NEMLIG_USERNAME</code> og <code>NEMLIG_PASSWORD</code> i <code>.env</code>.
+    </div>
+}
+
+@if (list is null)
+{
+    <p class="empty">Beregner…</p>
+}
+else if (list.Lines.Count == 0)
+{
+    <p class="empty">Ingen retter på ugeplanen endnu. <a href="/">Læg nogle på.</a></p>
+}
+else
+{
+    var koeb = list.Lines.Where(l => l.Status is LineStatus.Ok or LineStatus.Udsolgt).ToList();
+    var mangler = list.Lines.Where(l => l.Status == LineStatus.ManglerMapping).ToList();
+    var tjek = list.Lines.Where(l => l.Status == LineStatus.KanIkkeBeregnes).ToList();
+    var kammer = list.Lines.Where(l => l.Status == LineStatus.Spisekammer).ToList();
+
+    @if (koeb.Count > 0)
+    {
+        <h2>På listen</h2>
+        @foreach (var l in koeb)
+        {
+            <div class="card tight">
+                <div class="row between">
+                    <div class="grow">
+                        <div>
+                            @l.Food?.CanonicalName
+                            @if (l.Status == LineStatus.Udsolgt) { <span class="pill warn">Udsolgt</span> }
+                        </div>
+                        <div class="small muted">
+                            Behov @Maengde(l) · @l.PackCount × @l.ProductMapping?.ProductName
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        @if (l.EstimatedPrice is { } pris)
+                        {
+                            <strong>@pris.ToString("N2") kr.</strong>
+                        }
+                        else
+                        {
+                            <span class="muted small">Pris ukendt</span>
+                        }
+                    </div>
+                </div>
+                @if (l.Warning is not null)
+                {
+                    <div class="small" style="color:var(--warn);margin-top:.25rem">⚠ @l.Warning</div>
+                }
+            </div>
+        }
+
+        <div class="total">
+            <span>@(list.HasUnknownPrices ? "Kendt del af ugen" : "Ugen i alt")</span>
+            <span>@list.KnownTotal.ToString("N2") kr.</span>
+        </div>
+        @if (list.HasUnknownPrices)
+        {
+            <p class="small muted" style="margin-top:-.5rem">
+                Nogle priser er ukendte, så beløbet er et gulv og ikke en total.
+            </p>
+        }
+    }
+
+    @if (mangler.Count > 0)
+    {
+        <h2>Mangler en vare (@mangler.Count)</h2>
+        <p class="small muted">
+            Vælg én gang, så husker appen det. Der gættes ikke — intet af dette
+            ender i kurven, før du har valgt.
+        </p>
+        @foreach (var l in mangler)
+        {
+            <div class="card">
+                <div class="row between">
+                    <div class="grow">
+                        <div>@l.Food?.CanonicalName</div>
+                        <div class="small muted">Behov @Maengde(l)</div>
+                    </div>
+                    <button class="btn-sm" @onclick="() => Foreslaa(l)" disabled="@(soeger == l.FoodId)">
+                        @(soeger == l.FoodId ? "Søger…" : "Find vare")
+                    </button>
+                </div>
+
+                @if (forslag.TryGetValue(l.FoodId, out var kandidater))
+                {
+                    @if (kandidater.Count == 0)
+                    {
+                        <p class="small muted" style="margin:.5rem 0 0">
+                            Ingen forslag. @(NemligAuth.IsConfigured
+                                ? "Prøv et andet navn på råvaren."
+                                : "Nemlig er ikke konfigureret.")
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="stack" style="margin-top:.5rem">
+                            @foreach (var s in kandidater)
+                            {
+                                <div class="row between card tight" style="margin:0">
+                                    <div class="grow">
+                                        <div class="small">@s.Product.Name</div>
+                                        <div class="small muted">
+                                            @s.Product.Price.ToString("N2") kr.
+                                            @if (s.Product.Description is not null) { <text> · @s.Product.Description</text> }
+                                            @if (s.Reason is not null) { <span class="pill">@s.Reason</span> }
+                                        </div>
+                                    </div>
+                                    <button class="btn-sm btn-primary" @onclick="() => Vaelg(l, s.Product)">Vælg</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        }
+    }
+
+    @if (tjek.Count > 0)
+    {
+        <h2>Tjek selv (@tjek.Count)</h2>
+        @foreach (var l in tjek)
+        {
+            <div class="card tight">
+                <div>@(l.UnparsedText ?? l.Food?.CanonicalName)</div>
+                @if (l.Warning is not null) { <div class="small muted">@l.Warning</div> }
+            </div>
+        }
+    }
+
+    @if (kammer.Count > 0)
+    {
+        <h2>Fra spisekammeret</h2>
+        <div class="card tight">
+            <span class="small muted strike">
+                @string.Join(", ", kammer.Select(l => l.Food?.CanonicalName))
+            </span>
+            <div class="small muted" style="margin-top:.25rem">
+                Springes over. <a href="/spisekammer">Løbet tør for noget?</a>
+            </div>
+        </div>
+    }
+
+    <h2>Nemlig-kurv</h2>
+    @if (preview is null)
+    {
+        <button class="btn-primary btn-block" @onclick="Forbered"
+                disabled="@(!NemligAuth.IsConfigured || arbejder || koeb.Count == 0)">
+            @(arbejder ? "Henter kurven…" : "Forbered kurv")
+        </button>
+        <p class="small muted" style="text-align:center;margin-top:.5rem">
+            Bestillingen gennemføres af dig hos nemlig. Appen fylder kun kurven.
+        </p>
+    }
+    else
+    {
+        <div class="card">
+            @if (!preview.HasChanges)
+            {
+                <p class="small" style="margin:0">Kurven stemmer allerede med listen.</p>
+            }
+            else
+            {
+                <div class="small muted" style="margin-bottom:.5rem">Dette lægges i kurven:</div>
+                @foreach (var c in preview.Actionable)
+                {
+                    <div class="small" style="padding:.15rem 0">· @c.Description</div>
+                }
+            }
+        </div>
+        <div class="row">
+            <button class="btn-primary grow" @onclick="Udfoer" disabled="@(arbejder || !preview.HasChanges)">
+                @(arbejder ? "Sender…" : "Læg i nemlig-kurv")
+            </button>
+            <button class="btn-quiet" @onclick="() => preview = null">Fortryd</button>
+        </div>
+        <p class="small muted" style="text-align:center;margin-top:.5rem">
+            Bestillingen gennemføres af dig hos nemlig. Appen fylder kun kurven.
+        </p>
+    }
+
+    @if (besked is not null) { <div class="notice @beskedType">@besked</div> }
+}
+
+@code {
+    [Parameter] public int? IsoYear { get; set; }
+    [Parameter] public int? IsoWeek { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    MealPlan? plan;
+    ShoppingList? list;
+    BasketSyncService.Preview? preview;
+
+    readonly Dictionary<int, List<ProductSuggester.Suggestion>> forslag = [];
+    int? soeger;
+    bool arbejder;
+    string? besked;
+    string beskedType = "";
+
+    int year, week;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var current = MealPlanService.CurrentIsoWeek();
+        year = IsoYear ?? current.Year;
+        week = IsoWeek ?? current.Week;
+
+        var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+        plan = await Plans.GetOrCreateAsync(householdId, year, week);
+        await Genberegn();
+    }
+
+    async Task Genberegn()
+    {
+        if (plan is null) return;
+        list = await Plans.BuildShoppingListAsync(plan);
+        preview = null;
+    }
+
+    static string Maengde(ShoppingListLine l)
+    {
+        var v = l.NeededQuantity;
+        var u = l.NeededUnit?.Abbreviation ?? "";
+        return v >= 1000 && u is "g" or "ml"
+            ? $"{v / 1000:0.##} {(u == "g" ? "kg" : "l")}"
+            : $"{v:0.##} {u}";
+    }
+
+    async Task Foreslaa(ShoppingListLine l)
+    {
+        if (l.Food is null) return;
+        soeger = l.FoodId;
+        try
+        {
+            // Ordrehistorik som prior: varer vi har mappet før vejer tungest.
+            var koebtFoer = await Db.ProductMappings.Select(m => m.NemligProductId).ToListAsync();
+            forslag[l.FoodId] = [.. await Suggester.SuggestAsync(l.Food, koebtFoer)];
+        }
+        catch (NemligUnavailableException ex)
+        {
+            Vis(ex.Message, "");
+            forslag[l.FoodId] = [];
+        }
+        finally { soeger = null; }
+    }
+
+    async Task Vaelg(ShoppingListLine l, NemligProduct p)
+    {
+        var units = await Db.Units.ToListAsync();
+
+        // Pakkestørrelsen udledes som et forslag; brugeren kan rette den bagefter.
+        var guess = p.GuessPackageSize();
+        var packUnit = units.FirstOrDefault(u => u.Abbreviation == (guess?.Unit ?? "stk"))
+                       ?? units.First(u => u.Abbreviation == "stk");
+
+        var userId = await CurrentUserIdAsync();
+
+        Db.ProductMappings.Add(new ProductMapping
+        {
+            FoodId = l.FoodId,
+            NemligProductId = p.Id,
+            ProductName = p.Name,
+            PackageSize = guess?.Size ?? 1,
+            PackageUnitId = packUnit.Id,
+            IsPreferred = true,
+            Source = MappingSource.Manuel,
+            ConfirmedByUserId = userId,
+            ConfirmedAt = DateTime.UtcNow,
+        });
+
+        Db.ProductSnapshots.Add(new ProductSnapshot
+        {
+            NemligProductId = p.Id, Price = p.Price, UnitPrice = p.UnitPrice,
+            UnitPriceLabel = p.UnitPriceLabel, InStock = p.InStock, Description = p.Description,
+        });
+
+        await Db.SaveChangesAsync();
+        forslag.Remove(l.FoodId);
+        await Genberegn();
+    }
+
+    async Task Forbered()
+    {
+        if (list is null) return;
+        arbejder = true; besked = null;
+        try { preview = await Sync.PreviewAsync(list); }
+        catch (NemligUnavailableException ex) { Vis(ex.Message, ""); }
+        finally { arbejder = false; }
+    }
+
+    async Task Udfoer()
+    {
+        if (list is null || preview is null) return;
+        arbejder = true; besked = null;
+        try
+        {
+            var log = await Sync.ApplyAsync(list, preview, await CurrentUserIdAsync());
+            Vis(log.Outcome == "Ok"
+                ? $"{log.LinesPosted} varer ligger nu i kurven. Gennemfør selv bestillingen hos nemlig."
+                : $"Delvist gennemført: {log.Details}", log.Outcome == "Ok" ? "info" : "");
+            preview = null;
+        }
+        catch (NemligUnavailableException ex) { Vis(ex.Message, ""); }
+        finally { arbejder = false; }
+    }
+
+    void Vis(string tekst, string type) { besked = tekst; beskedType = type; }
+
+    async Task<int?> CurrentUserIdAsync()
+    {
+        if (AuthState is null) return null;
+        var user = (await AuthState).User;
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(id, out var parsed) ? parsed : null;
+    }
+}

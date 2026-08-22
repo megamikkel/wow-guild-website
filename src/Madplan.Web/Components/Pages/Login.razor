@@ -1,0 +1,40 @@
+@page "/login"
+@layout Layout.MainLayout
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<PageTitle>Log ind · Madplan</PageTitle>
+
+<div class="card" style="max-width:24rem;width:100%">
+    <h1>🥘 Madplan</h1>
+    <p class="sub">Log ind for at planlægge ugen.</p>
+
+    @if (Fejl is not null)
+    {
+        <div class="notice">Forkert mail eller kodeord.</div>
+    }
+
+    <form method="post" action="/login">
+        <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+        <div class="field">
+            <label for="email">Mail</label>
+            <input id="email" name="email" type="email" autocomplete="username" required />
+        </div>
+        <div class="field">
+            <label for="password">Kodeord</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <div class="field">
+            <button type="submit" class="btn-primary btn-block">Log ind</button>
+        </div>
+    </form>
+
+    <p class="small muted" style="margin-bottom:0">
+        Der er ingen registrering. Brugere oprettes med <code>MADPLAN_USERS</code>.
+    </p>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "fejl")] public string? Fejl { get; set; }
+    [SupplyParameterFromQuery(Name = "returnUrl")] public string? ReturnUrl { get; set; }
+}

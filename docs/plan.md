@@ -22,7 +22,13 @@ EF Core og pessimistiske hvis du ikke er.
 
 ---
 
-## Etape 0 — Verificér API'et (½ dag, ikke kode)
+## Etape 0 — Verificér API'et (½ dag, ikke kode) ⚠️ MANGLER STADIG
+
+> **Rækkefølgen blev vendt om.** Etape 1–3 er bygget først, fordi nemlig.com var
+> blokeret i det miljø koden blev skrevet i, så etape 0 ikke kunne udføres.
+> Konsekvensen er at nemlig-klienten er skrevet mod dokumenterede skemaer og
+> aldrig har talt med den rigtige server. Kontrakttests og fixtures ligger klar
+> i `tests/Madplan.Tests/Fixtures/`; opdatér dem når du har kørt tjeklisten.
 
 Kan ikke springes over. Alt i `nemlig-api.md` har tillid **B** eller lavere,
 fordi nemlig.com var blokeret i det miljø researchen kørte i. Etape 2 og 3
@@ -43,7 +49,7 @@ ligger ét anonymiseret JSON-svar pr. endpoint i `tests/fixtures/`.
 
 ---
 
-## Etape 1 — Ugeplan og egne opskrifter (3–4 aftener)
+## Etape 1 — Ugeplan og egne opskrifter ✅ BYGGET
 
 **Ingen nemlig. Ingen import. Ingen mapping.** Den mindste app der er bedre end
 en seddel på køleskabet.
@@ -69,7 +75,7 @@ en indkøbsseddel ud. Det er allerede bedre end det I gør nu.
 
 ---
 
-## Etape 2 — Ingredienser, mapping og priser (5–7 aftener)
+## Etape 2 — Ingredienser, mapping og priser ✅ BYGGET
 
 Den tungeste etape. Her bliver appen til noget der ikke findes i forvejen.
 
@@ -106,7 +112,7 @@ ugepris, og under 5 ingredienser kræver manuelt valg.
 
 ---
 
-## Etape 3 — Læg i kurv (2–3 aftener)
+## Etape 3 — Læg i kurv ✅ BYGGET (uverificeret mod live-API)
 
 Kort etape, fordi grundlaget er lagt — og fordi `AddToBasket` har været uændret
 siden 2019 og er idempotent.

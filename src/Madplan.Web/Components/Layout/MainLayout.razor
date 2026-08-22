@@ -1,0 +1,24 @@
+@inherits LayoutComponentBase
+
+<div class="app">
+    <AuthorizeView>
+        <Authorized>
+            <header class="topbar">
+                <span class="brand">🥘 Madplan</span>
+                <span class="who">@context.User.Identity?.Name</span>
+            </header>
+
+            <main>@Body</main>
+
+            <nav class="tabs">
+                <NavLink href="/" Match="NavLinkMatch.All"><span>📅</span>Uge</NavLink>
+                <NavLink href="/opskrifter"><span>📖</span>Opskrifter</NavLink>
+                <NavLink href="/indkoeb"><span>🛒</span>Indkøb</NavLink>
+                <NavLink href="/spisekammer"><span>🥫</span>Kammer</NavLink>
+            </nav>
+        </Authorized>
+        <NotAuthorized>
+            <main class="plain">@Body</main>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>

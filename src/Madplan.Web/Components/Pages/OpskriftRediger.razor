@@ -1,0 +1,200 @@
+@page "/opskrifter/ny"
+@page "/opskrifter/{Id:int}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MadplanDbContext Db
+@inject FoodResolver Foods
+@inject NavigationManager Nav
+
+<PageTitle>@(Id is null ? "Ny opskrift" : recipe.Title) · Madplan</PageTitle>
+
+<h1>@(Id is null ? "Ny opskrift" : "Rediger")</h1>
+<p class="sub">Ingredienser skrives én pr. linje, som du ville sige dem: «500 g hakket oksekød».</p>
+
+<div class="card">
+    <div class="field">
+        <label for="titel">Titel</label>
+        <input id="titel" @bind="recipe.Title" />
+    </div>
+    <div class="row" style="gap:.75rem">
+        <div class="field grow">
+            <label for="pers">Portioner</label>
+            <input id="pers" type="number" min="1" @bind="recipe.Servings" />
+        </div>
+        <div class="field grow">
+            <label for="tid">Minutter</label>
+            <input id="tid" type="number" min="0" @bind="recipe.TotalTimeMinutes" />
+        </div>
+    </div>
+    <div class="row wrap" style="margin-top:.75rem">
+        <label class="row" style="margin:0">
+            <input type="checkbox" style="width:auto;min-height:auto" @bind="recipe.IsChildFriendly" />
+            <span>Børnevenlig</span>
+        </label>
+        <label class="row" style="margin:0">
+            <input type="checkbox" style="width:auto;min-height:auto" @bind="recipe.IsVegetarian" />
+            <span>Vegetarisk</span>
+        </label>
+    </div>
+</div>
+
+<div class="card">
+    <div class="field">
+        <label for="ing">Ingredienser — én pr. linje</label>
+        <textarea id="ing" @bind="ingredientText" @bind:event="oninput"
+                  placeholder="500 g hakket oksekød&#10;2 fed hvidløg&#10;1 dåse flåede tomater&#10;salt og peber"></textarea>
+    </div>
+
+    @if (Preview.Count > 0)
+    {
+        <div class="small muted" style="margin-bottom:.25rem">Sådan læser jeg dem:</div>
+        @foreach (var p in Preview)
+        {
+            <div class="row between small" style="padding:.2rem 0">
+                <span class="grow">
+                    @if (p.HasQuantity)
+                    {
+                        <strong>@Format(p.Quantity!.Value) @p.UnitAbbrev</strong> <text>@p.FoodName</text>
+                    }
+                    else
+                    {
+                        <span class="muted">@p.RawText</span>
+                    }
+                </span>
+                @if (!p.HasQuantity)
+                {
+                    <span class="pill warn">uden mængde</span>
+                }
+            </div>
+        }
+        @if (Preview.Any(p => !p.HasQuantity))
+        {
+            <p class="small muted" style="margin:.5rem 0 0">
+                Linjer uden mængde forsvinder ikke — de havner på indkøbslisten med
+                deres egen tekst, så du selv kan tage stilling.
+            </p>
+        }
+    }
+</div>
+
+<div class="card">
+    <div class="field">
+        <label for="frem">Fremgangsmåde</label>
+        <textarea id="frem" @bind="recipe.Instructions"></textarea>
+    </div>
+    <div class="field">
+        <label for="kilde">Kilde-URL (hvis den er hentet et sted fra)</label>
+        <input id="kilde" @bind="recipe.SourceUrl" placeholder="https://…" />
+    </div>
+</div>
+
+@if (fejl is not null) { <div class="notice">@fejl</div> }
+
+<div class="row">
+    <button class="btn-primary grow" @onclick="Gem" disabled="@gemmer">
+        @(gemmer ? "Gemmer…" : "Gem")
+    </button>
+    @if (Id is not null)
+    {
+        <button class="btn-danger" @onclick="Slet">Slet</button>
+    }
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    Recipe recipe = new() { Servings = 4 };
+    string ingredientText = "";
+    string? fejl;
+    bool gemmer;
+
+    List<ParsedIngredient> Preview => [.. ingredientText
+        .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+        .Select(l => l.Trim())
+        .Where(l => l.Length > 0)
+        .Select(IngredientParser.Parse)];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is null) { recipe = new Recipe { Servings = 4 }; ingredientText = ""; return; }
+
+        recipe = await Db.Recipes.Include(r => r.Ingredients.OrderBy(i => i.SortOrder))
+                     .FirstAsync(r => r.Id == Id);
+        ingredientText = string.Join('\n', recipe.Ingredients.Select(i => i.RawText));
+    }
+
+    static string Format(double v) => v % 1 == 0 ? ((int)v).ToString() : v.ToString("0.##");
+
+    async Task Gem()
+    {
+        if (string.IsNullOrWhiteSpace(recipe.Title)) { fejl = "Giv retten en titel."; return; }
+
+        gemmer = true;
+        fejl = null;
+        try
+        {
+            var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+            var units = await Db.Units.ToListAsync();
+
+            if (Id is null)
+            {
+                recipe.HouseholdId = householdId;
+                Db.Recipes.Add(recipe);
+                await Db.SaveChangesAsync();
+            }
+
+            // Ingredienser genskabes fra teksten. Råteksten er sandheden;
+            // det parsede er en afledning vi altid kan lave om.
+            var gamle = await Db.RecipeIngredients.Where(i => i.RecipeId == recipe.Id).ToListAsync();
+            Db.RecipeIngredients.RemoveRange(gamle);
+            await Db.SaveChangesAsync();
+
+            var order = 0;
+            foreach (var line in ingredientText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var raw = line.Trim();
+                if (raw.Length == 0) continue;
+
+                var parsed = IngredientParser.Parse(raw);
+                var unit = parsed.UnitAbbrev is null
+                    ? null
+                    : units.FirstOrDefault(u => u.Abbreviation == parsed.UnitAbbrev);
+
+                // Uden mængde eller navn er linjen ikke beregnelig. Den gemmes
+                // alligevel, med råtekst, så den ikke forsvinder.
+                Food? food = null;
+                if (parsed.HasQuantity && parsed.FoodName.Length > 0)
+                    food = await Foods.ResolveOrCreateAsync(parsed.FoodName, unit?.Id);
+
+                Db.RecipeIngredients.Add(new RecipeIngredient
+                {
+                    RecipeId = recipe.Id,
+                    RawText = raw,
+                    Quantity = food is null ? null : parsed.Quantity,
+                    UnitId = food is null ? null : unit?.Id ?? units.First(u => u.Abbreviation == "stk").Id,
+                    FoodId = food?.Id,
+                    Note = parsed.Note,
+                    SortOrder = order++,
+                });
+            }
+
+            Db.Recipes.Update(recipe);
+            await Db.SaveChangesAsync();
+            Nav.NavigateTo("/opskrifter");
+        }
+        catch (Exception ex)
+        {
+            fejl = $"Kunne ikke gemme: {ex.Message}";
+        }
+        finally { gemmer = false; }
+    }
+
+    async Task Slet()
+    {
+        if (Id is null) return;
+        Db.Recipes.Remove(recipe);
+        await Db.SaveChangesAsync();
+        Nav.NavigateTo("/opskrifter");
+    }
+}
