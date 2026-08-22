@@ -8,8 +8,14 @@
 
 <div class="row between">
     <h1>Opskrifter</h1>
-    <a class="btn btn-sm btn-primary" href="/opskrifter/ny">+ Ny</a>
+    <div class="row">
+        <a class="btn btn-sm" href="/import">Importér</a>
+        <a class="btn btn-sm btn-primary" href="/opskrifter/ny">+ Ny</a>
+    </div>
 </div>
+<p class="sub">
+    <a href="/spisekammer">Spisekammer og råvarer →</a>
+</p>
 
 <div class="field">
     <input placeholder="Søg…" @bind="soeg" @bind:event="oninput" aria-label="Søg i opskrifter" />

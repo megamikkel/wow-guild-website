@@ -12,10 +12,13 @@ namespace Madplan.Nemlig;
 
 /// <summary>Den ENESTE klasse i løsningen der kender nemligs HTTP-flade.
 ///
+/// Læsende. Det eneste POST-kald er login; alt andet er GET. Appen ændrer ikke
+/// noget hos nemlig — hverken kurv, ordre eller kontooplysninger.
+///
 /// Skemaerne stammer fra eisbaw/nemlig_cli's nemlig_api.md, krydstjekket mod
 /// schourode/nemlig (2019) og hknielsen/nemlig-cli (C#, 2026). De er IKKE
 /// live-verificeret — se docs/nemlig-api.md §7 for tjeklisten der skal køres.</summary>
-public sealed class NemligClient : INemligAuth, INemligCatalog, INemligBasket
+public sealed class NemligClient : INemligAuth, INemligCatalog
 {
     private readonly HttpClient _http;
     private readonly NemligOptions _options;
@@ -252,54 +255,6 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligBasket
             DeliveryAvailable: availability?["IsDeliveryAvailable"]?.GetValue<bool>() ?? true,
             IsDiscounted: n["DiscountItem"]?.GetValue<bool>() ?? false,
             ImageUrl: n["PrimaryImage"]?.GetValue<string>());
-    }
-
-    // ---------- Kurv ----------
-
-    public async Task<NemligBasket> GetAsync(CancellationToken ct = default)
-    {
-        var session = await GetSessionAsync(ct);
-        var json = await SendAsync(HttpMethod.Get, "/webapi/basket/GetBasket", null, AuthHeaders(session), ct);
-        return MapBasket(json);
-    }
-
-    /// <summary>Sætter den ABSOLUTTE mængde. 0 fjerner varen; der findes ikke et
-    /// separat remove-endpoint. Kaldet er idempotent, hvilket er grunden til at
-    /// kurv-synkronisering kan køres to gange uden at fordoble noget.</summary>
-    public async Task<NemligBasket> SetQuantityAsync(string productId, int quantity, CancellationToken ct = default)
-    {
-        if (quantity < 0) throw new ArgumentOutOfRangeException(nameof(quantity));
-
-        var session = await GetSessionAsync(ct);
-        // Feltnavnene er nemligs egne, inklusive den inkonsekvente blanding af
-        // stort og lille begyndelsesbogstav. Vi kopierer skemaet, ikke smagen.
-        var body = new
-        {
-            ProductId = productId,
-            quantity,
-            AffectPartialQuantity = false,
-            disableQuantityValidation = false,
-        };
-        var headers = AuthHeaders(session);
-        headers["Referer"] = $"{_options.BaseUrl}/";
-
-        var json = await SendAsync(HttpMethod.Post, "/webapi/basket/AddToBasket", body, headers, ct);
-        return MapBasket(json);
-    }
-
-    internal static NemligBasket MapBasket(JsonNode? json)
-    {
-        var lines = (json?["Lines"] as JsonArray ?? [])
-            .Select(l => new NemligBasketLine(
-                ProductId: l?["Id"]?.GetValue<string>() ?? "",
-                Name: l?["Name"]?.GetValue<string>() ?? "",
-                Quantity: l?["Quantity"]?.GetValue<int>() ?? 0,
-                ItemPrice: l?["ItemPrice"]?.GetValue<decimal>() ?? 0m,
-                LinePrice: l?["Price"]?.GetValue<decimal>() ?? 0m))
-            .Where(l => l.ProductId.Length > 0)
-            .ToList();
-
-        return new NemligBasket(json?["BasketGuid"]?.GetValue<string>(), lines);
     }
 
     // ---------- Transport ----------

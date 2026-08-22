@@ -15,14 +15,27 @@ import { createServer } from 'node:http';
 const PORT = Number(process.argv[2] ?? 5300);
 
 const KATALOG = [
+  // [id, navn, brand, kategori, pris, enhedspris, enhedsetiket, beskrivelse, paaLager]
   ['5070417', 'Hakket oksekød 8-12%', 'Danish Crown', 'Kød', 41.75, 83.50, 'kr/kg', '500 g / 8-12%', true],
   ['5070418', 'Økologisk hakket oksekød 4-7%', 'Änglamark', 'Kød', 54.00, 135.00, 'kr/kg', '400 g / økologisk', true],
+  ['5070420', 'Kyllingebryst', 'Rose', 'Kød', 62.00, 103.33, 'kr/kg', '600 g', true],
+  ['5070421', 'Kyllingelår', 'Rose', 'Kød', 39.95, 39.95, 'kr/kg', '1 kg', true],
+  ['5070422', 'Torskefilet', 'Fiskeriet', 'Fisk', 74.00, 148.00, 'kr/kg', '500 g', true],
   ['4010221', 'Spaghetti', 'De Cecco', 'Kolonial', 16.95, 33.90, 'kr/kg', '500 g', true],
   ['4010222', 'Lasagneplader', 'Barilla', 'Kolonial', 21.50, 43.00, 'kr/kg', '500 g', true],
-  ['3020115', 'Hvidløg', null, 'Frugt & grønt', 8.95, 8.95, 'kr/stk', '1 stk', true],
-  ['3020116', 'Hvidløg økologisk 3 stk', 'Änglamark', 'Frugt & grønt', 19.95, 6.65, 'kr/stk', '3 stk', false],
+  ['4010223', 'Ris', 'Ris Fint', 'Kolonial', 18.95, 18.95, 'kr/kg', '1 kg', true],
+  ['4010224', 'Røde linser', 'Urtekram', 'Kolonial', 22.00, 44.00, 'kr/kg', '500 g', true],
+  ['4010225', 'Hvedemel', 'Finax', 'Kolonial', 12.95, 12.95, 'kr/kg', '1 kg', true],
   ['4030877', 'Flåede tomater', 'Mutti', 'Kolonial', 9.75, 24.38, 'kr/kg', '400 g', true],
+  ['4030878', 'Kokosmælk', 'Aroy-D', 'Kolonial', 11.50, 28.75, 'kr/l', '400 ml', true],
+  ['4030879', 'Pesto', 'Barilla', 'Kolonial', 19.95, 106.00, 'kr/kg', '190 g', true],
+  ['3020115', 'Hvidløg', null, 'Frugt & grønt', 8.95, 8.95, 'kr/stk', '1 stk', true],
+  ['3020117', 'Løg', null, 'Frugt & grønt', 4.50, 4.50, 'kr/stk', '1 stk', true],
+  ['3020118', 'Kartofler', null, 'Frugt & grønt', 19.95, 9.98, 'kr/kg', '2 kg', true],
+  ['3020119', 'Gulerødder', null, 'Frugt & grønt', 12.95, 12.95, 'kr/kg', '1 kg', true],
+  ['3020120', 'Cherrytomater', null, 'Frugt & grønt', 16.95, 67.80, 'kr/kg', '250 g', true],
   ['2010455', 'Letmælk 1,5%', 'Arla', 'Mejeri', 12.50, 12.50, 'kr/l', '1 l', true],
+  ['2010456', 'Parmesan revet', 'Castello', 'Mejeri', 27.95, 279.50, 'kr/kg', '100 g', true],
 ];
 
 const kurv = new Map();

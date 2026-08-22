@@ -2,23 +2,26 @@
 
 Privat familiemadplan med indkøb via [nemlig.com](https://www.nemlig.com).
 
-To voksne og ét barn lægger ugens madplan sammen, ser hvad ugen koster **inden**
-der bestilles, og får ingredienserne lagt i nemlig-kurven. Det sidste klik —
-selve bestillingen — foretages manuelt af et menneske hos nemlig.
+To voksne og ét barn siger hvad ugen må koste, og appen sammensætter en menu der
+holder sig under — med rigtige priser fra nemlig.com og en indkøbsliste hvor
+varerne findes.
+
+**Appen skriver ikke til nemlig.** Den læser priser og produkter og producerer en
+liste. Indkøbet foretager I selv.
 
 Hobbyprojekt til eget brug. Ikke et produkt.
 
 ## Status
 
-**Etape 1–3 er bygget og kører**, plus daglig prisovervågning. Ugeplan,
-opskrifter, aggregeret indkøbsliste, priser og kurv-synkronisering.
-87 tests grønne.
+**Kører.** Budgetdrevet menugenerator, import af opskrifter, automatisk kobling
+til billigste vare, ugeplan, aggregeret indkøbsliste og daglig prisovervågning.
+127 tests grønne.
 
 ⚠️ **Nemlig-laget er ikke live-verificeret.** Skemaerne stammer fra offentlig
 dokumentation og tre open source-klienter, ikke fra et kald mod nemlig.com —
 det var blokeret i miljøet koden blev skrevet i. **Kør etape 0 i
-[`docs/plan.md`](docs/plan.md) før du stoler på priser og kurv.** Alt der ikke
-rører nemlig er afprøvet i en rigtig browser.
+[`docs/plan.md`](docs/plan.md) før du stoler på priserne.** Alt der ikke rører
+nemlig er afprøvet i en rigtig browser.
 
 ```bash
 cp .env.example .env      # udfyld MADPLAN_USERS
@@ -28,7 +31,17 @@ docker compose up -d      # http://localhost:8080
 Eller uden Docker: `dotnet run --project src/Madplan.Web`.
 
 Uden nemlig-credentials kører appen i offline-tilstand: madplan, opskrifter og
-indkøbsliste virker, priser er ukendte, kurv-knappen er slået fra.
+indkøbsliste virker, priserne er bare ukendte.
+
+## Sådan bruges den
+
+1. **Importér opskrifter** — indsæt links fra valdemarsro.dk, madensverden.dk,
+   sundpaabudget.dk eller enhver side med schema.org-data.
+2. **Kobl råvarer til varer** — ét klik. Appen vælger den billigste pr. enhed og
+   husker valget, så samme ret koster det samme fra uge til uge.
+3. **Sæt et budget** — appen sammensætter en menu der holder sig under, og
+   foretrækker retter der deler råvarer, fordi de er billigere tilsammen.
+4. **Handl efter listen** — aggregeret på tværs af ugen, med rigtige varenumre.
 
 | Dokument | Indhold |
 |---|---|
@@ -41,9 +54,9 @@ indkøbsliste virker, priser er ukendte, kurv-knappen er slået fra.
 
 Disse gælder gennem hele projektet og er ikke til forhandling undervejs:
 
-1. **Aldrig automatisk checkout.** Appen fylder kurven. Bestillingen gennemføres
-   manuelt af et menneske hos nemlig. Funktionen bygges ikke — koden kender ikke
-   engang adressen på checkout-endpointerne. Se [`docs/arkitektur.md`](docs/arkitektur.md) §7.
+1. **Nemlig-laget er rent læsende.** Appen skriver ikke til nemlig — hverken
+   kurv, ordre eller konto. Det eneste POST-kald er login. `NemligIsReadOnlyTests`
+   fejler bygget hvis nogen tilføjer et skrivende endpoint.
 2. **Ingen credentials i koden eller i git.** Miljøvariabler. `.env` er i
    `.gitignore` fra første commit; `.env.example` committes med tomme værdier.
 3. **Vær en høflig gæst.** Rate limiting, aggressiv caching, ingen unødige kald.
@@ -59,8 +72,9 @@ Disse gælder gennem hele projektet og er ikke til forhandling undervejs:
 | `Madplan.Core` | Domænet. Enheder, parsing, aggregering, pakkematematik. **Ingen HTTP, ingen EF.** |
 | `Madplan.Data` | EF Core + SQLite, seed, råvareopslag og -fletning |
 | `Madplan.Nemlig` | Det eneste sted der kender nemlig. Egne DTO'er, tre interfaces |
-| `Madplan.Web` | Blazor Server. UI, auth, kurv-synkronisering |
-| `Madplan.Tests` | 87 tests, heriblandt vagthunden mod checkout |
+| `Madplan.Recipes` | Opskriftsimport. JSON-LD, microdata, robots.txt |
+| `Madplan.Web` | Blazor Server. UI, auth, auto-mapping, budgetmenu |
+| `Madplan.Tests` | 127 tests, heriblandt vagthunden mod skrivende nemlig-kald |
 
 `Core` og `Nemlig` har **nul** projektreferencer. Isolationen er noget
 compileren håndhæver, ikke en aftale man indgår med sig selv.
@@ -68,26 +82,30 @@ compileren håndhæver, ikke en aftale man indgår med sig selv.
 ## Kom i gang
 
 ```bash
-dotnet test                                  # 87 tests
+dotnet test                                  # 127 tests
 dotnet run --project src/Madplan.Web         # http://localhost:5265
 ```
 
 ### Afprøvning uden nemlig
 
-`tools/fake-nemlig/` er en stub-server der svarer efter de dokumenterede
-skemaer. Den lader hele flowet køre — login, søgning, mapping, priser, kurv —
-uden at røre den rigtige nemlig:
+To stub-servere lader hele flowet køre uden at røre rigtige sider:
+`tools/fake-nemlig/` svarer efter de dokumenterede nemlig-skemaer, og
+`tools/fake-recipes/` serverer danske hverdagsretter i både JSON-LD og
+microdata.
 
 ```bash
 node tools/fake-nemlig/server.mjs 5300 &
+node tools/fake-recipes/server.mjs 5400 &
 NEMLIG_USERNAME=demo NEMLIG_PASSWORD=demo \
   Nemlig__BaseUrl=http://localhost:5300 \
   Nemlig__SearchGatewayUrl=http://localhost:5300/searchgateway/api \
   dotnet run --project src/Madplan.Web
 ```
 
-Den beviser ikke at nemligs API ser sådan ud — kun at vores klient virker hvis
-det gør. To ægte fejl blev fanget på den måde; se `docs/nemlig-api.md` §7b.
+De beviser ikke at nemligs API ser sådan ud — kun at vores klient virker hvis
+det gør. **Syv ægte fejl er fanget på den måde**, heriblandt fire stille
+fejlkoblinger der ville have givet et budget der så rigtigt ud uden at være det.
+Se `docs/nemlig-api.md` §7b.
 
 Næste skridt er etape 0 i [`docs/plan.md`](docs/plan.md): en browser-session der
 verificerer at nemligs API ser ud som dokumenteret.

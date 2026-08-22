@@ -1,0 +1,142 @@
+@page "/import"
+@using Microsoft.AspNetCore.Authorization
+@using Madplan.Recipes
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject RecipeImportService Importer
+@inject AutoMapper Mapper
+@inject MadplanDbContext Db
+@inject INemligAuth NemligAuth
+
+<PageTitle>Import · Madplan</PageTitle>
+
+<h1>Importér opskrifter</h1>
+<p class="sub">
+    Indsæt links — én pr. linje. Virker på sider med schema.org-data:
+    valdemarsro.dk, madensverden.dk, sundpaabudget.dk og de fleste danske madblogs.
+</p>
+
+<div class="card">
+    <div class="field">
+        <label for="urls">Adresser</label>
+        <textarea id="urls" @bind="urls" @bind:event="oninput" rows="8"
+                  placeholder="https://www.valdemarsro.dk/spaghetti-koedsovs/&#10;https://madensverden.dk/kylling-i-fad/"></textarea>
+    </div>
+    <button class="btn-primary btn-block" @onclick="Start" disabled="@(koerer || AntalLinjer == 0)">
+        @(koerer ? $"Henter… ({resultater.Count}/{AntalLinjer})" : $"Importér {AntalLinjer} opskrifter")
+    </button>
+    <p class="small muted" style="margin:.5rem 0 0">
+        Ét kald i sekundet pr. side, og robots.txt læses først. En import af 30
+        opskrifter tager derfor omkring et minut.
+    </p>
+</div>
+
+@if (resultater.Count > 0)
+{
+    <h2>Resultat</h2>
+    <div class="card tight">
+        <div class="row between">
+            <span><strong>@resultater.Count(r => r.Ok)</strong> importeret</span>
+            <span class="muted small">
+                @resultater.Count(r => r.Skipped) sprunget over ·
+                @resultater.Count(r => r.Error is not null) fejlede
+            </span>
+        </div>
+    </div>
+
+    @foreach (var r in resultater.AsEnumerable().Reverse().Take(60))
+    {
+        <div class="card tight">
+            <div class="row between">
+                <span class="grow small">@(r.Title ?? r.Url)</span>
+                @if (r.Ok) { <span class="pill">✓</span> }
+                else if (r.Skipped) { <span class="pill muted">Havde den</span> }
+                else { <span class="pill warn">Fejl</span> }
+            </div>
+            @if (r.Error is not null) { <div class="small muted">@r.Error</div> }
+        </div>
+    }
+}
+
+<h2>Kobl råvarer til varer</h2>
+<p class="small muted">
+    Importerede opskrifter medbringer nye råvarer. Uden en vare hos nemlig kan de
+    ikke prissættes, og så kan budgetmenuen ikke regne på dem.
+</p>
+
+@if (!NemligAuth.IsConfigured)
+{
+    <div class="notice">Nemlig er ikke konfigureret, så der kan ikke findes varer.</div>
+}
+else
+{
+    <div class="card row between">
+        <div class="grow">
+            <div>@umappede råvarer mangler en vare</div>
+            <div class="small muted">Der vælges den billigste pr. enhed — og valget huskes.</div>
+        </div>
+        <button class="btn-sm" @onclick="Automap" disabled="@(mapper || umappede == 0)">
+            @(mapper ? "Kobler…" : "Kobl alle")
+        </button>
+    </div>
+    @if (mapperStatus is not null) { <div class="notice info">@mapperStatus</div> }
+}
+
+@code {
+    string urls = "";
+    readonly List<RecipeImportService.ImportResult> resultater = [];
+    bool koerer;
+    int umappede;
+    bool mapper;
+    string? mapperStatus;
+
+    int AntalLinjer => urls.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                           .Count(l => l.Trim().Length > 0);
+
+    protected override async Task OnInitializedAsync() => await TaelUmappede();
+
+    async Task TaelUmappede()
+    {
+        var mapped = await Db.ProductMappings.Select(m => m.FoodId).Distinct().ToListAsync();
+        umappede = await Db.Foods.CountAsync(f => !f.IsPantryStaple && !mapped.Contains(f.Id));
+    }
+
+    async Task Start()
+    {
+        koerer = true;
+        resultater.Clear();
+        try
+        {
+            var progress = new Progress<RecipeImportService.ImportResult>(r =>
+            {
+                resultater.Add(r);
+                InvokeAsync(StateHasChanged);
+            });
+
+            await Importer.ImportAsync(urls.Split('\n'), progress);
+            await TaelUmappede();
+        }
+        finally { koerer = false; }
+    }
+
+    async Task Automap()
+    {
+        mapper = true;
+        mapperStatus = null;
+        try
+        {
+            var progress = new Progress<string>(navn =>
+            {
+                mapperStatus = $"Kobler «{navn}»…";
+                InvokeAsync(StateHasChanged);
+            });
+
+            var r = await Mapper.MapAllUnmappedAsync(progress);
+            mapperStatus = $"{r.Mapped} råvarer koblet. " +
+                           (r.NoCandidates > 0 ? $"{r.NoCandidates} fandt ingen vare." : "");
+            await TaelUmappede();
+        }
+        catch (NemligUnavailableException ex) { mapperStatus = ex.Message; }
+        finally { mapper = false; }
+    }
+}

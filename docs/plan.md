@@ -112,7 +112,19 @@ ugepris, og under 5 ingredienser kræver manuelt valg.
 
 ---
 
-## Etape 3 — Læg i kurv ✅ BYGGET (uverificeret mod live-API)
+## Etape 3 — Læg i kurv ❌ FJERNET IGEN
+
+> **Retningen blev ændret.** Kurven blev bygget og derefter fjernet helt, fordi
+> kravet blev strammet: appen skal ikke røre nemligs kurv. Konsekvensen er større
+> end den lyder — hele nemlig-laget er nu **rent læsende**, og det er en stærkere
+> garanti end «fyld kurven, men bestil aldrig» nogensinde var.
+>
+> Det opløste også en spænding i det oprindelige design. Kravet om at et menneske
+> skulle bekræfte hver eneste råvare havde tænder, fordi der var rigtige penge i
+> den anden ende. Uden kurv koster en fejlkobling et upræcist budget, ikke en
+> forkert vare man har betalt for — så automatisk kobling er forsvarlig, og
+> biblioteket kan rumme hundredvis af opskrifter uden at nogen skal klikke sig
+> igennem tusind valg først.
 
 Kort etape, fordi grundlaget er lagt — og fordi `AddToBasket` har været uændret
 siden 2019 og er idempotent.
@@ -130,7 +142,7 @@ manuelt klik hos nemlig. **MVP er nået her.**
 
 ---
 
-## Etape 4 — Import af opskrifter (2–3 aftener)
+## Etape 4 — Import af opskrifter ✅ BYGGET
 
 - Generisk schema.org-ekstraktor: **JSON-LD *og* microdata** (AngleSharp).
   Microdata er ikke valgfrit — valdemarsro bruger det
@@ -148,7 +160,22 @@ manuelt klik hos nemlig. **MVP er nået her.**
 
 ---
 
-## Etape 5 — Det der gør den rar (3–4 aftener)
+## Etape 6 — Budget og automatisk kobling ✅ BYGGET
+
+Kom til efter etape 4, da det viste sig at være projektets egentlige kerne:
+sig hvad ugen må koste, og få en menu der holder sig under.
+
+- `MenuPlanner` prissætter hver kandidatmenu med den RIGTIGE aggregering frem
+  for at lægge retternes priser sammen. Deler to retter en råvare, købes den én
+  gang; pakkestørrelser runder op. En sum ville være forkert.
+- Retter der genbruger råvarer foretrækkes, fordi de er billigere tilsammen.
+- `AutoMapper` kobler råvarer til den billigste vare pr. enhed og gemmer valget,
+  så samme ret koster det samme fra uge til uge.
+- Retter fra de seneste fire uger nedprioriteres — ingen spaghetti tre uger i træk.
+
+---
+
+## Etape 5 — Det der gør den rar (delvist bygget)
 
 - Søgning og filtre: børnevenlig, tid, vegetar, budget
 - **Spisekammer** som en rigtig skærm: `PantryItem`, "løbet tør"-knap

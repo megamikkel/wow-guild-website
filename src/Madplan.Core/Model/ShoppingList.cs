@@ -58,17 +58,3 @@ public enum LineStatus
     FravalgtManuelt,
     KanIkkeBeregnes
 }
-
-/// <summary>Revisionsspor for den ene handling der rører verden uden for appen.
-/// Uden den kan spørgsmålet "hvorfor ligger der tre poser ris i kurven?" ikke besvares.</summary>
-public class BasketSyncLog
-{
-    public int Id { get; set; }
-    public int ShoppingListId { get; set; }
-    public int? UserId { get; set; }
-    public DateTime SyncedAt { get; set; } = DateTime.UtcNow;
-
-    public int LinesPosted { get; set; }
-    public string Outcome { get; set; } = "";
-    public string? Details { get; set; }
-}

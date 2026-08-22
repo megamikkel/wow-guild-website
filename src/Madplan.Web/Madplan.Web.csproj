@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Madplan.Core\Madplan.Core.csproj" />
     <ProjectReference Include="..\Madplan.Data\Madplan.Data.csproj" />
     <ProjectReference Include="..\Madplan.Nemlig\Madplan.Nemlig.csproj" />
+    <ProjectReference Include="..\Madplan.Recipes\Madplan.Recipes.csproj" />
   </ItemGroup>
 
   <ItemGroup>

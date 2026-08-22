@@ -91,11 +91,10 @@ public class OfflineNemligTests
     }
 
     [Fact]
-    public async Task Kurven_forklarer_hvorfor_der_ikke_skete_noget()
+    public async Task Session_forklarer_hvorfor_der_ikke_er_nogen_priser()
     {
-        // Her SKAL der kastes: trykker nogen på knappen, skal de have besked.
         var ex = await Assert.ThrowsAsync<NemligUnavailableException>(
-            () => new OfflineNemlig().SetQuantityAsync("111", 1));
+            () => new OfflineNemlig().GetSessionAsync());
 
         Assert.Equal(NemligFailure.NotConfigured, ex.Reason);
         Assert.Contains("NEMLIG_USERNAME", ex.Message);

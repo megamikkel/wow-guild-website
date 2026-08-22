@@ -18,7 +18,6 @@ public class MadplanDbContext(DbContextOptions<MadplanDbContext> options) : DbCo
     public DbSet<PantryItem> PantryItems => Set<PantryItem>();
     public DbSet<ProductMapping> ProductMappings => Set<ProductMapping>();
     public DbSet<ProductSnapshot> ProductSnapshots => Set<ProductSnapshot>();
-    public DbSet<BasketSyncLog> BasketSyncLogs => Set<BasketSyncLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -105,6 +104,5 @@ public class MadplanDbContext(DbContextOptions<MadplanDbContext> options) : DbCo
             e.Property(x => x.UnitPrice).HasPrecision(10, 2);
         });
 
-        b.Entity<BasketSyncLog>().HasIndex(x => x.SyncedAt);
     }
 }

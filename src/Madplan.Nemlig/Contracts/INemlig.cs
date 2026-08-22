@@ -24,20 +24,15 @@ public interface INemligCatalog
                                                bool forceRefresh = false, CancellationToken ct = default);
 }
 
-/// <summary>Kurven. Den mest stabile flade: uændret sti og payload siden 2019.
-///
-/// Metoden hedder SetQuantity og ikke Add med vilje — nemligs AddToBasket tager
-/// en ABSOLUT mængde, ikke et delta, og er idempotent. Et forkert navn her ville
-/// invitere til præcis den fejl der fordobler ugens indkøb.</summary>
-public interface INemligBasket
-{
-    Task<NemligBasket> GetAsync(CancellationToken ct = default);
-    Task<NemligBasket> SetQuantityAsync(string productId, int quantity, CancellationToken ct = default);
-}
-
-// Bemærk hvad der IKKE er her: ingen PlaceOrder, ingen Checkout, ingen
-// RegisterPayment. Krav 1 er ufravigeligt, og den robuste tolkning er at koden
-// ikke kender adressen. Se docs/arkitektur.md §7 og CheckoutIsNotBuiltTests.
+// Der er BEVIDST intet kurv-interface her.
+//
+// Appen skriver ikke til nemlig. Den læser priser og produkter, og producerer en
+// indkøbsliste som et menneske handler efter. Det var oprindeligt tænkt som "fyld
+// kurven, men bestil aldrig"; kravet blev siden strammet til slet ikke at røre
+// kurven. Konsekvensen er at HELE nemlig-laget er læsende — der findes ikke et
+// kald i denne løsning der ændrer noget som helst hos nemlig.
+//
+// NemligIsReadOnlyTests håndhæver det.
 
 public enum NemligFailure { AuthFailed, RateLimited, SchemaChanged, Network, ProductNotFound, NotConfigured }
 

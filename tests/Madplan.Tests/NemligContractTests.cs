@@ -14,40 +14,6 @@ public class NemligContractTests
     private static JsonNode Load(string name) =>
         JsonNode.Parse(File.ReadAllText(Path.Combine("Fixtures", name)))!;
 
-    [Fact]
-    public void Kurvsvar_mappes_til_vores_type()
-    {
-        var basket = NemligClient.MapBasket(Load("basket.json"));
-
-        Assert.Equal("e34fc914-0000-0000-0000-000000000000", basket.BasketGuid);
-        Assert.Equal(2, basket.Lines.Count);
-
-        var koed = basket.Lines.First(l => l.ProductId == "5070417");
-        Assert.Equal("Hakket oksekød 8-12%", koed.Name);
-        Assert.Equal(2, koed.Quantity);
-        Assert.Equal(41.75m, koed.ItemPrice);
-        Assert.Equal(83.50m, koed.LinePrice);
-        Assert.Equal(133.45m, basket.Total);
-    }
-
-    [Fact]
-    public void Tom_kurv_giver_ingen_linjer_og_kaster_ikke()
-    {
-        var basket = NemligClient.MapBasket(JsonNode.Parse("""{"BasketGuid":"x","Lines":[]}"""));
-        Assert.Empty(basket.Lines);
-        Assert.Equal(0m, basket.Total);
-    }
-
-    [Fact]
-    public void Manglende_felter_faar_os_ikke_til_at_kaste()
-    {
-        // Nemlig kan fjerne et felt uden varsel. Vi skal degradere, ikke vælte.
-        var basket = NemligClient.MapBasket(JsonNode.Parse("""{"Lines":[{"Id":"1","Name":"X"}]}"""));
-        var line = Assert.Single(basket.Lines);
-        Assert.Equal(0, line.Quantity);
-        Assert.Equal(0m, line.LinePrice);
-    }
-
     [Theory]
     // Pris / enhedspris giver pakkestørrelsen. 41,75 / 83,50 kr/kg = 0,5 kg = 500 g.
     [InlineData(41.75, 83.50, "kr/kg", 500, "g")]
@@ -104,21 +70,20 @@ public class NemligContractTests
 public class WireFormatTests
 {
     [Fact]
-    public void Kurv_payload_sendes_med_nemligs_egne_feltnavne()
+    public void Login_payload_sendes_med_nemligs_egne_feltnavne()
     {
         var options = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null };
         var json = System.Text.Json.JsonSerializer.Serialize(new
         {
-            ProductId = "701025",
-            quantity = 2,
-            AffectPartialQuantity = false,
-            disableQuantityValidation = false,
+            Username = "a@b.dk",
+            Password = "x",
+            CheckForExistingProducts = true,
+            DoMerge = true,
         }, options);
 
-        Assert.Contains("\"ProductId\"", json);
-        Assert.Contains("\"quantity\"", json);
-        Assert.Contains("\"AffectPartialQuantity\"", json);
-        Assert.DoesNotContain("\"productId\"", json);
+        Assert.Contains("\"Username\"", json);
+        Assert.Contains("\"CheckForExistingProducts\"", json);
+        Assert.DoesNotContain("\"username\"", json);
     }
 
     [Fact]
@@ -128,5 +93,37 @@ public class WireFormatTests
         var web = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
         var json = System.Text.Json.JsonSerializer.Serialize(new { ProductId = "1" }, web);
         Assert.Contains("\"productId\"", json);
+    }
+}
+
+/// <summary>Pakkestørrelser udledt af pris divideret med enhedspris.</summary>
+public class PackageSizeRoundingTests
+{
+    private static NemligProduct P(decimal pris, decimal enhedspris, string label)
+        => new("1", "X", "x", null, null, null, null, pris, enhedspris, label, true, true, false, null);
+
+    [Theory]
+    // 19,95 kr for 9,98 kr/kg = 1998,99 g. Det ER en 2 kg-pose.
+    [InlineData(19.95, 9.98, "kr/kg", 2000)]
+    // 62,00 for 103,33 kr/kg = 600,019 g.
+    [InlineData(62.00, 103.33, "kr/kg", 600)]
+    [InlineData(41.75, 83.50, "kr/kg", 500)]
+    [InlineData(12.50, 12.50, "kr/l", 1000)]
+    [InlineData(11.50, 28.75, "kr/l", 400)]
+    public void Skaeve_divisioner_rundes_til_rigtige_pakkestoerrelser(
+        decimal pris, decimal enhedspris, string label, double forventet)
+    {
+        var guess = P(pris, enhedspris, label).GuessPackageSize();
+        Assert.NotNull(guess);
+        Assert.Equal(forventet, guess!.Value.Size, 1);
+    }
+
+    [Fact]
+    public void En_pose_paa_to_kilo_daekker_et_behov_paa_to_kilo()
+    {
+        // Fejlen afrundingen forhindrer: uden den blev pakken 1998,99 g, og
+        // ceil(2000 / 1998,99) = 2 poser til et behov på præcis én.
+        var size = P(19.95m, 9.98m, "kr/kg").GuessPackageSize()!.Value.Size;
+        Assert.Equal(1, Madplan.Core.Planning.PackSizeMath.Compute(2000, size).PackCount);
     }
 }

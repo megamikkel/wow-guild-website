@@ -1,0 +1,178 @@
+@page "/budget"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MenuService Menus
+@inject MadplanDbContext Db
+@inject NavigationManager Nav
+
+<PageTitle>Budget · Madplan</PageTitle>
+
+<h1>Menu efter budget</h1>
+<p class="sub">Sig hvad ugen må koste, så finder appen retter der holder sig under.</p>
+
+<div class="card">
+    <div class="row" style="gap:.75rem">
+        <div class="field grow">
+            <label for="budget">Budget (kr.)</label>
+            <input id="budget" type="number" min="0" step="50" @bind="budget" />
+        </div>
+        <div class="field grow">
+            <label for="retter">Antal retter</label>
+            <input id="retter" type="number" min="1" max="7" @bind="retter" />
+        </div>
+        <div class="field grow">
+            <label for="pers">Personer</label>
+            <input id="pers" type="number" min="1" @bind="personer" />
+        </div>
+    </div>
+
+    <div class="row wrap" style="margin-top:.5rem">
+        <label class="row" style="margin:0">
+            <input type="checkbox" style="width:auto;min-height:auto" @bind="boernevenlig" />
+            <span>Kun børnevenlige</span>
+        </label>
+        <label class="row" style="margin:0">
+            <input type="checkbox" style="width:auto;min-height:auto" @bind="vegetar" />
+            <span>Kun vegetar</span>
+        </label>
+        <label class="row" style="margin:0">
+            <input type="checkbox" style="width:auto;min-height:auto" @bind="hurtig" />
+            <span>Under 45 min</span>
+        </label>
+    </div>
+
+    <button class="btn-primary btn-block" style="margin-top:.75rem"
+            @onclick="Foreslaa" disabled="@(soeger || antalOpskrifter == 0)">
+        @(soeger ? "Regner…" : "Foreslå menu")
+    </button>
+
+    @if (antalOpskrifter == 0)
+    {
+        <p class="small muted" style="margin:.5rem 0 0">
+            Der er ingen opskrifter endnu. <a href="/import">Importér nogle først.</a>
+        </p>
+    }
+    else
+    {
+        <p class="small muted" style="margin:.5rem 0 0">
+            @antalOpskrifter opskrifter at vælge mellem, @antalMappede råvarer med pris.
+        </p>
+    }
+</div>
+
+@if (menu is not null)
+{
+    @if (menu.Recipes.Count == 0)
+    {
+        <div class="notice">
+            Fandt ingen retter der passer. Prøv et større budget eller færre filtre.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="total">
+                <span>@menu.Recipes.Count retter</span>
+                <span>@menu.Cost.ToString("N2") kr.</span>
+            </div>
+            <div class="row between small muted">
+                <span>@menu.CostPerServing(personer, menu.Recipes.Count).ToString("N2") kr. pr. portion</span>
+                @if (menu.WithinBudget)
+                {
+                    <span class="pill">@((budget - menu.Cost).ToString("N2")) kr. tilbage</span>
+                }
+                else
+                {
+                    <span class="pill warn">@((menu.Cost - budget).ToString("N2")) kr. over</span>
+                }
+            </div>
+
+            @if (menu.UnpricedIngredients > 0)
+            {
+                <div class="small" style="color:var(--warn);margin-top:.5rem">
+                    ⚠ @menu.UnpricedIngredients råvarer mangler en pris, så beløbet er
+                    et gulv og ikke en total.
+                </div>
+            }
+
+            @if (menu.Recipes.Count < retter)
+            {
+                <div class="small" style="color:var(--warn);margin-top:.5rem">
+                    ⚠ Kun @menu.Recipes.Count af @retter retter kunne holdes inden for budgettet.
+                </div>
+            }
+        </div>
+
+        @foreach (var r in menu.Recipes)
+        {
+            <div class="card tight row between">
+                <div class="grow">
+                    <div>@r.Title</div>
+                    <div class="small muted">
+                        @r.Servings pers. i opskriften
+                        @if (r.TotalTimeMinutes is > 0) { <text> · @r.TotalTimeMinutes min</text> }
+                        @if (r.SourceName is not null) { <text> · @r.SourceName</text> }
+                    </div>
+                </div>
+                @if (r.IsChildFriendly) { <span class="pill">Børn</span> }
+            </div>
+        }
+
+        <div class="row">
+            <button class="btn-primary grow" @onclick="LaegPaaUge" disabled="@laegger">
+                @(laegger ? "Lægger på…" : "Læg på ugeplanen")
+            </button>
+            <button class="btn-quiet" @onclick="Foreslaa" disabled="@soeger">Prøv igen</button>
+        </div>
+    }
+}
+
+@if (besked is not null) { <div class="notice info">@besked</div> }
+
+@code {
+    decimal budget = 800;
+    int retter = 5;
+    int personer = 3;
+    bool boernevenlig, vegetar, hurtig;
+
+    MenuPlanner.Menu? menu;
+    bool soeger, laegger;
+    string? besked;
+    int antalOpskrifter, antalMappede;
+
+    protected override async Task OnInitializedAsync()
+    {
+        antalOpskrifter = await Db.Recipes.CountAsync();
+        antalMappede = await Db.ProductMappings.Select(m => m.FoodId).Distinct().CountAsync();
+    }
+
+    async Task Foreslaa()
+    {
+        soeger = true;
+        besked = null;
+        try
+        {
+            menu = await Menus.SuggestAsync(budget, retter, personer,
+                                            hurtig ? 45 : null, boernevenlig, vegetar);
+        }
+        finally { soeger = false; }
+    }
+
+    async Task LaegPaaUge()
+    {
+        if (menu is null) return;
+        laegger = true;
+        try
+        {
+            var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+            var (year, week) = MealPlanService.CurrentIsoWeek();
+            var lagt = await Menus.ApplyToWeekAsync(menu, householdId, year, week, personer);
+
+            besked = lagt == menu.Recipes.Count
+                ? $"{lagt} retter lagt på ugeplanen."
+                : $"{lagt} retter lagt på. Resten af ugen var optaget.";
+        }
+        finally { laegger = false; }
+    }
+}

@@ -33,32 +33,30 @@ public record NemligProduct(
 
         return label switch
         {
-            "kr/kg" => (size * 1000, "g"),
-            "kr/l"  => (size * 1000, "ml"),
-            "kr/stk" => (size, "stk"),
+            "kr/kg" => (Round(size * 1000), "g"),
+            "kr/l"  => (Round(size * 1000), "ml"),
+            "kr/stk" => (Round(size), "stk"),
             _ => null,
         };
     }
+
+    /// <summary>Divisionen giver skæve tal — 19,95 / 9,98 kr/kg bliver til
+    /// 1998,99 g for en pose på 2 kg. Det er ikke kosmetik: skal man bruge
+    /// præcis 2 kg, giver ceil(2000 / 1998,99) TO poser i stedet for én.
+    /// Pakkestørrelser er i praksis runde tal, så vi runder derefter.</summary>
+    private static double Round(double size) => size switch
+    {
+        >= 1000 => Math.Round(size / 100) * 100,   // nærmeste 100 g/ml
+        >= 100 => Math.Round(size / 10) * 10,      // nærmeste 10
+        >= 10 => Math.Round(size),
+        _ => Math.Round(size, 2),                  // små styktal må gerne være skæve
+    };
 }
 
 public record NemligProductDetail(
     NemligProduct Product,
     IReadOnlyList<NemligProduct> Alternatives,
     IReadOnlyDictionary<string, string> Attributes);
-
-public record NemligBasketLine(
-    string ProductId,
-    string Name,
-    int Quantity,
-    decimal ItemPrice,
-    decimal LinePrice);
-
-public record NemligBasket(
-    string? BasketGuid,
-    IReadOnlyList<NemligBasketLine> Lines)
-{
-    public decimal Total => Lines.Sum(l => l.LinePrice);
-}
 
 /// <summary>Sessionens tilstand. Bearer-tokenet lever 300 sekunder;
 /// .ASPXAUTH-cookien lever et år. Derfor fornyer vi tokenet dovent frem for

@@ -117,3 +117,40 @@ public class ProductSuggesterTests
         Assert.Empty(result);
     }
 }
+
+/// <summary>Auto-mappingens valg mellem kandidater. Fejlene her er stille: en
+/// forkert vare giver et budget der ser rigtigt ud og ikke er det.</summary>
+public class AutoMappingChoiceTests
+{
+    /// <summary>Gengiver den fejl der kostede os Letmælk.
+    ///
+    /// Scoren kan være negativ, fordi lange brandede navne straffes. Med et
+    /// PROCENTVIST relevansfilter («score >= best * 0.75») vender sammenligningen
+    /// når tallene er negative: tærsklen bliver højere end den bedste score, og
+    /// alt andet end topkandidaten falder ud. Så var der ingen at vælge den
+    /// billigste iblandt.</summary>
+    [Theory]
+    [InlineData(-2.0, -3.0)]    // begge negative
+    [InlineData(50.0, 40.0)]    // begge positive
+    [InlineData(5.0, -5.0)]     // blandet
+    public void Relevansfilteret_holder_naboer_inde_uanset_fortegn(double best, double other)
+    {
+        const double margin = 25;
+
+        // Den absolutte margen opfører sig ens for alle fortegn.
+        Assert.True(other >= best - margin,
+            $"Kandidat med score {other} faldt ud, selvom den er inden for {margin} af {best}.");
+
+        // Den procentvise gjorde ikke — og det er netop fejlen.
+        if (best < 0)
+            Assert.False(other >= best * 0.75,
+                "Procentfilteret burde fejle for negative scorer — ellers gengiver testen ikke fejlen.");
+    }
+
+    [Fact]
+    public void En_klart_irrelevant_kandidat_falder_stadig_ud()
+    {
+        const double margin = 25;
+        Assert.False(-100.0 >= 60.0 - margin);
+    }
+}

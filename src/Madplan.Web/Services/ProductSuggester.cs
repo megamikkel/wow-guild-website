@@ -49,6 +49,16 @@ public class ProductSuggester(INemligCatalog catalog)
         var overlap = wanted.Count == 0 ? 0 : (double)wanted.Count(have.Contains) / wanted.Count;
         score += overlap * 50;
 
+        // 2b. Dansk sætter ord sammen. «letmælk» og «kokosmælk» deler ikke ét
+        //     helt ord med «mælk», så begge ville score 0, og et vilkårligt
+        //     kriterium ville afgøre valget. Delvist match vægter lavere end
+        //     et helt ord — så «Løg» stadig slår «Hvidløg» — men nok til at
+        //     bringe kandidaterne på niveau, hvor enhedsprisen kan afgøre.
+        var partial = wanted.Count == 0 ? 0 : (double)wanted
+            .Count(w => !have.Contains(w) && have.Any(h => h.Contains(w, StringComparison.Ordinal)))
+            / wanted.Count;
+        score += partial * 15;
+
         // 3. Kategorien passer. Fanger at "smør" ikke er "smørbart pålæg".
         if (food.AisleLabel is not null && p.Category is not null &&
             p.Category.Contains(food.AisleLabel, StringComparison.OrdinalIgnoreCase))
@@ -62,8 +72,10 @@ public class ProductSuggester(INemligCatalog catalog)
 
         // 6. Straf lange brandede navne. "Änglamark Økologisk Hakket Oksekød
         //    8-12% 400g" er ofte rigtigt, men det korte navn er oftere det man mener.
+        // Straffen skal nudge, ikke afgøre. Var den større, kunne et brandnavn
+        //     alene vælte et ellers korrekt match.
         var extraWords = Math.Max(0, have.Count - wanted.Count);
-        score -= extraWords * 1.5;
+        score -= extraWords * 0.75;
 
         if (reason is null && !p.InStock) reason = "Udsolgt";
         else if (reason is null && p.IsDiscounted) reason = "På tilbud";

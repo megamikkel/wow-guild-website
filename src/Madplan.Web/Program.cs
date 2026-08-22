@@ -1,6 +1,7 @@
 using Madplan.Core.Model;
 using Madplan.Data;
 using Madplan.Nemlig;
+using Madplan.Recipes;
 using Madplan.Web.Components;
 using Madplan.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -33,8 +34,18 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 
 builder.Services.AddNemlig(builder.Configuration);
-builder.Services.AddScoped<BasketSyncService>();
 builder.Services.AddScoped<ProductSuggester>();
+builder.Services.AddScoped<AutoMapper>();
+builder.Services.AddScoped<RecipeImportService>();
+builder.Services.AddScoped<MenuService>();
+builder.Services.AddSingleton<RecipeExtractor>();
+builder.Services.AddHttpClient<RecipeFetcher>(c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(20);
+    // Vi siger hvem vi er. En privat husstand der importerer et par opskrifter
+    // har ingen grund til at skjule sig.
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("madplan-nemlig/1.0 (privat husstandsbrug)");
+});
 builder.Services.AddScoped<FoodResolver>();
 builder.Services.AddScoped<MealPlanService>();
 builder.Services.AddSingleton<PriceRefreshService>();

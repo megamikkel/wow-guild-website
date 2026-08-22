@@ -7,7 +7,6 @@
 @inject MadplanDbContext Db
 @inject MealPlanService Plans
 @inject ProductSuggester Suggester
-@inject BasketSyncService Sync
 @inject INemligAuth NemligAuth
 
 <PageTitle>Indkøb uge @week · Madplan</PageTitle>
@@ -88,8 +87,8 @@ else
     {
         <h2>Mangler en vare (@mangler.Count)</h2>
         <p class="small muted">
-            Vælg én gang, så husker appen det. Der gættes ikke — intet af dette
-            ender i kurven, før du har valgt.
+            Uden en vare kan råvaren ikke prissættes, og budgetmenuen kan ikke
+            regne på retten. Vælg én gang, så husker appen det.
         </p>
         @foreach (var l in mangler)
         {
@@ -163,43 +162,10 @@ else
         </div>
     }
 
-    <h2>Nemlig-kurv</h2>
-    @if (preview is null)
-    {
-        <button class="btn-primary btn-block" @onclick="Forbered"
-                disabled="@(!NemligAuth.IsConfigured || arbejder || koeb.Count == 0)">
-            @(arbejder ? "Henter kurven…" : "Forbered kurv")
-        </button>
-        <p class="small muted" style="text-align:center;margin-top:.5rem">
-            Bestillingen gennemføres af dig hos nemlig. Appen fylder kun kurven.
-        </p>
-    }
-    else
-    {
-        <div class="card">
-            @if (!preview.HasChanges)
-            {
-                <p class="small" style="margin:0">Kurven stemmer allerede med listen.</p>
-            }
-            else
-            {
-                <div class="small muted" style="margin-bottom:.5rem">Dette lægges i kurven:</div>
-                @foreach (var c in preview.Actionable)
-                {
-                    <div class="small" style="padding:.15rem 0">· @c.Description</div>
-                }
-            }
-        </div>
-        <div class="row">
-            <button class="btn-primary grow" @onclick="Udfoer" disabled="@(arbejder || !preview.HasChanges)">
-                @(arbejder ? "Sender…" : "Læg i nemlig-kurv")
-            </button>
-            <button class="btn-quiet" @onclick="() => preview = null">Fortryd</button>
-        </div>
-        <p class="small muted" style="text-align:center;margin-top:.5rem">
-            Bestillingen gennemføres af dig hos nemlig. Appen fylder kun kurven.
-        </p>
-    }
+    <div class="notice info">
+        Appen lægger ikke selv varer i nemlig-kurven. Listen her er til at handle
+        efter — varenumre og priser er nemligs egne, så det du søger efter findes.
+    </div>
 
     @if (besked is not null) { <div class="notice @beskedType">@besked</div> }
 }
@@ -211,11 +177,9 @@ else
 
     MealPlan? plan;
     ShoppingList? list;
-    BasketSyncService.Preview? preview;
 
     readonly Dictionary<int, List<ProductSuggester.Suggestion>> forslag = [];
     int? soeger;
-    bool arbejder;
     string? besked;
     string beskedType = "";
 
@@ -236,7 +200,6 @@ else
     {
         if (plan is null) return;
         list = await Plans.BuildShoppingListAsync(plan);
-        preview = null;
     }
 
     static string Maengde(ShoppingListLine l)
@@ -300,31 +263,6 @@ else
         await Db.SaveChangesAsync();
         forslag.Remove(l.FoodId);
         await Genberegn();
-    }
-
-    async Task Forbered()
-    {
-        if (list is null) return;
-        arbejder = true; besked = null;
-        try { preview = await Sync.PreviewAsync(list); }
-        catch (NemligUnavailableException ex) { Vis(ex.Message, ""); }
-        finally { arbejder = false; }
-    }
-
-    async Task Udfoer()
-    {
-        if (list is null || preview is null) return;
-        arbejder = true; besked = null;
-        try
-        {
-            var log = await Sync.ApplyAsync(list, preview, await CurrentUserIdAsync());
-            Vis(log.Outcome == "Ok"
-                ? $"{log.LinesPosted} varer ligger nu i kurven. Gennemfør selv bestillingen hos nemlig."
-                : $"Delvist gennemført: {log.Details}", log.Outcome == "Ok" ? "info" : "");
-            preview = null;
-        }
-        catch (NemligUnavailableException ex) { Vis(ex.Message, ""); }
-        finally { arbejder = false; }
     }
 
     void Vis(string tekst, string type) { besked = tekst; beskedType = type; }
