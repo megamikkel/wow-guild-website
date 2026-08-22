@@ -95,5 +95,38 @@ public class NemligContractTests
     }
 
     private static NemligProduct Produkt(decimal price, decimal? unitPrice, string? label) =>
-        new("1", "X", null, null, null, null, price, unitPrice, label, true, true, false, null);
+        new("1", "X", "x-1", null, null, null, null, price, unitPrice, label, true, true, false, null);
+}
+
+/// <summary>Feltnavne på tråden. Fundet ved at køre appen mod en stub-server:
+/// System.Net.Http.Json camelCaser som standard, så «ProductId» blev sendt som
+/// «productId» — ikke det skema nemlig dokumenterer.</summary>
+public class WireFormatTests
+{
+    [Fact]
+    public void Kurv_payload_sendes_med_nemligs_egne_feltnavne()
+    {
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null };
+        var json = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            ProductId = "701025",
+            quantity = 2,
+            AffectPartialQuantity = false,
+            disableQuantityValidation = false,
+        }, options);
+
+        Assert.Contains("\"ProductId\"", json);
+        Assert.Contains("\"quantity\"", json);
+        Assert.Contains("\"AffectPartialQuantity\"", json);
+        Assert.DoesNotContain("\"productId\"", json);
+    }
+
+    [Fact]
+    public void Standardopsaetningen_ville_have_vaeret_forkert()
+    {
+        // Dokumenterer hvorfor WireJson findes: uden den camelCases alt.
+        var web = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+        var json = System.Text.Json.JsonSerializer.Serialize(new { ProductId = "1" }, web);
+        Assert.Contains("\"productId\"", json);
+    }
 }

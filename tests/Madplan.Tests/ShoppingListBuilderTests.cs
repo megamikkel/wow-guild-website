@@ -241,3 +241,62 @@ public class ShoppingListBuilderTests
         Assert.Equal(LineStatus.Udsolgt, Assert.Single(list.Lines).Status);
     }
 }
+
+public class UnitMismatchTests
+{
+    private static readonly Unit G   = new() { Id = 1, Abbreviation = "g",   Type = UnitType.Mass,  ToBaseFactor = 1 };
+    private static readonly Unit Stk = new() { Id = 6, Abbreviation = "stk", Type = UnitType.Count, ToBaseFactor = 1 };
+    private static readonly Unit[] Units = [G, Stk];
+
+    [Fact]
+    public void Vare_opgjort_i_gram_mod_behov_i_styk_beregnes_ikke_men_forklares()
+    {
+        // Fundet ved at køre appen: "1 dåse flåede tomater" gav en mapning hvis
+        // pakkestørrelse blev udledt til 400 g. Resultatet var beskeden
+        // "Du køber 399,92 for at bruge 2" — vrøvl, fordi enhedstyperne ikke matcher.
+        var tomat = new Food { Id = 1, CanonicalName = "flåede tomater" };
+        var mapping = new ProductMapping
+        {
+            Id = 1, FoodId = tomat.Id, NemligProductId = "1", ProductName = "Flåede tomater",
+            PackageSize = 400, PackageUnitId = G.Id, PackageUnit = G,   // gram
+        };
+
+        var recipe = new Recipe { Id = 1, Title = "Sovs", Servings = 4, Ingredients = [
+            new RecipeIngredient { Food = tomat, FoodId = tomat.Id, Quantity = 2, Unit = Stk, UnitId = Stk.Id }
+        ]};
+        var entries = new[] { new MealPlanEntry { Recipe = recipe, RecipeId = 1, Servings = 4 } };
+
+        var list = new ShoppingListBuilder(Units, []).Build(new MealPlan(),
+            new ShoppingListBuilder.Input(entries, [mapping], [], new Dictionary<string, decimal?>(),
+                                          new Dictionary<string, bool>()));
+
+        var line = Assert.Single(list.Lines);
+        Assert.Equal(LineStatus.KanIkkeBeregnes, line.Status);
+        Assert.Equal(0, line.PackCount);
+        Assert.Contains("styk", line.Warning);
+        Assert.Contains("g", line.Warning);
+    }
+
+    [Fact]
+    public void Matchende_enhedstyper_beregnes_som_foer()
+    {
+        var pasta = new Food { Id = 2, CanonicalName = "pasta" };
+        var mapping = new ProductMapping
+        {
+            Id = 1, FoodId = pasta.Id, NemligProductId = "2", ProductName = "Spaghetti 500 g",
+            PackageSize = 500, PackageUnitId = G.Id, PackageUnit = G,
+        };
+        var recipe = new Recipe { Id = 1, Title = "Pasta", Servings = 4, Ingredients = [
+            new RecipeIngredient { Food = pasta, FoodId = pasta.Id, Quantity = 300, Unit = G, UnitId = G.Id }
+        ]};
+        var entries = new[] { new MealPlanEntry { Recipe = recipe, RecipeId = 1, Servings = 4 } };
+
+        var list = new ShoppingListBuilder(Units, []).Build(new MealPlan(),
+            new ShoppingListBuilder.Input(entries, [mapping], [], new Dictionary<string, decimal?>(),
+                                          new Dictionary<string, bool>()));
+
+        var line = Assert.Single(list.Lines);
+        Assert.Equal(LineStatus.Ok, line.Status);
+        Assert.Equal(1, line.PackCount);
+    }
+}

@@ -27,6 +27,18 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligBasket
     private NemligSession? _session;
     private PageContext? _context;
 
+    /// <summary>Feltnavne sendes ORDRET som dokumenteret. System.Net.Http.Json
+    /// bruger som standard JsonSerializerDefaults.Web, der camelCaser alt — så
+    /// «ProductId» ville gå på tråden som «productId». ASP.NET binder ganske vist
+    /// case-insensitivt, så det ville formentlig virke; men «formentlig» er ikke
+    /// godt nok for det kald der fylder kurven, og det koster os intet at ramme
+    /// skemaet præcist.</summary>
+    private static readonly JsonSerializerOptions WireJson = new()
+    {
+        PropertyNamingPolicy = null,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never,
+    };
+
     public NemligClient(HttpClient http, IOptions<NemligOptions> options,
                         IMemoryCache cache, ILogger<NemligClient> log)
     {
@@ -162,19 +174,60 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligBasket
         return products;
     }
 
-    public async Task<NemligProductDetail?> GetProductAsync(string productId, CancellationToken ct = default)
+    public async Task<NemligProductDetail?> GetProductAsync(
+        string productId, string? productUrl = null, bool forceRefresh = false, CancellationToken ct = default)
     {
         var cacheKey = $"nemlig:product:{productId}";
-        if (_cache.TryGetValue<NemligProductDetail>(cacheKey, out var hit) && hit is not null) return hit;
+        if (!forceRefresh && _cache.TryGetValue<NemligProductDetail>(cacheKey, out var hit) && hit is not null)
+            return hit;
 
-        // Produktdetaljer hentes via GetAsJson på produktets egen URL. Vi kender
-        // ikke sluggen, kun id'et — søgningen er den pålidelige vej dertil.
-        var found = (await SearchAsync(productId, 5, ct)).FirstOrDefault(p => p.Id == productId);
-        if (found is null) return null;
+        var detail = productUrl is { Length: > 0 }
+            ? await GetProductByUrlAsync(productId, productUrl, ct)
+            : await FindProductBySearchAsync(productId, ct);
 
-        var detail = new NemligProductDetail(found, [], new Dictionary<string, string>());
-        _cache.Set(cacheKey, detail, _options.ProductCacheDuration);
+        if (detail is not null) _cache.Set(cacheKey, detail, _options.PriceCacheDuration);
         return detail;
+    }
+
+    /// <summary>Den dokumenterede vej til produktdetaljer: GetAsJson på varens
+    /// egen sti. Det er også den eneste pålidelige — se fallbacken nedenfor.</summary>
+    private async Task<NemligProductDetail?> GetProductByUrlAsync(string productId, string url, CancellationToken ct)
+    {
+        var session = await GetSessionAsync(ct);
+        var ctx = await GetContextAsync(ct);
+        var path = url.StartsWith('/') ? url : "/" + url;
+
+        var json = await SendAsync(HttpMethod.Get,
+            $"{path}?GetAsJson=1&t={Uri.EscapeDataString(ctx.TimeslotUtc)}&d=1",
+            null, AuthHeaders(session), ct);
+
+        // Produktsiden lægger varen enten i roden eller under et produktobjekt.
+        var node = json?["Product"] ?? json?["product"] ?? json;
+        var product = MapProduct(node);
+        if (product is null || product.Id != productId) return null;
+
+        var alternatives = (node?["AlternativeProducts"] as JsonArray ?? [])
+            .Select(MapProduct).Where(p => p is not null).Select(p => p!).ToList();
+
+        var attributes = new Dictionary<string, string>();
+        foreach (var a in node?["Attributes"] as JsonArray ?? [])
+        {
+            var key = a?["Name"]?.GetValue<string>() ?? a?["Key"]?.GetValue<string>();
+            var value = a?["Value"]?.GetValue<string>();
+            if (key is not null && value is not null) attributes[key] = value;
+        }
+
+        return new NemligProductDetail(product, alternatives, attributes);
+    }
+
+    /// <summary>Fallback når vi ikke kender varens sti. Bemærk at en søgning på
+    /// et varenummer IKKE er en pålidelig måde at finde netop den vare — nemligs
+    /// søgning er lavet til produktnavne. Derfor gemmer vi stien på mapningen,
+    /// og denne vej bruges kun til gamle rækker der mangler den.</summary>
+    private async Task<NemligProductDetail?> FindProductBySearchAsync(string productId, CancellationToken ct)
+    {
+        var found = (await SearchAsync(productId, 5, ct)).FirstOrDefault(p => p.Id == productId);
+        return found is null ? null : new NemligProductDetail(found, [], new Dictionary<string, string>());
     }
 
     private static NemligProduct? MapProduct(JsonNode? n)
@@ -187,6 +240,7 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligBasket
         return new NemligProduct(
             Id: id,
             Name: n["Name"]?.GetValue<string>() ?? "",
+            Url: n["Url"]?.GetValue<string>(),
             Brand: n["Brand"]?.GetValue<string>(),
             Category: n["Category"]?.GetValue<string>(),
             SubCategory: n["SubCategory"]?.GetValue<string>(),
@@ -217,6 +271,8 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligBasket
         if (quantity < 0) throw new ArgumentOutOfRangeException(nameof(quantity));
 
         var session = await GetSessionAsync(ct);
+        // Feltnavnene er nemligs egne, inklusive den inkonsekvente blanding af
+        // stort og lille begyndelsesbogstav. Vi kopierer skemaet, ikke smagen.
         var body = new
         {
             ProductId = productId,
@@ -264,7 +320,7 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligBasket
         foreach (var (k, v) in headers ?? [])
             req.Headers.TryAddWithoutValidation(k, v);
 
-        if (body is not null) req.Content = JsonContent.Create(body);
+        if (body is not null) req.Content = JsonContent.Create(body, options: WireJson);
 
         HttpResponseMessage resp;
         try

@@ -1,0 +1,18 @@
+# Start med:  docker compose up -d
+# Åbn:        http://localhost:8080
+#
+# Kræver en .env ved siden af denne fil — se .env.example.
+
+services:
+  madplan:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - madplan-data:/data
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  madplan-data:

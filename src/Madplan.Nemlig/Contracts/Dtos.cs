@@ -5,6 +5,9 @@ namespace Madplan.Nemlig.Contracts;
 public record NemligProduct(
     string Id,
     string Name,
+    /// <summary>Varens sti hos nemlig, fx «cocio-kakaomaelk-701025». Den er
+    /// vejen til produktdetaljer via GetAsJson, og dermed til prisopdatering.</summary>
+    string? Url,
     string? Brand,
     string? Category,
     string? SubCategory,

@@ -11,6 +11,10 @@ public class ProductMapping
     public string NemligProductId { get; set; } = "";
     public string ProductName { get; set; } = "";
 
+    /// <summary>Varens sti hos nemlig. Gemmes ved valget, så den daglige
+    /// prisopdatering kan hente detaljer direkte i stedet for at søge.</summary>
+    public string? ProductUrl { get; set; }
+
     /// <summary>Pakkens indhold i <see cref="PackageUnitId"/>. En pose pasta á 500 g
     /// giver 500. Uden denne kan vi ikke regne 300 g om til ét stk.</summary>
     public double PackageSize { get; set; } = 1;

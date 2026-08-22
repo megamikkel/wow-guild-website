@@ -14,7 +14,8 @@ file sealed class FakeCatalog(params NemligProduct[] products) : INemligCatalog
         return Task.FromResult<IReadOnlyList<NemligProduct>>(products);
     }
 
-    public Task<NemligProductDetail?> GetProductAsync(string id, CancellationToken ct = default)
+    public Task<NemligProductDetail?> GetProductAsync(string id, string? productUrl = null,
+                                                      bool forceRefresh = false, CancellationToken ct = default)
         => Task.FromResult<NemligProductDetail?>(null);
 }
 
@@ -22,7 +23,8 @@ public class ProductSuggesterTests
 {
     private static NemligProduct P(string id, string name, string? brand = null, decimal price = 20m,
                                    bool inStock = true, string? category = null, decimal? unitPrice = null)
-        => new(id, name, brand, category, null, null, price, unitPrice, "kr/kg", inStock, true, false, null);
+        => new(id, name, $"{name.ToLowerInvariant().Replace(' ', '-')}-{id}", brand, category,
+               null, null, price, unitPrice, "kr/kg", inStock, true, false, null);
 
     [Fact]
     public async Task Koebt_foer_slaar_alt_andet()

@@ -23,7 +23,8 @@ public sealed class OfflineNemlig : INemligAuth, INemligCatalog, INemligBasket
     public Task<IReadOnlyList<NemligProduct>> SearchAsync(string query, int take = 10, CancellationToken ct = default)
         => Task.FromResult<IReadOnlyList<NemligProduct>>([]);
 
-    public Task<NemligProductDetail?> GetProductAsync(string productId, CancellationToken ct = default)
+    public Task<NemligProductDetail?> GetProductAsync(string productId, string? productUrl = null,
+                                                      bool forceRefresh = false, CancellationToken ct = default)
         => Task.FromResult<NemligProductDetail?>(null);
 
     // Kurven kaster derimod. Trykker nogen på knappen, skal de få at vide hvorfor

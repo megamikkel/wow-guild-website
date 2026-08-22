@@ -52,7 +52,7 @@ public class MealPlanService(MadplanDbContext db, INemligCatalog catalog, ILogge
         var pantry = await db.PantryItems.ToListAsync(ct);
 
         var neededProductIds = mappings.Select(m => m.NemligProductId).Distinct().ToList();
-        var (prices, stock) = await LookUpPricesAsync(neededProductIds, ct);
+        var (prices, stock) = await LookUpPricesAsync(neededProductIds, mappings, ct);
 
         var builder = new ShoppingListBuilder(units, conversions);
         return builder.Build(plan, new ShoppingListBuilder.Input(
@@ -60,8 +60,12 @@ public class MealPlanService(MadplanDbContext db, INemligCatalog catalog, ILogge
     }
 
     private async Task<(Dictionary<string, decimal?>, Dictionary<string, bool>)> LookUpPricesAsync(
-        IReadOnlyCollection<string> productIds, CancellationToken ct)
+        IReadOnlyCollection<string> productIds, IReadOnlyCollection<ProductMapping> mappings, CancellationToken ct)
     {
+        var mappingsById = mappings
+            .GroupBy(m => m.NemligProductId)
+            .ToDictionary(g => g.Key, g => g.First());
+
         var prices = new Dictionary<string, decimal?>();
         var stock = new Dictionary<string, bool>();
         if (productIds.Count == 0) return (prices, stock);
@@ -88,7 +92,8 @@ public class MealPlanService(MadplanDbContext db, INemligCatalog catalog, ILogge
         {
             foreach (var id in missing)
             {
-                var detail = await catalog.GetProductAsync(id, ct);
+                var mapping = mappingsById.GetValueOrDefault(id);
+                var detail = await catalog.GetProductAsync(id, mapping?.ProductUrl, ct: ct);
                 if (detail is null) continue;
 
                 var p = detail.Product;

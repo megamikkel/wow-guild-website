@@ -14,7 +14,14 @@ public interface INemligAuth
 public interface INemligCatalog
 {
     Task<IReadOnlyList<NemligProduct>> SearchAsync(string query, int take = 10, CancellationToken ct = default);
-    Task<NemligProductDetail?> GetProductAsync(string productId, CancellationToken ct = default);
+    /// <param name="productUrl">Varens sti hos nemlig. Er den kendt, hentes
+    /// detaljer direkte via GetAsJson — den dokumenterede vej. Uden den må vi
+    /// falde tilbage på at søge, og en søgning på et varenummer er ikke en
+    /// pålidelig måde at finde netop den vare.</param>
+    /// <param name="forceRefresh">Forbigå cachen. Den daglige prisopdatering
+    /// skal hente friske priser, ikke gårsdagens fra cachen.</param>
+    Task<NemligProductDetail?> GetProductAsync(string productId, string? productUrl = null,
+                                               bool forceRefresh = false, CancellationToken ct = default);
 }
 
 /// <summary>Kurven. Den mest stabile flade: uændret sti og payload siden 2019.

@@ -37,6 +37,8 @@ builder.Services.AddScoped<BasketSyncService>();
 builder.Services.AddScoped<ProductSuggester>();
 builder.Services.AddScoped<FoodResolver>();
 builder.Services.AddScoped<MealPlanService>();
+builder.Services.AddSingleton<PriceRefreshService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<PriceRefreshService>());
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

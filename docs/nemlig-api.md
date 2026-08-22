@@ -1,6 +1,6 @@
 # nemlig.com API — verificeret overblik
 
-**Status:** research, ingen kode skrevet.
+**Status:** research + en klient bygget ovenpå (`src/Madplan.Nemlig`).
 **Dato:** 2026-08-22.
 **Vigtigt forbehold:** `nemlig.com` er blokeret af netværkspolitikken i det miljø
 denne research blev lavet i. Jeg har **ikke** kunnet lave et eneste live-kald mod
@@ -403,6 +403,41 @@ fanger vi vores egne fejl gratis. Kør derudover en `--smoke`-kommando mod det
 rigtige API manuelt før hver madplan-uge — den skal søge én vare og læse kurven.
 Når den fejler, ved vi at nemlig har ændret noget, **før** vi står med en tom
 indkøbsliste søndag aften.
+
+---
+
+## 7b. Fund fra at bygge klienten
+
+To ting kom først frem da koden kørte mod en stub-server bygget efter skemaerne
+i dette dokument. Ingen af dem kan læses ud af `nemlig_api.md`.
+
+### Feltnavne er PascalCase, og .NET vil gerne lave dem om
+
+`System.Net.Http.Json` bruger som standard `JsonSerializerDefaults.Web`, der
+camelCaser alle feltnavne. Vores `AddToBasket`-kald gik derfor på tråden som
+`{"productId": …}` frem for `{"ProductId": …}`. ASP.NET binder case-insensitivt,
+så det ville formentlig have virket mod den rigtige nemlig — men "formentlig" er
+ikke godt nok for det ene kald der fylder kurven. Klienten sender nu feltnavnene
+ordret som dokumenteret. Samme gælder `login`-payloaden.
+
+**Tilføj til tjek 8:** bekræft at nemlig faktisk er case-insensitiv, eller at vi
+rammer skemaet præcist. En 400'er her er nem at overse, fordi kurven bare
+forbliver tom.
+
+### Produktdetaljer kræver varens URL, ikke dens varenummer
+
+`nemlig_api.md` dokumenterer at produktdetaljer hentes med
+`GET /<produkt-url>?GetAsJson=1`, altså på varens **slug** (`cocio-kakaomaelk-701025`).
+Vi kender kun varenummeret, og den oplagte genvej — at søge efter varenummeret —
+virker ikke: søge-gatewayen er lavet til produktnavne.
+
+Løsningen er at gemme `Url` fra søgesvaret på `ProductMapping`, når mennesket
+vælger varen. Så har den daglige prisopdatering en direkte vej til hver vare.
+Det er en pointe der bør stå i datamodellen fra starten, ikke opdages senere.
+
+**Åbent:** vi ved ikke om et varenummer alene kan slås op ad anden vej. Findes
+der et `/webapi/product/{id}`-endpoint, er det værd at kende — det ville gøre os
+uafhængige af at have gemt sluggen. Læg det ind som tjek 9.
 
 ---
 

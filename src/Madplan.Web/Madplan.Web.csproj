@@ -17,4 +17,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Madplan.Tests" />
+  </ItemGroup>
 </Project>

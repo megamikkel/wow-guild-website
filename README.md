@@ -10,8 +10,9 @@ Hobbyprojekt til eget brug. Ikke et produkt.
 
 ## Status
 
-**Etape 1–3 er bygget og kører.** Ugeplan, opskrifter, aggregeret indkøbsliste,
-prisopslag og kurv-synkronisering. 79 tests grønne.
+**Etape 1–3 er bygget og kører**, plus daglig prisovervågning. Ugeplan,
+opskrifter, aggregeret indkøbsliste, priser og kurv-synkronisering.
+87 tests grønne.
 
 ⚠️ **Nemlig-laget er ikke live-verificeret.** Skemaerne stammer fra offentlig
 dokumentation og tre open source-klienter, ikke fra et kald mod nemlig.com —
@@ -21,8 +22,10 @@ rører nemlig er afprøvet i en rigtig browser.
 
 ```bash
 cp .env.example .env      # udfyld MADPLAN_USERS
-dotnet run --project src/Madplan.Web
+docker compose up -d      # http://localhost:8080
 ```
+
+Eller uden Docker: `dotnet run --project src/Madplan.Web`.
 
 Uden nemlig-credentials kører appen i offline-tilstand: madplan, opskrifter og
 indkøbsliste virker, priser er ukendte, kurv-knappen er slået fra.
@@ -57,7 +60,7 @@ Disse gælder gennem hele projektet og er ikke til forhandling undervejs:
 | `Madplan.Data` | EF Core + SQLite, seed, råvareopslag og -fletning |
 | `Madplan.Nemlig` | Det eneste sted der kender nemlig. Egne DTO'er, tre interfaces |
 | `Madplan.Web` | Blazor Server. UI, auth, kurv-synkronisering |
-| `Madplan.Tests` | 79 tests, heriblandt vagthunden mod checkout |
+| `Madplan.Tests` | 87 tests, heriblandt vagthunden mod checkout |
 
 `Core` og `Nemlig` har **nul** projektreferencer. Isolationen er noget
 compileren håndhæver, ikke en aftale man indgår med sig selv.
@@ -65,9 +68,26 @@ compileren håndhæver, ikke en aftale man indgår med sig selv.
 ## Kom i gang
 
 ```bash
-dotnet test                                  # 79 tests
+dotnet test                                  # 87 tests
 dotnet run --project src/Madplan.Web         # http://localhost:5265
 ```
+
+### Afprøvning uden nemlig
+
+`tools/fake-nemlig/` er en stub-server der svarer efter de dokumenterede
+skemaer. Den lader hele flowet køre — login, søgning, mapping, priser, kurv —
+uden at røre den rigtige nemlig:
+
+```bash
+node tools/fake-nemlig/server.mjs 5300 &
+NEMLIG_USERNAME=demo NEMLIG_PASSWORD=demo \
+  Nemlig__BaseUrl=http://localhost:5300 \
+  Nemlig__SearchGatewayUrl=http://localhost:5300/searchgateway/api \
+  dotnet run --project src/Madplan.Web
+```
+
+Den beviser ikke at nemligs API ser sådan ud — kun at vores klient virker hvis
+det gør. To ægte fejl blev fanget på den måde; se `docs/nemlig-api.md` §7b.
 
 Næste skridt er etape 0 i [`docs/plan.md`](docs/plan.md): en browser-session der
 verificerer at nemligs API ser ud som dokumenteret.

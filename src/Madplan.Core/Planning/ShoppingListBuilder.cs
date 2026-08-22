@@ -108,6 +108,21 @@ public class ShoppingListBuilder(
             line.ProductMappingId = mapping.Id;
             line.ProductMapping = mapping;
 
+            // Pakkestørrelsen skal måles i SAMME enhedstype som behovet. Ellers
+            // sammenligner vi æbler og pærer: en opskrift der beder om 2 dåser
+            // tomat, mappet til en vare hvis pakkestørrelse blev udledt til 400 g,
+            // gav før beskeden "du køber 399,92 for at bruge 2".
+            if (mapping.PackageUnit is not null && mapping.PackageUnit.Type != bucket.BaseType)
+            {
+                line.Status = LineStatus.KanIkkeBeregnes;
+                line.Warning =
+                    $"Opskriften måler i {UnitWord(bucket.BaseType)}, men varen er " +
+                    $"opgjort i {mapping.PackageUnit.Abbreviation}. Ret pakkestørrelsen " +
+                    "på mapningen, så antallet kan beregnes.";
+                list.Lines.Add(line);
+                continue;
+            }
+
             // Pakkestørrelsen er gemt i mapningens egen enhed; bring den til basis.
             var packageBase = mapping.PackageUnit is not null
                 ? mapping.PackageSize * mapping.PackageUnit.ToBaseFactor
@@ -139,6 +154,13 @@ public class ShoppingListBuilder(
 
         return list;
     }
+
+    private static string UnitWord(UnitType t) => t switch
+    {
+        UnitType.Mass => "vægt",
+        UnitType.Volume => "rumfang",
+        _ => "styk",
+    };
 
     private Unit? BaseUnitFor(UnitType type) =>
         _units.Values.FirstOrDefault(u => u.Type == type && Math.Abs(u.ToBaseFactor - 1) < 1e-9);

@@ -1,0 +1,134 @@
+@page "/priser"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MadplanDbContext Db
+@inject PriceRefreshService Refresher
+@inject INemligAuth NemligAuth
+
+<PageTitle>Priser · Madplan</PageTitle>
+
+<h1>Priser</h1>
+<p class="sub">
+    Opdateres automatisk kl. 04 hver nat for de varer I har mappet.
+    Priserne gemmes som observationer, så historikken bygges op af sig selv.
+</p>
+
+@if (!NemligAuth.IsConfigured)
+{
+    <div class="notice">Nemlig er ikke konfigureret, så der hentes ingen priser.</div>
+}
+else
+{
+    <div class="card row between">
+        <div class="grow">
+            <div>@varer.Count varer overvåges</div>
+            <div class="small muted">
+                @(sidste is null ? "Aldrig hentet" : $"Sidst hentet {Alder(sidste.Value)}")
+            </div>
+        </div>
+        <button class="btn-sm" @onclick="Opdater" disabled="@arbejder">
+            @(arbejder ? "Henter…" : "Opdatér nu")
+        </button>
+    </div>
+}
+
+@if (besked is not null) { <div class="notice info">@besked</div> }
+
+@if (varer.Count == 0)
+{
+    <p class="empty">
+        Ingen varer er mappet endnu. Priser hentes for de varer I vælger på
+        <a href="/indkoeb">indkøbslisten</a>.
+    </p>
+}
+else
+{
+    <h2>Overvågede varer</h2>
+    @foreach (var v in varer.OrderBy(v => v.Navn))
+    {
+        <div class="card tight row between">
+            <div class="grow">
+                <div>@v.Navn</div>
+                <div class="small muted">
+                    @if (v.Seneste is { } pris)
+                    {
+                        <text>@pris.ToString("N2") kr.</text>
+                        @if (v.Aendring is { } d && Math.Abs(d) >= 0.01m)
+                        {
+                            <span class="pill @(d > 0 ? "warn" : "")">
+                                @(d > 0 ? "+" : "")@d.ToString("N2") kr.
+                            </span>
+                        }
+                        @if (!v.PaaLager) { <span class="pill warn">Udsolgt</span> }
+                    }
+                    else
+                    {
+                        <text>Ingen pris endnu</text>
+                    }
+                </div>
+            </div>
+            <span class="small muted">@v.Observationer obs.</span>
+        </div>
+    }
+}
+
+@code {
+    record Vare(string Id, string Navn, decimal? Seneste, decimal? Aendring, bool PaaLager, int Observationer);
+
+    List<Vare> varer = [];
+    DateTime? sidste;
+    bool arbejder;
+    string? besked;
+
+    protected override async Task OnInitializedAsync() => await Hent();
+
+    async Task Hent()
+    {
+        var mappings = await Db.ProductMappings
+            .GroupBy(m => m.NemligProductId)
+            .Select(g => new { Id = g.Key, Navn = g.First().ProductName })
+            .ToListAsync();
+
+        var snapshots = await Db.ProductSnapshots
+            .OrderByDescending(s => s.ObservedAt)
+            .ToListAsync();
+
+        varer = [.. mappings.Select(m =>
+        {
+            var egne = snapshots.Where(s => s.NemligProductId == m.Id).ToList();
+            var nyeste = egne.FirstOrDefault();
+
+            // Sammenlign med den seneste observation der havde en ANDEN pris,
+            // så vi viser den faktiske ændring og ikke nul fra i går.
+            var forrige = egne.Skip(1).FirstOrDefault(s => nyeste is null || s.Price != nyeste.Price);
+
+            return new Vare(m.Id, m.Navn, nyeste?.Price,
+                nyeste is not null && forrige is not null ? nyeste.Price - forrige.Price : null,
+                nyeste?.InStock ?? true, egne.Count);
+        })];
+
+        sidste = snapshots.FirstOrDefault()?.ObservedAt;
+    }
+
+    static string Alder(DateTime utc)
+    {
+        var d = DateTime.UtcNow - utc;
+        return d.TotalMinutes < 60 ? $"for {(int)d.TotalMinutes} min. siden"
+             : d.TotalHours < 24 ? $"for {(int)d.TotalHours} timer siden"
+             : $"for {(int)d.TotalDays} dage siden";
+    }
+
+    async Task Opdater()
+    {
+        arbejder = true; besked = null;
+        try
+        {
+            var (tjekket, aendret) = await Refresher.RefreshAsync(CancellationToken.None);
+            besked = $"{tjekket} varer tjekket, {aendret} med ny pris.";
+            await Hent();
+        }
+        catch (NemligUnavailableException ex) { besked = ex.Message; }
+        finally { arbejder = false; }
+    }
+}

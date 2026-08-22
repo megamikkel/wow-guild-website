@@ -64,7 +64,7 @@ main.plain { padding-bottom: 1rem; display: grid; place-items: center; }
 /* Faneblade i bunden — tommelfingeren er dér på en telefon. */
 .tabs {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-    display: grid; grid-template-columns: repeat(4, 1fr);
+    display: grid; grid-template-columns: repeat(5, 1fr);
     background: var(--surface); border-top: 1px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom);
 }
