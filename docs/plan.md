@@ -196,9 +196,6 @@ Ingen af dem blokerer etape 0 eller 1. De skal besvares før etape 2 og 3.
 7. **Bekræft .NET 10.** Det er LTS-sporet (understøttet til november 2028), så
    det er også det kedelige valg. Jeg går efter det medmindre du hellere vil
    blive på .NET 8, som du måske allerede har på maskinen.
-8. **Dette repo er `wow-guild-website`** — en Astro-side til et WoW-guild.
-   Din kickoff-tekst sagde "et tomt projekt-repo". Skal madplanen ligge i et nyt
-   repo? Se noten nederst.
 
 ---
 
@@ -264,15 +261,15 @@ sandsynlighed ved én husstands trafik, men konsekvensen er total. Derfor
 
 ## Note om repoet
 
-Dette repo er `megamikkel/wow-guild-website`: en Astro-side til et
-World of Warcraft-guild (`src/pages/`, `src/content/events/`, `src/content/guides/`).
-Din kickoff-tekst lagde op til "et tomt projekt-repo".
+Repoet hed oprindeligt `wow-guild-website` og indeholdt en Astro-side til et
+World of Warcraft-guild. Guild-siden er fjernet i commit'en der omdøbte
+projektet — indholdet ligger stadig i git-historikken, hvis det skulle vise sig
+at nogen får brug for det igen.
 
-Jeg har lagt de fire dokumenter i `docs/` på den anviste branch
-`claude/madplan-nemlig-research-yukrqx`, fordi branchnavnet utvetydigt peger på
-denne opgave. Men **madplan-appen bør ikke bygges i dette repo.** Den har intet
-med guild-siden at gøre, deler ingen afhængigheder, og vil kollidere med den
-ved både build og deploy.
+Projektet hedder nu **`madplan-nemlig`**. Selve repo-omdøbningen på GitHub er
+et manuelt skridt (Settings → Rename); GitHub laver automatisk redirect fra det
+gamle navn, så ingen links går døde.
 
-**Forslag:** opret `madplan` som nyt repo når du godkender planen, og flyt
-`docs/` derover som første commit. Sig til, så gør jeg det.
+I koden bruger vi `Madplan` som solution-navn og `Madplan.Core`, `Madplan.Nemlig`
+osv. som projekter — `MadplanNemlig.Core` ville være unødigt langt, og
+nemlig-delen har alligevel sit eget projekt.
