@@ -1,0 +1,8 @@
+http://localhost:5400/opskrifter/spaghetti-koedsovs
+http://localhost:5400/opskrifter/lasagne
+http://localhost:5400/opskrifter/frikadeller
+http://localhost:5400/opskrifter/kylling-i-fad
+http://localhost:5400/opskrifter/pasta-pesto
+http://localhost:5400/opskrifter/kylling-karry
+http://localhost:5400/opskrifter/fiskefrikadeller
+http://localhost:5400/opskrifter/linsegryde

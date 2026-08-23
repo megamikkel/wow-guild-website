@@ -10,6 +10,13 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Diagnosen skal kunne læses. Uden dette fletter HttpClient-logningen sig ind
+// mellem linjerne og gør outputtet ubrugeligt som fejlrapport.
+// ClearProviders, ikke SetMinimumLevel: niveauet i appsettings.json vinder over
+// et kald her, og så flettede HttpClient-logningen sig alligevel ind.
+// Diagnosen skriver selv til konsollen og fanger sine egne fejl.
+if (args.Contains("smoke", StringComparer.OrdinalIgnoreCase)) builder.Logging.ClearProviders();
+
 // Miljøvariabler vinder over appsettings. Kodeord hører kun hjemme dér.
 builder.Configuration.AddEnvironmentVariables();
 
@@ -54,6 +61,14 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+// «dotnet run -- smoke» kører nemlig-diagnosen og afslutter uden at starte
+// webserveren. Den skal kunne køres før hver planlægningsuge.
+if (args.Contains("smoke", StringComparer.OrdinalIgnoreCase))
+{
+    using var smokeScope = app.Services.CreateScope();
+    return await SmokeTest.RunAsync(smokeScope.ServiceProvider, Console.Out);
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MadplanDbContext>();
@@ -79,3 +94,4 @@ app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 app.MapLoginEndpoints();
 
 app.Run();
+return 0;

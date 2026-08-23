@@ -23,12 +23,33 @@ det var blokeret i miljøet koden blev skrevet i. **Kør etape 0 i
 [`docs/plan.md`](docs/plan.md) før du stoler på priserne.** Alt der ikke rører
 nemlig er afprøvet i en rigtig browser.
 
-```bash
-cp .env.example .env      # udfyld MADPLAN_USERS
-docker compose up -d      # http://localhost:8080
+### På Windows
+
+| Fil | Hvad den gør |
+|---|---|
+| `demo.cmd` | Prøv appen **uden en nemlig-konto**. Starter to stub-servere og fylder dem med danske hverdagsretter. Kræver Node.js. |
+| `start.cmd` | Kør appen rigtigt. Opretter `.env` første gang og åbner den i Notepad. |
+| `tjek-nemlig.cmd` | Diagnose af nemlig-integrationen. **Kør den først** — se nedenfor. |
+
+Scripterne er skrevet til Windows, men jeg har ikke kunnet afprøve dem på
+Windows herfra. Virker de ikke, er de tre kommandoer de pakker ind:
+
+```
+dotnet run --project src\Madplan.Web -c Release -- smoke
+dotnet run --project src\Madplan.Web -c Release
+docker compose up -d
 ```
 
-Eller uden Docker: `dotnet run --project src/Madplan.Web`.
+### Første gang: kør diagnosen
+
+```
+tjek-nemlig.cmd
+```
+
+Nemlig-laget er skrevet mod dokumenterede skemaer og har aldrig talt med den
+rigtige server. Diagnosen går login, søgning og produktopslag igennem trin for
+trin og siger hvad der virkede. **Den er den verifikation projektet mangler** —
+og den tager ti sekunder.
 
 Uden nemlig-credentials kører appen i offline-tilstand: madplan, opskrifter og
 indkøbsliste virker, priserne er bare ukendte.
