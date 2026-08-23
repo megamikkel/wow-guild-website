@@ -69,20 +69,37 @@ public record NemligSession(string BearerToken, string XsrfToken, DateTimeOffset
 /// <summary>En opskrift fra nemligs eget univers.
 ///
 /// Hvorfor de er interessante: nemlig knytter selv ingredienser til varenumre,
-/// fordi de skal kunne sælge dem. Er <see cref="ProductIds"/> udfyldt, er
-/// projektets sværeste problem — ingrediens til vare — allerede løst af dem.
+/// fordi de skal kunne sælge dem. Bærer linjerne varenumre, er projektets
+/// sværeste problem — ingrediens til vare — allerede løst af dem.
 ///
 /// Hvorvidt det holder er en HYPOTESE indtil et rigtigt kald siger andet.
 /// Se docs/nemlig-api.md §3.</summary>
+/// <summary>Én ingredienslinje fra nemlig, med det varenummer nemlig selv har
+/// sat på den — hvis der er et.
+///
+/// Teksten og varenummeret sidder på SAMME objekt med vilje. De lå før i to
+/// parallelle lister, og de blev filtreret hver for sig: teksten faldt fra når
+/// linjen var tom, varenummeret når nemlig ikke havde sat et. Så snart én linje
+/// manglede sit varenummer, forskød listerne sig, og resten af opskriften fik
+/// hinandens varer. Prisen så rigtig ud og var forkert. Det kan ikke ske når
+/// parret ikke kan skilles ad.</summary>
+/// <param name="ProductUrl">Varens sti hos nemlig, hvis linjen bærer den. Uden
+/// den må varen slås op ved at søge på sit eget varenummer, og det er ikke en
+/// pålidelig måde at finde netop den vare — se INemligCatalog.GetProductAsync.</param>
+public record NemligRecipeLine(string Text, string? ProductId, string? ProductUrl = null);
+
 public record NemligRecipe(
     string Id,
     string Name,
     string? Url,
     int? Servings,
     string? TotalTime,
-    IReadOnlyList<string> Ingredients,
-    IReadOnlyList<string> ProductIds,
+    IReadOnlyList<NemligRecipeLine> Lines,
     string? Instructions)
 {
-    public bool HasMappedProducts => ProductIds.Count > 0;
+    /// <summary>Ingredienserne som ren tekst, i kildens rækkefølge. Indekset her
+    /// er det samme som linjens indeks — det er dét, koblingen hviler på.</summary>
+    public IReadOnlyList<string> Ingredients => [.. Lines.Select(l => l.Text)];
+
+    public bool HasMappedProducts => Lines.Any(l => !string.IsNullOrWhiteSpace(l.ProductId));
 }

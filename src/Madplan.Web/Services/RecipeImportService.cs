@@ -17,6 +17,7 @@ public class RecipeImportService(
     RecipeFetcher fetcher,
     FoodResolver foods,
     INemligRecipes nemligRecipes,
+    AutoMapper autoMapper,
     ILogger<RecipeImportService> log)
 {
     public record ImportResult(string Url, string? Title, string? Error, bool Skipped)
@@ -160,34 +161,47 @@ public class RecipeImportService(
         // og et menneske kan skifte varen bagefter.
         if (!r.HasMappedProducts) return;
 
+        var varenumre = VarenumreEfterLinjenummer(r.Lines);
+
         var ingredienser = await db.RecipeIngredients
             .Where(i => i.RecipeId == recipe.Id && i.FoodId != null)
             .OrderBy(i => i.SortOrder).ToListAsync(ct);
 
-        var units = await db.Units.ToListAsync(ct);
-        var stk = units.First(u => u.Abbreviation == "stk");
-
-        for (var i = 0; i < Math.Min(ingredienser.Count, r.ProductIds.Count); i++)
+        foreach (var ing in ingredienser)
         {
-            var foodId = ingredienser[i].FoodId!.Value;
-            var produktId = r.ProductIds[i];
+            if (!varenumre.TryGetValue(ing.SortOrder, out var linje)) continue;
 
+            var foodId = ing.FoodId!.Value;
             if (await db.ProductMappings.AnyAsync(m => m.FoodId == foodId, ct)) continue;
 
-            db.ProductMappings.Add(new ProductMapping
-            {
-                FoodId = foodId,
-                NemligProductId = produktId,
-                ProductName = ingredienser[i].RawText,
-                PackageSize = 1,
-                PackageUnitId = stk.Id,
-                IsPreferred = true,
-                Source = MappingSource.Forslag,
-            });
-        }
+            var food = await db.Foods.FirstOrDefaultAsync(f => f.Id == foodId, ct);
+            if (food is null) continue;
 
-        await db.SaveChangesAsync(ct);
+            // Slår varen op for at få dens rigtige pakkestørrelse. Lykkes det
+            // ikke, springes råvaren over frem for at få en mapning i den
+            // forkerte enhed — se MapToKnownProductAsync.
+            await autoMapper.MapToKnownProductAsync(food, linje.ProductId!, linje.ProductUrl, ct);
+        }
     }
+
+    /// <summary>Varenumrene slået op på LINJENS PLADS i kilden — ikke på dens
+    /// plads i en filtreret liste.
+    ///
+    /// Da opskriften blev gemt, fik hver ingrediens SortOrder = sit indeks i
+    /// præcis denne liste. Derfor kan de to sider mødes igen bagefter, selvom
+    /// nogle linjer undervejs faldt fra: en linje uden varenummer efterlader et
+    /// hul, og et hul er noget andet end at alle de følgende rykker én op.
+    ///
+    /// Fejlen den erstatter: teksterne og varenumrene lå i to lister der blev
+    /// filtreret hver for sig og lynet sammen på position. Manglede bare én
+    /// linje sit varenummer, fik resten af opskriften hinandens varer — med
+    /// priser der så helt rigtige ud.</summary>
+    internal static Dictionary<int, NemligRecipeLine> VarenumreEfterLinjenummer(
+        IReadOnlyList<NemligRecipeLine> linjer) =>
+        linjer
+            .Select((l, indeks) => (indeks, l))
+            .Where(x => !string.IsNullOrWhiteSpace(x.l.ProductId))
+            .ToDictionary(x => x.indeks, x => x.l);
 
     /// <summary>«25 min», «1 t 15 min». Nemlig skriver tid som fritekst.</summary>
     internal static int? MinutterFra(string? tekst)

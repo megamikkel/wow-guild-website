@@ -211,6 +211,36 @@ end summen af retterne.
 
 ---
 
+## Etape 8 — Nemligs egne opskrifter, hele vejen igennem ✅ BYGGET (mod stub)
+
+Hypotesen fra §3 i `nemlig-api.md`: nemlig knytter selv ingredienser til
+varenumre, fordi de skal kunne sælge dem. Holder den, er projektets sværeste
+problem løst af andre.
+
+Importen fandtes allerede, men var aldrig blevet kørt igennem — og da den blev
+det, viste den sig at have tre fejl der hver især ville have gjort hypotesen
+værdiløs. Alle tre står i `nemlig-api.md` §7b:
+
+1. Tekst og varenumre blev lynet sammen på position ud fra to lister der var
+   filtreret hver for sig. Én linje uden varenummer forskød resten, og
+   gulerødderne blev prissat som ris — usynligt, for alting havde en pris.
+2. Varenumrene blev gemt som «1 stk», hvilket både gjorde vægt-opskrifter
+   ubereglige og spærrede for at auto-mapperen prøvede igen.
+3. Varens adresse blev ikke læst, og uden den kan varen ikke slås op — så der
+   blev i praksis slet ikke oprettet nogen mapninger.
+
+Stubben har nu fire opskrifter der rammer hver sin fælde: alle linjer mappet,
+et hul midt i, rene tekstlinjer uden varenumre, og en opskrift gemt dybt i en
+Sitecore-side. Alle fire importeres korrekt, og de to fuldt mappede prissættes
+med det samme.
+
+**Stadig kun mod stub.** Det er den samme situation som resten af nemlig-laget
+var i før 22-08: skemaerne er dokumenterede, klienten er afprøvet mod dem, og
+den rigtige server har aldrig svaret. Prøv **Retter → Importér → Hent fra
+nemlig** og se hvad der sker.
+
+---
+
 ## Etape 5 — Det der gør den rar (delvist bygget)
 
 - Søgning og filtre: børnevenlig, tid, vegetar, budget

@@ -22,6 +22,7 @@ namespace Madplan.Web.Services;
 public class AutoMapper(
     MadplanDbContext db,
     ProductSuggester suggester,
+    INemligCatalog catalog,
     ILogger<AutoMapper> log)
 {
     public record Result(int Mapped, int NoCandidates, int AlreadyMapped)
@@ -113,6 +114,63 @@ public class AutoMapper(
             PackageUnitId = packUnit.Id,
             IsPreferred = true,
             Source = MappingSource.Forslag,   // automatisk — ikke bekræftet af et menneske
+        };
+
+        db.ProductMappings.Add(mapping);
+        db.ProductSnapshots.Add(new ProductSnapshot
+        {
+            NemligProductId = p.Id, Price = p.Price, UnitPrice = p.UnitPrice,
+            UnitPriceLabel = p.UnitPriceLabel, InStock = p.InStock, Description = p.Description,
+        });
+
+        await db.SaveChangesAsync(ct);
+        return mapping;
+    }
+
+    /// <summary>Kobler en råvare til en vare NOGEN ANDEN har udpeget — i praksis
+    /// nemlig selv, via deres egne opskrifter. Vi vælger altså ikke varen her;
+    /// vi slår den op for at få pakkestørrelsen, som er det indkøbslisten regner
+    /// på.
+    ///
+    /// Kan varen ikke slås op, skrives der INGEN mapning. Det er fristende at
+    /// gemme «1 stk» og komme videre, men den løgn er dyrere end den ser ud:
+    /// en opskrift der beder om 500 g rammer så uenigheden mellem vægt og
+    /// styk og bliver til «kan ikke beregnes» — og fordi råvaren nu tæller som
+    /// mappet, prøver auto-mapperen den aldrig igen. Et hul er bedre end en
+    /// blokering, for hullet fylder auto-mapperen selv ud bagefter.</summary>
+    public async Task<ProductMapping?> MapToKnownProductAsync(
+        Food food, string productId, string? productUrl = null, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(productId)) return null;
+
+        NemligProductDetail? detalje;
+        try
+        {
+            detalje = await catalog.GetProductAsync(productId, productUrl, ct: ct);
+        }
+        catch (NemligUnavailableException ex)
+        {
+            log.LogInformation("Kunne ikke slå vare {Id} op til {Food}: {Grund}",
+                               productId, food.CanonicalName, ex.Reason);
+            return null;
+        }
+
+        if (detalje?.Product is null) return null;
+
+        var units = await db.Units.ToListAsync(ct);
+        var p = detalje.Product;
+        var (packSize, packUnit) = await ChoosePackageAsync(food, p, units, ct);
+
+        var mapping = new ProductMapping
+        {
+            FoodId = food.Id,
+            NemligProductId = p.Id,
+            ProductName = p.Name,
+            ProductUrl = p.Url,
+            PackageSize = packSize,
+            PackageUnitId = packUnit.Id,
+            IsPreferred = true,
+            Source = MappingSource.Forslag,   // nemligs valg, ikke husstandens
         };
 
         db.ProductMappings.Add(mapping);

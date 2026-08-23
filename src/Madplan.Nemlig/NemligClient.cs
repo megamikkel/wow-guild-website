@@ -416,8 +416,7 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligRecipes
             Url: Str(Prop(n, "Url")),
             Servings: (int?)Dec(Prop(n, "NumberOfPersons")),
             TotalTime: Str(Prop(n, "TotalTime")),
-            Ingredients: [],
-            ProductIds: [],
+            Lines: [],
             Instructions: null);
     }
 
@@ -438,7 +437,7 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligRecipes
         var node = FindRecipeNode(json);
         if (node is null) return null;
 
-        var (ingredienser, varenumre) = LæsIngredienser(node);
+        var linjer = LæsIngredienser(node);
 
         return new NemligRecipe(
             Id: Str(Prop(node, "Id")) ?? recipeUrl,
@@ -446,8 +445,7 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligRecipes
             Url: recipeUrl,
             Servings: (int?)Dec(Prop(node, "NumberOfPersons")) ?? (int?)Dec(Prop(node, "Persons")),
             TotalTime: Str(Prop(node, "TotalTime")),
-            Ingredients: ingredienser,
-            ProductIds: varenumre,
+            Lines: linjer,
             Instructions: Str(Prop(node, "Description")) ?? Str(Prop(node, "Text")));
     }
 
@@ -492,27 +490,44 @@ public sealed class NemligClient : INemligAuth, INemligCatalog, INemligRecipes
         return null;
     }
 
-    private static (IReadOnlyList<string> Tekst, IReadOnlyList<string> Varenumre) LæsIngredienser(JsonObject node)
+    /// <summary>Læser ingredienslinjerne i kildens rækkefølge. Tekst og varenummer
+    /// holdes sammen på hver linje; en linje uden varenummer bliver en linje med
+    /// null, ikke en linje der forsvinder. Ellers ville de efterfølgende linjer
+    /// rykke op og arve hinandens varer.</summary>
+    internal static IReadOnlyList<NemligRecipeLine> LæsIngredienser(JsonObject node)
     {
-        var tekst = new List<string>();
-        var varenumre = new List<string>();
+        var linjer = new List<NemligRecipeLine>();
 
         foreach (var linje in IngrediensListe(node) ?? [])
         {
-            if (linje is JsonValue) { tekst.Add(linje.ToString()); continue; }
+            if (linje is JsonValue)
+            {
+                var raa = linje.ToString();
+                if (!string.IsNullOrWhiteSpace(raa)) linjer.Add(new NemligRecipeLine(raa, null));
+                continue;
+            }
+
             if (linje is not JsonObject o) continue;
 
             var beskrivelse = Str(Prop(o, "Text")) ?? Str(Prop(o, "Description"))
                            ?? Str(Prop(o, "Name")) ?? Str(Prop(o, "Title"));
-            if (!string.IsNullOrWhiteSpace(beskrivelse)) tekst.Add(beskrivelse);
+            if (string.IsNullOrWhiteSpace(beskrivelse)) continue;
 
             // Det er DEN HER linje hele hypotesen handler om.
             var varenummer = Str(Prop(o, "ProductId")) ?? Str(Prop(o, "Id"))
                           ?? Str(Prop(o, "VkNumber"));
-            if (!string.IsNullOrWhiteSpace(varenummer)) varenumre.Add(varenummer);
+
+            // Adressen er guld værd: med den hentes varen ad den dokumenterede
+            // vej i stedet for ved at søge på sit eget varenummer.
+            var adresse = Str(Prop(o, "Url")) ?? Str(Prop(o, "ProductUrl"));
+
+            linjer.Add(new NemligRecipeLine(
+                beskrivelse,
+                string.IsNullOrWhiteSpace(varenummer) ? null : varenummer,
+                string.IsNullOrWhiteSpace(adresse) ? null : adresse));
         }
 
-        return (tekst, varenumre);
+        return linjer;
     }
 
     // ---------- Transport ----------

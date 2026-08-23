@@ -417,7 +417,7 @@ indkøbsliste søndag aften.
 
 ## 7b. Fund fra at bygge klienten
 
-To ting kom først frem da koden kørte mod en stub-server bygget efter skemaerne
+Disse kom først frem da koden kørte mod en stub-server bygget efter skemaerne
 i dette dokument. Ingen af dem kan læses ud af `nemlig_api.md`.
 
 ### Feltnavne er PascalCase, og .NET vil gerne lave dem om
@@ -449,6 +449,54 @@ der et `/webapi/product/{id}`-endpoint, er det værd at kende — det ville gør
 uafhængige af at have gemt sluggen. Læg det ind som tjek 9.
 
 ---
+
+### Opskriftslinjer må ikke skilles ad fra deres varenumre
+
+Nemligs opskrifter er hele grunden til at §3 er interessant: knytter nemlig selv
+ingredienser til varenumre, er projektets sværeste problem løst af dem.
+
+Klienten læste først opskriften ind i to parallelle lister — teksterne i én,
+varenumrene i en anden — og importen lynede dem sammen på position. De to lister
+blev filtreret hver for sig: en tom tekst faldt ud af den ene, en manglende
+`ProductId` ud af den anden. Manglede bare **én** linje sit varenummer, forskød
+resten sig, og opskriften fik hinandens varer. Gulerødderne blev prissat som ris.
+
+Det værste ved fejlen var ikke at den var forkert, men at den var **usynlig**:
+hver råvare havde en vare, hver vare havde en pris, og budgettet så rigtigt ud.
+
+Tekst og varenummer sidder nu på samme objekt (`NemligRecipeLine`), og
+koblingen sker på linjens plads i kilden — `SortOrder` sættes til netop det
+indeks når opskriften gemmes. En linje uden varenummer efterlader et hul, og et
+hul er noget andet end at alle de følgende rykker én op.
+
+### Et varenummer uden pakkestørrelse er værre end intet varenummer
+
+Importen gemte nemligs varenumre med `PackageSize = 1, PackageUnit = stk`, fordi
+opskriftssvaret ikke selv siger hvor stor pakken er.
+
+Det duer ikke. En opskrift der beder om «500 g» rammer så uenigheden mellem vægt
+og styk og bliver til `KanIkkeBeregnes` — og fordi råvaren nu **tæller som
+mappet**, prøver auto-mapperen den aldrig igen. Ét dårligt tal spærrede altså
+for det gode.
+
+Varen slås nu op via `GetProductAsync`, så pakkestørrelsen kommer fra varen selv.
+Lykkes opslaget ikke, skrives der ingen mapning: et hul fylder auto-mapperen selv
+ud bagefter, en blokering gør den ikke.
+
+### Opskriftslinjer bærer varens URL — og det er den der gør opslaget muligt
+
+Følger direkte af fundet ovenfor: opslaget kræver varens slug, ikke dens
+varenummer (se afsnittet før dette). Læses `Url` ikke af opskriftslinjen, falder
+`GetProductAsync` tilbage på at søge efter varenummeret, og det finder ingenting.
+Første udgave hentede kun `ProductId`, og resultatet var at **ingen** mapning
+blev oprettet overhovedet — hele pointen med nemligs opskrifter gik tabt uden en
+eneste fejlmeddelelse.
+
+Klienten læser nu `Url` (og `ProductUrl`) fra hver ingredienslinje.
+
+**Tilføj til tjekliste 7:** bekræft at nemligs opskriftslinjer faktisk bærer en
+adresse. Gør de ikke, er §3-hypotesen i praksis kun det halve værd — vi kender
+varen, men ikke dens pakkestørrelse.
 
 ## 8. Åbne usikkerheder — ærlig liste
 

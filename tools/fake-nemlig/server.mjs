@@ -40,6 +40,92 @@ const KATALOG = [
 
 const kurv = new Map();
 
+// Nemligs egne opskrifter — projektets mest værdifulde hypotese: at nemlig selv
+// knytter ingredienser til varenumre. De fire her er skruet sammen så de rammer
+// hver sin fælde, ikke for at være repræsentative:
+//
+//   1. alle linjer har et varenummer          — den lykkelige vej
+//   2. en RIGTIG råvare midt i uden varenummer — hullet der før forskød resten
+//   3. ingredienserne som rene strenge         — ingen varenumre overhovedet
+//   4. opskriften gemt dybt i en Sitecore-side — FindRecipeNode skal lede
+//
+// «ProductId: null» skrives eksplicit. Hullet er selve pointen.
+const OPSKRIFTER = [
+  {
+    Id: 'r-1001', Name: 'Spaghetti med kødsovs', Url: '/opskrifter/spaghetti-med-koedsovs',
+    NumberOfPersons: 4, TotalTime: '35 min',
+    Description: 'Brun kødet, tilsæt tomater, kog pastaen.',
+    Ingredients: [
+      { Text: '500 g hakket oksekød', ProductId: '5070417' },
+      { Text: '400 g spaghetti', ProductId: '4010221' },
+      { Text: '2 dåser flåede tomater', ProductId: '4030877' },
+      { Text: '2 løg', ProductId: '3020117' },
+    ],
+  },
+  {
+    Id: 'r-1002', Name: 'Kylling i karry', Url: '/opskrifter/kylling-i-karry',
+    NumberOfPersons: 4, TotalTime: '40 min',
+    Description: 'Steg kyllingen, rør karryen i.',
+    Ingredients: [
+      { Text: '600 g kyllingebryst', ProductId: '5070420' },
+      // Gulerødderne FINDES i kataloget, men nemlig har ikke sat et varenummer
+      // på linjen. Før forskød det alle de følgende linjer én op.
+      { Text: '3 gulerødder', ProductId: null },
+      { Text: '1 kg ris', ProductId: '4010223' },
+      { Text: '4 dl kokosmælk', ProductId: '4030878' },
+    ],
+  },
+  {
+    Id: 'r-1003', Name: 'Æggekage med kartofler', Url: '/opskrifter/aeggekage',
+    NumberOfPersons: 3, TotalTime: '25 min',
+    Description: 'Pisk æggene, bag den i ovnen.',
+    IngredientLines: ['6 æg', '1 dl mælk', '500 g kartofler', 'salt og peber'],
+  },
+  {
+    Id: 'r-1004', Name: 'Laks i ovn', Url: '/opskrifter/laks-i-ovn',
+    NumberOfPersons: 4, TotalTime: '1 t 15 min',
+    Description: 'Bag laksen ved 180 grader.',
+    Nested: true,
+    Ingredients: [
+      { Text: '500 g torskefilet', ProductId: '5070422' },
+      { Text: '1 kg kartofler', ProductId: '3020118' },
+      { Text: '2 dl letmælk', ProductId: '2010455' },
+    ],
+  },
+];
+
+// Indekssvaret bærer kun navn og adresse — ikke ingredienserne. Det er derfor
+// importen skal hente hver opskrift for sig.
+const opskriftIndeks = (o) => ({
+  Id: o.Id, Name: o.Name, Url: o.Url,
+  NumberOfPersons: o.NumberOfPersons, TotalTime: o.TotalTime,
+  PrimaryImage: `https://example.invalid/${o.Id}.jpg`,
+});
+
+// Adressen udledes af kataloget, præcis som produkt() gør det — ellers ville
+// stubben kunne love en adresse der ikke findes.
+const adresseFor = (id) => {
+  const raekke = KATALOG.find(k => k[0] === id);
+  return raekke ? produkt(raekke).Url : null;
+};
+
+const medAdresser = (linjer) => linjer.map(l =>
+  l.ProductId ? { ...l, Url: adresseFor(l.ProductId) } : l);
+
+const opskriftSide = (o) => {
+  const krop = { Id: o.Id, Name: o.Name, NumberOfPersons: o.NumberOfPersons,
+                 TotalTime: o.TotalTime, Description: o.Description };
+  if (o.Ingredients) krop.Ingredients = medAdresser(o.Ingredients);
+  if (o.IngredientLines) krop.IngredientLines = o.IngredientLines;
+
+  // Som produktsiderne: nogle sider har indholdet pakket ind i en Sitecore-liste.
+  return o.Nested
+    ? { MetaData: { ResponseCode: 200, Name: 'Recipe page' },
+        Settings: { ZipCode: '1620' },
+        content: [{ TemplateName: 'spot' }, { TemplateName: 'recipespot', Recipe: krop }] }
+    : { MetaData: { ResponseCode: 200 }, ...krop };
+};
+
 const produkt = ([Id, Name, Brand, Category, Price, UnitPriceCalc, UnitPriceLabel, Description, inStock]) => ({
   Id, Name, Brand, Category, SubCategory: Category,
   Url: `${Name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Id}`,
@@ -108,9 +194,17 @@ createServer(async (req, res) => {
       .filter(k => ord.some(o => k[1].toLowerCase().includes(o)))
       .slice(0, take)
       .map(produkt);
+    // recipeCount styrer hvor mange opskrifter der kommer med. Er den 0, sender
+    // vi ingen — så en produktsøgning ikke slæber opskrifter med sig.
+    const opskriftAntal = Number(url.searchParams.get('recipeCount') ?? 0);
+    const opskrifter = opskriftAntal > 0
+      ? OPSKRIFTER.filter(o => ord.length === 0 || ord.some(o2 => o.Name.toLowerCase().includes(o2)))
+                  .slice(0, opskriftAntal).map(opskriftIndeks)
+      : [];
+
     return svar(res, { Products: { Products: traef, Start: 0, NumFound: traef.length },
                        Facets: { NumFound: traef.length, SortingList: [], FacetGroups: [] },
-                       Recipes: [] });
+                       Recipes: opskrifter });
   }
 
   // Kun til afprøvning: skru på en pris, så prisovervågningen kan demonstreres.
@@ -123,6 +217,14 @@ createServer(async (req, res) => {
     raekke[4] = pris;
     console.log(`  pris ændret: ${raekke[1]} ${foer} -> ${pris}`);
     return svar(res, { id, navn: raekke[1], foer, nu: pris });
+  }
+
+  // Opskriftsside via GetAsJson. Skal ligge FØR produktsiden nedenfor, som
+  // ellers ville forsøge at læse et varenummer ud af adressen.
+  if (url.searchParams.get('GetAsJson') === '1' && path.startsWith('/opskrifter/')) {
+    const o = OPSKRIFTER.find(x => x.Url === path);
+    if (o) return svar(res, opskriftSide(o));
+    return svar(res, { error: 'ukendt opskrift', path }, 404);
   }
 
   // Produktside via GetAsJson — den dokumenterede vej til produktdetaljer.

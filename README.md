@@ -16,15 +16,15 @@ Hobbyprojekt til eget brug. Ikke et produkt.
 **Kører.** Retter rangeret efter pris pr. portion, budgetdrevet menugenerator,
 import af opskrifter, automatisk kobling til billigste vare, ugeplan med rester,
 aggregeret indkøbsliste og daglig prisovervågning.
-175 tests grønne.
+185 tests grønne.
 
 ✅ **Nemlig-integrationen er verificeret mod den rigtige nemlig.com**
 (22. august 2026): login, produktsøgning og produktdetaljer. Kør
 `dotnet run --project src\Madplan.Web -- smoke` for at tjekke den igen —
 API'et er udokumenteret og kan ændre sig uden varsel.
 
-Ikke verificeret endnu: ordrehistorik og ledige leveringsvinduer. Se
-[`docs/nemlig-api.md`](docs/nemlig-api.md) §7.
+Ikke verificeret endnu: ordrehistorik, ledige leveringsvinduer og nemligs egne
+opskrifter. Se [`docs/nemlig-api.md`](docs/nemlig-api.md) §7.
 
 ### På Windows
 
@@ -89,7 +89,7 @@ Vil I have flere retter, er der tre veje under **Retter → Importér**:
 | Vej | Hvad den gør |
 |---|---|
 | **Fra en oversigtsside** | Ét link til fx valdemarsros «Familiefavoritter» → appen finder alle opskrifterne på siden |
-| **Fra nemligs opskrifter** | Nemlig knytter selv ingredienser til varenumre. Virker det, er retterne prissat med det samme. **Uafprøvet endnu** |
+| **Fra nemligs opskrifter** | Nemlig knytter selv ingredienser til varenumre. Virker det, er retterne prissat med det samme. Hele vejen igennem mod stub — **ikke mod den rigtige nemlig endnu** |
 | **Fra enkelte links** | Indsæt adresser, én pr. linje |
 
 | Dokument | Indhold |
@@ -123,7 +123,7 @@ Disse gælder gennem hele projektet og er ikke til forhandling undervejs:
 | `Madplan.Nemlig` | Det eneste sted der kender nemlig. Egne DTO'er, tre interfaces |
 | `Madplan.Recipes` | Opskriftsimport. JSON-LD, microdata, robots.txt |
 | `Madplan.Web` | Blazor Server. UI, auth, auto-mapping, budgetmenu |
-| `Madplan.Tests` | 175 tests, heriblandt vagthunden mod skrivende nemlig-kald |
+| `Madplan.Tests` | 185 tests, heriblandt vagthunden mod skrivende nemlig-kald |
 
 `Core` og `Nemlig` har **nul** projektreferencer. Isolationen er noget
 compileren håndhæver, ikke en aftale man indgår med sig selv.
@@ -131,7 +131,7 @@ compileren håndhæver, ikke en aftale man indgår med sig selv.
 ## Kom i gang
 
 ```bash
-dotnet test                                  # 175 tests
+dotnet test                                  # 185 tests
 dotnet run --project src/Madplan.Web         # http://localhost:5265
 ```
 
@@ -152,7 +152,7 @@ NEMLIG_USERNAME=demo NEMLIG_PASSWORD=demo \
 ```
 
 De beviser ikke at nemligs API ser sådan ud — kun at vores klient virker hvis
-det gør. **Syv ægte fejl er fanget på den måde**, heriblandt fire stille
+det gør. **Ti ægte fejl er fanget på den måde**, heriblandt fem stille
 fejlkoblinger der ville have givet et budget der så rigtigt ud uden at være det.
 Se `docs/nemlig-api.md` §7b.
 
