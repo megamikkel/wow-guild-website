@@ -192,6 +192,20 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
         return detail;
     }
 
+    /// <summary>Henter en produktsides rå JSON. Kun til diagnose: når mapningen
+    /// fejler, er det formen på svaret man har brug for at se, og nemligs sider
+    /// er ikke dokumenteret dybere end ét eksempel.</summary>
+    internal async Task<JsonNode?> FetchProductPageAsync(string productUrl, CancellationToken ct = default)
+    {
+        var session = await GetSessionAsync(ct);
+        var ctx = await GetContextAsync(ct);
+        var path = productUrl.StartsWith('/') ? productUrl : "/" + productUrl;
+
+        return await SendAsync(HttpMethod.Get,
+            $"{path}?GetAsJson=1&t={Uri.EscapeDataString(ctx.TimeslotUtc)}&d=1",
+            null, AuthHeaders(session), ct);
+    }
+
     /// <summary>Den dokumenterede vej til produktdetaljer: GetAsJson på varens
     /// egen sti. Det er også den eneste pålidelige — se fallbacken nedenfor.</summary>
     private async Task<NemligProductDetail?> GetProductByUrlAsync(string productId, string url, CancellationToken ct)
@@ -204,16 +218,24 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
             $"{path}?GetAsJson=1&t={Uri.EscapeDataString(ctx.TimeslotUtc)}&d=1",
             null, AuthHeaders(session), ct);
 
-        // Produktsiden lægger varen enten i roden eller under et produktobjekt.
-        var node = json?["Product"] ?? json?["product"] ?? json;
-        var product = MapProduct(node);
-        if (product is null || product.Id != productId) return null;
+        // Vi LEDER efter varen frem for at gætte hvor den ligger.
+        //
+        // Nemligs produktsider er Sitecore-sider: varen kan ligge i roden, under
+        // «Product», eller nede i en «content»-liste af spots. Da siden ikke er
+        // dokumenteret dybere end ét eksempel, ville enhver fast placering være
+        // et gæt der holder indtil de flytter rundt. At søge efter objektet med
+        // det rigtige Id koster ingenting og holder uanset opbygning.
+        var node = FindProductNode(json, productId);
+        if (node is null) return null;
 
-        var alternatives = (node?["AlternativeProducts"] as JsonArray ?? [])
+        var product = MapProduct(node);
+        if (product is null) return null;
+
+        var alternatives = (node["AlternativeProducts"] as JsonArray ?? [])
             .Select(MapProduct).Where(p => p is not null).Select(p => p!).ToList();
 
         var attributes = new Dictionary<string, string>();
-        foreach (var a in node?["Attributes"] as JsonArray ?? [])
+        foreach (var a in node["Attributes"] as JsonArray ?? [])
         {
             var key = a?["Name"]?.GetValue<string>() ?? a?["Key"]?.GetValue<string>();
             var value = a?["Value"]?.GetValue<string>();
@@ -231,6 +253,43 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
     {
         var found = (await SearchAsync(productId, 5, ct)).FirstOrDefault(p => p.Id == productId);
         return found is null ? null : new NemligProductDetail(found, [], new Dictionary<string, string>());
+    }
+
+    /// <summary>Finder objektet i svaret der beskriver netop denne vare: et
+    /// objekt med et «Id» der matcher, og et «Name». Bredde-først, så vi tager
+    /// det yderste match frem for et tilfældigt relateret produkt langt nede.</summary>
+    internal static JsonNode? FindProductNode(JsonNode? root, string productId)
+    {
+        if (root is null) return null;
+
+        var kø = new Queue<JsonNode>();
+        kø.Enqueue(root);
+        var besøgte = 0;
+
+        while (kø.Count > 0 && besøgte++ < 5000)
+        {
+            var node = kø.Dequeue();
+
+            switch (node)
+            {
+                case JsonObject obj:
+                    if (obj.TryGetPropertyValue("Id", out var id)
+                        && obj.ContainsKey("Name")
+                        && id?.ToString() == productId)
+                        return obj;
+
+                    foreach (var (_, value) in obj)
+                        if (value is not null) kø.Enqueue(value);
+                    break;
+
+                case JsonArray arr:
+                    foreach (var item in arr)
+                        if (item is not null) kø.Enqueue(item);
+                    break;
+            }
+        }
+
+        return null;
     }
 
     private static NemligProduct? MapProduct(JsonNode? n)

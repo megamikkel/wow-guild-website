@@ -131,6 +131,13 @@ createServer(async (req, res) => {
     const raekke = KATALOG.find(k => k[0] === id);
     if (raekke) {
       const p = produkt(raekke);
+      // NESTED-tilstand til afproevning: laeg produktet et andet sted, saa vi kan
+      // se at diagnosen viser formen naar mapningen ikke finder det.
+      if (process.env.NESTED) {
+        return svar(res, { MetaData: { ResponseCode: 200, Name: 'Product page' },
+                           Settings: { ZipCode: '1620', UserId: 'x' },
+                           content: [{ TemplateName: 'productspot', Product: p }] });
+      }
       return svar(res, { MetaData: { ResponseCode: 200 }, ...p,
                          Attributes: [{ Name: 'Oprindelse', Value: 'Danmark' }],
                          AlternativeProducts: [] });

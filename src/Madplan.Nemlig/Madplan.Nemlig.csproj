@@ -20,5 +20,7 @@
     <!-- Kontrakttests skal kunne kalde mapningen direkte uden at den bliver
          offentlig API. Den er en implementeringsdetalje, ikke en kontrakt. -->
     <InternalsVisibleTo Include="Madplan.Tests" />
+    <!-- Kun for diagnosens raa-hentning; ikke en del af INemligCatalog. -->
+    <InternalsVisibleTo Include="Madplan.Web" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json.Nodes;
 using Madplan.Nemlig;
 using Madplan.Nemlig.Contracts;
 
@@ -121,7 +122,11 @@ public static class SmokeTest
                 if (d is null) throw new InvalidOperationException("intet svar");
                 return ($"{d.Product.Name} til {d.Product.Price:N2} kr.", d);
             });
-            if (detail is null) fejl++;
+            if (detail is null)
+            {
+                fejl++;
+                await DumpProductPageAsync(services, p, output);
+            }
         }
 
         output.WriteLine("  ───────────────────────────────────────────────");
@@ -162,6 +167,69 @@ public static class SmokeTest
             output.WriteLine($"  ✗  {navn}");
             output.WriteLine($"     {ex.GetType().Name}: {ex.Message}");
             return null;
+        }
+    }
+
+    /// <summary>Viser FORMEN på nemligs svar når mapningen ikke kunne finde
+    /// varen. Kun feltnavne, ingen værdier: et produktsvar indeholder også
+    /// leveringsadresse og kundenummer, og de skal ikke i en fejlrapport.</summary>
+    private static async Task DumpProductPageAsync(
+        IServiceProvider services, NemligProduct p, TextWriter output)
+    {
+        var client = services.GetService<NemligClient>();
+        if (client is null || p.Url is null) return;
+
+        output.WriteLine();
+        output.WriteLine("     Nemligs svar har denne form — send den videre:");
+
+        try
+        {
+            var json = await client.FetchProductPageAsync(p.Url);
+            if (json is null)
+            {
+                output.WriteLine("       (tomt svar)");
+                return;
+            }
+
+            PrintShape(output, json, "       ", depth: 3);
+        }
+        catch (Exception ex)
+        {
+            output.WriteLine($"       kunne ikke hentes: {ex.Message}");
+        }
+    }
+
+    private static void PrintShape(TextWriter output, JsonNode node, string indent, int depth)
+    {
+        if (depth <= 0) return;
+
+        switch (node)
+        {
+            case JsonObject obj:
+                foreach (var (key, value) in obj.Take(25))
+                {
+                    var type = value switch
+                    {
+                        JsonObject o => $"objekt ({o.Count} felter)",
+                        JsonArray a => $"liste ({a.Count})",
+                        null => "null",
+                        _ => "værdi",
+                    };
+                    output.WriteLine($"{indent}{key}: {type}");
+
+                    // «Id» er nøglen vi leder efter — vis hvor den ligger.
+                    if (key is "Id" or "Name" && value is not null)
+                        output.WriteLine($"{indent}  ↑ dette felt bruger vi til at genkende varen");
+
+                    if (value is not null) PrintShape(output, value, indent + "  ", depth - 1);
+                }
+                if (obj.Count > 25) output.WriteLine($"{indent}… og {obj.Count - 25} felter mere");
+                break;
+
+            case JsonArray arr when arr.Count > 0 && arr[0] is not null:
+                output.WriteLine($"{indent}[0]:");
+                PrintShape(output, arr[0]!, indent + "  ", depth - 1);
+                break;
         }
     }
 

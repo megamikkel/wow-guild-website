@@ -127,3 +127,81 @@ public class PackageSizeRoundingTests
         Assert.Equal(1, Madplan.Core.Planning.PackSizeMath.Compute(2000, size).PackCount);
     }
 }
+
+/// <summary>At finde varen i en produktside.
+///
+/// Nemligs produktsider er Sitecore-sider, og de er ikke dokumenteret dybere
+/// end ét eksempel. Første rigtige kald mod nemlig viste at varen lå under
+/// «content[0].Product», ikke i roden — så en fast placering ville have været
+/// et gæt der holdt indtil de flyttede rundt.</summary>
+public class FindProductNodeTests
+{
+    private static JsonNode Parse(string json) => JsonNode.Parse(json)!;
+
+    [Fact]
+    public void Varen_findes_i_roden()
+    {
+        var node = NemligClient.FindProductNode(
+            Parse("""{"Id":"123","Name":"Mælk","Price":9.5}"""), "123");
+
+        Assert.Equal("Mælk", node!["Name"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Varen_findes_under_et_Product_felt()
+    {
+        var node = NemligClient.FindProductNode(
+            Parse("""{"MetaData":{"ResponseCode":200},"Product":{"Id":"123","Name":"Mælk"}}"""), "123");
+
+        Assert.Equal("Mælk", node!["Name"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Varen_findes_nede_i_en_content_liste()
+    {
+        // Formen fra det foerste rigtige kald mod nemlig.
+        var node = NemligClient.FindProductNode(Parse("""
+            {"MetaData":{"ResponseCode":200,"Name":"Product page"},
+             "Settings":{"ZipCode":"1620","UserId":"x"},
+             "content":[{"TemplateName":"productspot","Product":{"Id":"123","Name":"Mælk","Price":9.5}}]}
+            """), "123");
+
+        Assert.NotNull(node);
+        Assert.Equal("Mælk", node!["Name"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Et_ANDET_produkt_paa_siden_forveksles_ikke_med_det_vi_bad_om()
+    {
+        // Produktsider viser ogsaa relaterede varer. Tager vi den foerste den
+        // bedste, prissaetter vi den forkerte vare - stille.
+        var node = NemligClient.FindProductNode(Parse("""
+            {"RelatedProducts":[{"Id":"999","Name":"Fløde"}],
+             "content":[{"Product":{"Id":"123","Name":"Mælk"}}]}
+            """), "123");
+
+        Assert.Equal("Mælk", node!["Name"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Findes_varen_ikke_paa_siden_returneres_null()
+        => Assert.Null(NemligClient.FindProductNode(
+            Parse("""{"content":[{"Product":{"Id":"999","Name":"Andet"}}]}"""), "123"));
+
+    [Fact]
+    public void Et_objekt_med_Id_men_uden_Name_er_ikke_en_vare()
+    {
+        // Sitecore-spots har ogsaa Id'er. Uden Name-kravet ville et tilfaeldigt
+        // spot med samme Id kunne blive laest som en vare.
+        Assert.Null(NemligClient.FindProductNode(
+            Parse("""{"Spot":{"Id":"123","TemplateName":"noget"}}"""), "123"));
+    }
+
+    [Fact]
+    public void Tomt_eller_ugyldigt_svar_kaster_ikke()
+    {
+        Assert.Null(NemligClient.FindProductNode(null, "123"));
+        Assert.Null(NemligClient.FindProductNode(Parse("[]"), "123"));
+        Assert.Null(NemligClient.FindProductNode(Parse("{}"), "123"));
+    }
+}
