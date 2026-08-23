@@ -31,6 +31,10 @@ nemlig er afprøvet i en rigtig browser.
 | `start.cmd` | Kør appen rigtigt. Opretter `.env` første gang og åbner den i Notepad. |
 | `tjek-nemlig.cmd` | Diagnose af nemlig-integrationen. **Kør den først** — se nedenfor. |
 
+Appen læser selv `.env`, så scripterne er en bekvemmelighed, ikke en
+forudsætning. Sæt aldrig kodeord som miljøvariabler i hånden i en terminal —
+de havner i shell-historikken.
+
 Scripterne er skrevet til Windows, men jeg har ikke kunnet afprøve dem på
 Windows herfra. Virker de ikke, er de tre kommandoer de pakker ind:
 
@@ -42,8 +46,10 @@ docker compose up -d
 
 ### Første gang: kør diagnosen
 
-```
-tjek-nemlig.cmd
+```powershell
+copy .env.example .env
+notepad .env          # udfyld, gem, luk
+dotnet run --project src\Madplan.Web -- smoke
 ```
 
 Nemlig-laget er skrevet mod dokumenterede skemaer og har aldrig talt med den

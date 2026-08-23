@@ -8,6 +8,19 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+// .env læses FØR builderen, så konfigurationen ser værdierne. Filen ligger ved
+// siden af projektet eller i mappen man kører fra — begge dele er naturlige,
+// afhængigt af om man kører «dotnet run» eller den byggede binær.
+foreach (var kandidat in new[]
+         {
+             Path.Combine(Directory.GetCurrentDirectory(), ".env"),
+             Path.Combine(AppContext.BaseDirectory, ".env"),
+             Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"),
+         })
+{
+    if (Madplan.Web.Services.DotEnv.Load(Path.GetFullPath(kandidat)) > 0) break;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Diagnosen skal kunne læses. Uden dette fletter HttpClient-logningen sig ind
