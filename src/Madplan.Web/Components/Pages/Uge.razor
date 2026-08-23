@@ -27,29 +27,65 @@ else
 {
     @foreach (var date in Dates)
     {
-        var dayEntries = plan.Entries.Where(e => e.Date == date).ToList();
+        var laves = plan.Entries.Where(e => e.Date == date).ToList();
+        var rester = plan.Entries.Where(e => e.IsLeftoverOn(date)).ToList();
+
         <div class="day @(date == Today ? "today" : "")">
             <div class="day-head">
                 <span class="day-name">@date.ToString("dddd", Da)</span>
                 <span class="day-date">@date.ToString("d/M", Da)</span>
             </div>
 
-            @foreach (var e in dayEntries)
+            @foreach (var e in laves)
             {
-                <div class="card tight row between">
-                    <div class="grow">
-                        <div>@e.Recipe?.Title</div>
-                        <div class="small muted">@e.Servings personer</div>
+                <div class="card tight">
+                    <div class="row between">
+                        <div class="grow">
+                            <div>@e.Recipe?.Title</div>
+                            <div class="small muted">
+                                @e.Servings personer
+                                @if (e.CoversDays > 1)
+                                {
+                                    <text> · holder @e.CoversDays dage</text>
+                                }
+                            </div>
+                        </div>
+                        <div class="row">
+                            <button class="btn-sm" @onclick="() => JusterPortioner(e, -1)" disabled="@(e.Servings <= 1)">−</button>
+                            <button class="btn-sm" @onclick="() => JusterPortioner(e, 1)">+</button>
+                            <button class="btn-sm btn-danger" @onclick="() => Fjern(e)" aria-label="Fjern">×</button>
+                        </div>
                     </div>
-                    <div class="row">
-                        <button class="btn-sm" @onclick="() => JusterPortioner(e, -1)" disabled="@(e.Servings <= 1)">−</button>
-                        <button class="btn-sm" @onclick="() => JusterPortioner(e, 1)">+</button>
-                        <button class="btn-sm btn-danger" @onclick="() => Fjern(e)" aria-label="Fjern">×</button>
+
+                    <div class="row" style="margin-top:.4rem;gap:.35rem">
+                        <span class="small muted">Holder i</span>
+                        @for (var d = 1; d <= 4; d++)
+                        {
+                            var dage = d;
+                            <button class="btn-sm @(e.CoversDays == dage ? "btn-primary" : "")"
+                                    @onclick="() => SaetDage(e, dage)">@dage</button>
+                        }
+                        <span class="small muted">dag@(e.CoversDays == 1 ? "" : "e")</span>
                     </div>
                 </div>
             }
 
-            @if (addingTo == date)
+            @foreach (var e in rester)
+            {
+                <div class="card tight row between" style="opacity:.7">
+                    <div class="grow">
+                        <div class="small">Rester: @e.Recipe?.Title</div>
+                        <div class="small muted">Lavet @e.Date.ToString("dddd", Da)</div>
+                    </div>
+                    <span class="pill muted">Rester</span>
+                </div>
+            }
+
+            @if (laves.Count == 0 && rester.Count > 0 && addingTo != date)
+            {
+                <button class="btn-sm btn-quiet" @onclick="() => Start(date)">+ Tilføj alligevel</button>
+            }
+            else if (addingTo == date)
             {
                 <div class="card tight stack">
                     <select @bind="valgtOpskrift">
@@ -71,7 +107,7 @@ else
                     }
                 </div>
             }
-            else
+            else if (rester.Count == 0)
             {
                 <button class="btn-sm btn-quiet" @onclick="() => Start(date)">+ Tilføj ret</button>
             }
@@ -129,6 +165,16 @@ else
         // står retten to gange på skærmen indtil siden genindlæses.
         entry.Recipe = recipe;
         addingTo = null;
+    }
+
+    /// <summary>Sætter hvor mange dage retten dækker. Ingen rester-rækker
+    /// oprettes — ugeplanen viser dem ud fra tallet, og indkøbslisten køber ind
+    /// til dem alle af sig selv.</summary>
+    async Task SaetDage(MealPlanEntry e, int dage)
+    {
+        e.CoversDays = Math.Clamp(dage, 1, 7);
+        Db.MealPlanEntries.Update(e);
+        await Db.SaveChangesAsync();
     }
 
     async Task JusterPortioner(MealPlanEntry e, int delta)

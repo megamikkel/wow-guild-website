@@ -38,8 +38,13 @@ public class ShoppingListBuilder(
             var recipe = entry.Recipe;
             if (recipe is null) continue;
 
+            // Dækker retten flere dage, laves der en større portion — og så
+            // skal der købes ind til dem alle. At gange dagene ind her er det
+            // eneste sted reglen findes, så rester ikke kan blive glemt.
+            var portioner = entry.Servings * Math.Max(1, entry.CoversDays);
+
             var scale = recipe.Servings > 0
-                ? (double)entry.Servings / recipe.Servings
+                ? (double)portioner / recipe.Servings
                 : 1.0;
 
             foreach (var ing in recipe.Ingredients)

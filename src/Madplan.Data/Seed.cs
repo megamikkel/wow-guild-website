@@ -37,6 +37,10 @@ public static class Seed
         // WAL: to voksne skriver samtidig fra sofaen.
         await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;");
 
+        // Databaser oprettet af en tidligere udgave mangler kolonner der er
+        // kommet til siden. Uden dette ville eneste udvej være at slette dem.
+        await SchemaPatcher.ApplyAsync(db);
+
         if (!await db.Units.AnyAsync())
         {
             db.Units.AddRange(DanishUnits.All.Select(u => new Unit

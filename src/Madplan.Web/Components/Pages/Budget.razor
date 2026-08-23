@@ -4,12 +4,14 @@
 @rendermode InteractiveServer
 @inject MenuService Menus
 @inject MadplanDbContext Db
-@inject NavigationManager Nav
 
 <PageTitle>Budget · Madplan</PageTitle>
 
-<h1>Menu efter budget</h1>
-<p class="sub">Sig hvad ugen må koste, så finder appen retter der holder sig under.</p>
+<h1>Retter efter pris</h1>
+<p class="sub">
+    Billigst pr. portion øverst. Sæt flueben ved dem I vil have — totalen
+    foroven regnes på hele udvalget.
+</p>
 
 <div class="card">
     <div class="row" style="gap:.75rem">
@@ -18,16 +20,12 @@
             <input id="budget" type="number" min="0" step="50" @bind="budget" />
         </div>
         <div class="field grow">
-            <label for="retter">Antal retter</label>
-            <input id="retter" type="number" min="1" max="7" @bind="retter" />
-        </div>
-        <div class="field grow">
             <label for="pers">Personer</label>
             <input id="pers" type="number" min="1" @bind="personer" />
         </div>
     </div>
 
-    <div class="row wrap" style="margin-top:.5rem">
+    <div class="row wrap">
         <label class="row" style="margin:0">
             <input type="checkbox" style="width:auto;min-height:auto" @bind="boernevenlig" />
             <span>Kun børnevenlige</span>
@@ -42,134 +40,189 @@
         </label>
     </div>
 
-    <button class="btn-primary btn-block" style="margin-top:.75rem"
-            @onclick="Foreslaa" disabled="@(soeger || antalOpskrifter == 0)">
-        @(soeger ? "Regner…" : "Foreslå menu")
-    </button>
-
-    @if (antalOpskrifter == 0)
-    {
-        <p class="small muted" style="margin:.5rem 0 0">
-            Der er ingen opskrifter endnu. <a href="/import">Importér nogle først.</a>
-        </p>
-    }
-    else
-    {
-        <p class="small muted" style="margin:.5rem 0 0">
-            @antalOpskrifter opskrifter at vælge mellem, @antalMappede råvarer med pris.
-        </p>
-    }
+    <div class="row" style="margin-top:.75rem">
+        <button class="btn-primary grow" @onclick="Hent" disabled="@arbejder">
+            @(arbejder ? "Regner…" : "Vis retter efter pris")
+        </button>
+        <button class="btn-quiet" @onclick="Automatisk" disabled="@arbejder">Vælg for mig</button>
+    </div>
 </div>
 
-@if (menu is not null)
+@if (rangeret is not null)
 {
-    @if (menu.Recipes.Count == 0)
-    {
-        <div class="notice">
-            Fandt ingen retter der passer. Prøv et større budget eller færre filtre.
+    var prissatte = rangeret.Where(c => c.FullyPriced).ToList();
+    var uprissatte = rangeret.Where(c => !c.FullyPriced).ToList();
+
+    <div class="card" style="position:sticky;top:3.4rem;z-index:5">
+        <div class="total">
+            <span>@valgte.Count valgt</span>
+            <span class="@(OverBudget ? "" : "")" style="@(OverBudget ? "color:var(--danger)" : "")">
+                @valgtPris.ToString("N2") kr.
+            </span>
         </div>
-    }
-    else
-    {
-        <div class="card">
-            <div class="total">
-                <span>@menu.Recipes.Count retter</span>
-                <span>@menu.Cost.ToString("N2") kr.</span>
-            </div>
-            <div class="row between small muted">
-                <span>@menu.CostPerServing(personer, menu.Recipes.Count).ToString("N2") kr. pr. portion</span>
-                @if (menu.WithinBudget)
+        <div class="row between small muted">
+            <span>
+                @if (valgte.Count > 0)
                 {
-                    <span class="pill">@((budget - menu.Cost).ToString("N2")) kr. tilbage</span>
+                    <text>@((valgtPris / (personer * valgte.Count)).ToString("N2")) kr. pr. portion</text>
                 }
-                else
-                {
-                    <span class="pill warn">@((menu.Cost - budget).ToString("N2")) kr. over</span>
-                }
-            </div>
-
-            @if (menu.UnpricedIngredients > 0)
-            {
-                <div class="small" style="color:var(--warn);margin-top:.5rem">
-                    ⚠ @menu.UnpricedIngredients råvarer mangler en pris, så beløbet er
-                    et gulv og ikke en total.
-                </div>
-            }
-
-            @if (menu.Recipes.Count < retter)
-            {
-                <div class="small" style="color:var(--warn);margin-top:.5rem">
-                    ⚠ Kun @menu.Recipes.Count af @retter retter kunne holdes inden for budgettet.
-                </div>
-            }
+            </span>
+            <span class="pill @(OverBudget ? "warn" : "")">
+                @(OverBudget ? $"{(valgtPris - budget):N2} kr. over" : $"{(budget - valgtPris):N2} kr. tilbage")
+            </span>
         </div>
 
-        @foreach (var r in menu.Recipes)
+        @if (valgteUkendte > 0)
         {
-            <div class="card tight row between">
-                <div class="grow">
-                    <div>@r.Title</div>
-                    <div class="small muted">
-                        @r.Servings pers. i opskriften
-                        @if (r.TotalTimeMinutes is > 0) { <text> · @r.TotalTimeMinutes min</text> }
-                        @if (r.SourceName is not null) { <text> · @r.SourceName</text> }
-                    </div>
-                </div>
-                @if (r.IsChildFriendly) { <span class="pill">Børn</span> }
+            <div class="small" style="color:var(--warn);margin-top:.4rem">
+                ⚠ @valgteUkendte råvarer mangler en pris — beløbet er et gulv.
             </div>
         }
 
-        <div class="row">
-            <button class="btn-primary grow" @onclick="LaegPaaUge" disabled="@laegger">
-                @(laegger ? "Lægger på…" : "Læg på ugeplanen")
-            </button>
-            <button class="btn-quiet" @onclick="Foreslaa" disabled="@soeger">Prøv igen</button>
+        <div class="small muted" style="margin-top:.4rem">
+            Prisen pr. ret er råvarernes værdi. Totalen her er hvad kurven
+            koster: hele pakker, delt mellem retterne. De to tal er sjældent ens.
         </div>
+
+        @if (valgte.Count > 0)
+        {
+            <button class="btn-primary btn-block" style="margin-top:.5rem"
+                    @onclick="LaegPaaUge" disabled="@laegger">
+                @(laegger ? "Lægger på…" : $"Læg {valgte.Count} retter på ugeplanen")
+            </button>
+        }
+    </div>
+
+    @if (prissatte.Count > 0)
+    {
+        <h2>Prissat (@prissatte.Count)</h2>
+        @foreach (var c in prissatte)
+        {
+            <div class="card tight row between" @onclick="() => Skift(c.Recipe.Id)"
+                 style="cursor:pointer;@(valgte.Contains(c.Recipe.Id) ? "border-color:var(--accent)" : "")">
+                <div class="row grow">
+                    <input type="checkbox" style="width:auto;min-height:auto"
+                           checked="@valgte.Contains(c.Recipe.Id)"
+                           @onclick:stopPropagation="false" readonly />
+                    <div class="grow">
+                        <div>@c.Recipe.Title</div>
+                        <div class="small muted">
+                            råvarer ca. @c.Total?.ToString("N2") kr.
+                            @if (c.Recipe.TotalTimeMinutes is > 0) { <text> · @c.Recipe.TotalTimeMinutes min</text> }
+                            @if (c.Recipe.IsVegetarian) { <text> · vegetar</text> }
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align:right">
+                    <strong>@c.PerServing?.ToString("N2")</strong>
+                    <div class="small muted">kr./portion</div>
+                </div>
+            </div>
+        }
     }
+
+    @if (uprissatte.Count > 0)
+    {
+        <h2>Mangler priser (@uprissatte.Count)</h2>
+        <p class="small muted">
+            Disse kan ikke sammenlignes på pris endnu. Kobl råvarerne til varer
+            under <a href="/import">Retter → Importér</a>, så flytter de op i listen.
+        </p>
+        @foreach (var c in uprissatte.Take(40))
+        {
+            <div class="card tight row between" @onclick="() => Skift(c.Recipe.Id)" style="cursor:pointer">
+                <div class="row grow">
+                    <input type="checkbox" style="width:auto;min-height:auto"
+                           checked="@valgte.Contains(c.Recipe.Id)" readonly />
+                    <span class="grow">@c.Recipe.Title</span>
+                </div>
+                <span class="pill warn">@c.UnknownIngredients uden pris</span>
+            </div>
+        }
+    }
+}
+else if (!arbejder)
+{
+    <p class="empty">Tryk «Vis retter efter pris» for at se hvad hver ret koster.</p>
 }
 
 @if (besked is not null) { <div class="notice info">@besked</div> }
 
 @code {
     decimal budget = 800;
-    int retter = 5;
     int personer = 3;
     bool boernevenlig, vegetar, hurtig;
 
-    MenuPlanner.Menu? menu;
-    bool soeger, laegger;
+    IReadOnlyList<RecipeCosting.Cost>? rangeret;
+    readonly HashSet<int> valgte = [];
+    decimal valgtPris;
+    int valgteUkendte;
+
+    bool arbejder, laegger;
     string? besked;
-    int antalOpskrifter, antalMappede;
 
-    protected override async Task OnInitializedAsync()
-    {
-        antalOpskrifter = await Db.Recipes.CountAsync();
-        antalMappede = await Db.ProductMappings.Select(m => m.FoodId).Distinct().CountAsync();
-    }
+    bool OverBudget => valgtPris > budget;
 
-    async Task Foreslaa()
+    async Task Hent()
     {
-        soeger = true;
-        besked = null;
+        arbejder = true; besked = null;
         try
         {
-            menu = await Menus.SuggestAsync(budget, retter, personer,
-                                            hurtig ? 45 : null, boernevenlig, vegetar);
+            rangeret = await Menus.RankByPriceAsync(personer, hurtig ? 45 : null, boernevenlig, vegetar);
+            valgte.Clear();
+            await Genberegn();
         }
-        finally { soeger = false; }
+        finally { arbejder = false; }
+    }
+
+    /// <summary>Lader appen vælge et udvalg der holder budgettet. Herefter kan
+    /// man rette i det — forslaget er et udgangspunkt, ikke en beslutning.</summary>
+    async Task Automatisk()
+    {
+        arbejder = true; besked = null;
+        try
+        {
+            rangeret ??= await Menus.RankByPriceAsync(personer, hurtig ? 45 : null, boernevenlig, vegetar);
+            var menu = await Menus.SuggestAsync(budget, 5, personer,
+                                                hurtig ? 45 : null, boernevenlig, vegetar);
+            valgte.Clear();
+            foreach (var r in menu.Recipes) valgte.Add(r.Id);
+            await Genberegn();
+
+            besked = menu.Recipes.Count == 0
+                ? "Fandt ingen retter der passer. Prøv et større budget eller færre filtre."
+                : null;
+        }
+        finally { arbejder = false; }
+    }
+
+    async Task Skift(int recipeId)
+    {
+        if (!valgte.Remove(recipeId)) valgte.Add(recipeId);
+        await Genberegn();
+    }
+
+    /// <summary>Totalen regnes på HELE udvalget, ikke som en sum af enkeltpriser.
+    /// Deler to retter en råvare, købes pakken kun én gang — og det er præcis
+    /// forskellen mellem et budget der holder og et der ikke gør.</summary>
+    async Task Genberegn()
+    {
+        var (pris, ukendte) = await Menus.PriceSelectionAsync(valgte, personer);
+        valgtPris = pris;
+        valgteUkendte = ukendte;
     }
 
     async Task LaegPaaUge()
     {
-        if (menu is null) return;
+        if (valgte.Count == 0) return;
         laegger = true;
         try
         {
             var householdId = await Db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync();
             var (year, week) = MealPlanService.CurrentIsoWeek();
-            var lagt = await Menus.ApplyToWeekAsync(menu, householdId, year, week, personer);
+            var lagt = await Menus.ApplySelectionAsync([.. valgte], householdId, year, week, personer);
 
-            besked = lagt == menu.Recipes.Count
+            besked = lagt == valgte.Count
                 ? $"{lagt} retter lagt på ugeplanen."
                 : $"{lagt} retter lagt på. Resten af ugen var optaget.";
         }

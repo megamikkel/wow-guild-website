@@ -13,9 +13,10 @@ Hobbyprojekt til eget brug. Ikke et produkt.
 
 ## Status
 
-**Kører.** Budgetdrevet menugenerator, import af opskrifter, automatisk kobling
-til billigste vare, ugeplan, aggregeret indkøbsliste og daglig prisovervågning.
-127 tests grønne.
+**Kører.** Retter rangeret efter pris pr. portion, budgetdrevet menugenerator,
+import af opskrifter, automatisk kobling til billigste vare, ugeplan med rester,
+aggregeret indkøbsliste og daglig prisovervågning.
+175 tests grønne.
 
 ✅ **Nemlig-integrationen er verificeret mod den rigtige nemlig.com**
 (22. august 2026): login, produktsøgning og produktdetaljer. Kør
@@ -69,11 +70,19 @@ projekt, med en etårig ved bordet: meget lidt salt, bløde konsistenser, og en
 note til hver ret om hvad man gør anderledes til den mindste. Ingen import
 nødvendig for at komme i gang.
 
-1. **Sæt et budget** — appen sammensætter en menu der holder sig under, og
-   foretrækker retter der deler råvarer, fordi de er billigere tilsammen.
+1. **Se retterne efter pris** — billigst pr. portion øverst, og sæt selv flueben
+   ved dem I vil have. Totalen opdateres for hvert flueben og regnes på hele
+   udvalget: deler to retter en pose hakkekød, købes den én gang. Vil I hellere
+   have appen til at vælge, siger I bare hvad ugen må koste.
 2. **Kobl råvarer til varer** — ét klik. Appen vælger den billigste pr. enhed og
    husker valget, så samme ret koster det samme fra uge til uge.
-3. **Handl efter listen** — aggregeret på tværs af ugen, med rigtige varenumre.
+3. **Sæt rester på** — «holder i 3 dage» på mandagens fiskefrikadeller lægger dem
+   selv ind tirsdag og onsdag, og der købes ind til hele portionen på én gang.
+4. **Handl efter listen** — aggregeret på tværs af ugen, med rigtige varenumre.
+
+Prisen på den enkelte ret er råvarernes værdi til nemligs kilopris — ikke hele
+pakker. Ellers ville en teskefuld karry koste en hel krukke, og retten se dyr ud
+selvom resten af krukken bruges næste uge. Det man betaler er totalen.
 
 Vil I have flere retter, er der tre veje under **Retter → Importér**:
 
@@ -114,7 +123,7 @@ Disse gælder gennem hele projektet og er ikke til forhandling undervejs:
 | `Madplan.Nemlig` | Det eneste sted der kender nemlig. Egne DTO'er, tre interfaces |
 | `Madplan.Recipes` | Opskriftsimport. JSON-LD, microdata, robots.txt |
 | `Madplan.Web` | Blazor Server. UI, auth, auto-mapping, budgetmenu |
-| `Madplan.Tests` | 127 tests, heriblandt vagthunden mod skrivende nemlig-kald |
+| `Madplan.Tests` | 175 tests, heriblandt vagthunden mod skrivende nemlig-kald |
 
 `Core` og `Nemlig` har **nul** projektreferencer. Isolationen er noget
 compileren håndhæver, ikke en aftale man indgår med sig selv.
@@ -122,7 +131,7 @@ compileren håndhæver, ikke en aftale man indgår med sig selv.
 ## Kom i gang
 
 ```bash
-dotnet test                                  # 127 tests
+dotnet test                                  # 175 tests
 dotnet run --project src/Madplan.Web         # http://localhost:5265
 ```
 

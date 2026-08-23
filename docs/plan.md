@@ -186,6 +186,31 @@ sig hvad ugen må koste, og få en menu der holder sig under.
 
 ---
 
+## Etape 7 — Rester og rangering efter pris ✅ BYGGET
+
+To rettelser der kom af at bruge appen.
+
+**Rester.** `MealPlanEntry.CoversDays` siger hvor mange dage retten dækker.
+Sætter man fiskefrikadeller til 3 dage om mandagen, står de af sig selv som
+«Rester» tirsdag og onsdag. Der er ikke oprettet rester-rækker i databasen —
+det er ét tal på én række, så en rest ikke kan komme til at leve videre efter
+at retten er slettet. `ShoppingListBuilder` ganger dagene ind i portionerne,
+så der købes til hele portionen på én gang. Det er også det eneste sted reglen
+findes.
+
+**Rangering efter pris pr. portion.** Budgetsiden viser nu alle retter sorteret
+med den billigste øverst, så man selv kan vælge til og fra frem for at tage
+imod et forslag. Prisen pr. ret regnes på **kiloprisen**, ikke på hele pakker:
+en teskefuld karry skal ikke koste en hel krukke, for resten af krukken bruges
+næste uge. Det gør tallene sammenlignelige på tværs af retter.
+
+Totalen for det valgte udvalg regnes derimod på hele pakker gennem den rigtige
+aggregering, og opdateres for hvert flueben. De to tal er sjældent ens, og
+siden siger det højt — deler to retter en pose hakkekød, er udvalget billigere
+end summen af retterne.
+
+---
+
 ## Etape 5 — Det der gør den rar (delvist bygget)
 
 - Søgning og filtre: børnevenlig, tid, vegetar, budget
@@ -205,7 +230,7 @@ sig hvad ugen må koste, og få en menu der holder sig under.
 | Prishistorik, "180 kr. dyrere end sidst" | `ProductSnapshot` gemmer observationer frem for at overskrive |
 | Tilbudsdrevne forslag | `DiscountItem` og `Campaign` findes i søgesvaret |
 | Rotation, ikke spaghetti tre uger i træk | `MealPlanEntry` er historik når den først står der |
-| Rester og madspild | `ShoppingListLine` kender overskuddet: `PackCount × PackageSize − NeededQuantity` |
+| Madspild | `ShoppingListLine` kender overskuddet: `PackCount × PackageSize − NeededQuantity` |
 | Leveringsvinduer | Kræver et endpoint vi ikke har fundet endnu *(`nemlig-api.md` §4)* |
 
 Ingen af dem kræver en migration. Det er hele grunden til at de nævnes her.
