@@ -36,12 +36,14 @@ public static class ServiceCollectionExtensions
 
             services.TryAddSingleton<INemligAuth>(sp => sp.GetRequiredService<NemligClient>());
             services.TryAddSingleton<INemligCatalog>(sp => sp.GetRequiredService<NemligClient>());
+            services.TryAddSingleton<INemligRecipes>(sp => sp.GetRequiredService<NemligClient>());
         }
         else
         {
             var offline = new OfflineNemlig();
             services.TryAddSingleton<INemligAuth>(offline);
             services.TryAddSingleton<INemligCatalog>(offline);
+            services.TryAddSingleton<INemligRecipes>(offline);
         }
 
         return services;

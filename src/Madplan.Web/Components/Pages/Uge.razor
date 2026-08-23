@@ -104,7 +104,7 @@ else
         week = IsoWeek ?? current.Week;
 
         // Husstanden er én; brugeren hører til den.
-        var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+        var householdId = await Db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync();
         plan = await Plans.GetOrCreateAsync(householdId, year, week);
         opskrifter = await Db.Recipes.OrderBy(r => r.Title).ToListAsync();
     }

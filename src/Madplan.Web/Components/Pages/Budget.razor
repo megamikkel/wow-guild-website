@@ -165,7 +165,7 @@
         laegger = true;
         try
         {
-            var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+            var householdId = await Db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync();
             var (year, week) = MealPlanService.CurrentIsoWeek();
             var lagt = await Menus.ApplyToWeekAsync(menu, householdId, year, week, personer);
 

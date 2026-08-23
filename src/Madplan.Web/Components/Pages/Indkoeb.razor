@@ -191,7 +191,7 @@ else
         year = IsoYear ?? current.Year;
         week = IsoWeek ?? current.Week;
 
-        var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+        var householdId = await Db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync();
         plan = await Plans.GetOrCreateAsync(householdId, year, week);
         await Genberegn();
     }

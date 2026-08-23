@@ -104,7 +104,7 @@
 
     async Task Saet(Food f, PantryState state)
     {
-        var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+        var householdId = await Db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync();
         var item = await Db.PantryItems.FirstOrDefaultAsync(p => p.FoodId == f.Id);
         if (item is null)
         {

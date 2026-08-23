@@ -157,4 +157,88 @@ public class MenuPlannerTests
         Assert.Empty(menu.Recipes);
         Assert.True(menu.WithinBudget);
     }
+
+    [Fact]
+    public void En_ret_vi_ikke_kender_prisen_paa_er_ikke_billigere_end_en_vi_kender()
+    {
+        // Fejlen dette forhindrer, fundet ved at koere appen: menugeneratoren
+        // valgte systematisk de retter den vidste mindst om, fordi en manglende
+        // pris taeller som nul. Fem middage til tre personer for 60 kr. saa
+        // rigtigt ud og var det ikke.
+        var kendt = F(1, "kendt raavare");
+        var ukendt = F(2, "ukendt raavare");
+
+        var billigOgKendt = R(1, "Kendt ret", (kendt, 100));
+        var gratisOgUkendt = R(2, "Ukendt ret", (ukendt, 100));
+
+        var builder = new ShoppingListBuilder(Units, []);
+        // Kun den kendte raavare har en mapning OG en pris.
+        var ctx = Ctx([M(1, kendt, "p1", 500), M(2, ukendt, "p2", 500)],
+                      new() { ["p1"] = 40m, ["p2"] = null });
+
+        var menu = new MenuPlanner(builder).Plan(
+            new MenuPlanner.Request(Budget: 500m, Meals: 1, Servings: 4,
+                                    [billigOgKendt, gratisOgUkendt], []),
+            ctx, new Random(11));
+
+        Assert.Equal("Kendt ret", Assert.Single(menu.Recipes).Title);
+        Assert.Equal(0, menu.UnpricedIngredients);
+    }
+
+    [Fact]
+    public void Er_intet_prissat_leveres_der_stadig_en_menu()
+    {
+        // Krav 4: nemlig kan vaere nede, eller ingenting er mappet endnu.
+        // Straffen maa ikke betyde at man ingen menu faar.
+        var a = F(1, "a"); var b = F(2, "b");
+        var r1 = R(1, "Ret A", (a, 100));
+        var r2 = R(2, "Ret B", (b, 100));
+
+        var ctx = Ctx([M(1, a, "p1", 500), M(2, b, "p2", 500)],
+                      new() { ["p1"] = null, ["p2"] = null });
+
+        var menu = new MenuPlanner(new ShoppingListBuilder(Units, [])).Plan(
+            new MenuPlanner.Request(500m, 2, 4, [r1, r2], []), ctx, new Random(3));
+
+        Assert.Equal(2, menu.Recipes.Count);
+        Assert.Equal(2, menu.UnpricedIngredients);   // og UI'et siger det hoejt
+    }
+
+    [Fact]
+    public void En_raavare_helt_uden_vare_taeller_ogsaa_som_ukendt()
+    {
+        // Den dybere udgave af samme fejl: en ingrediens uden mapning faar
+        // status ManglerMapping og indgik hverken i summen eller i taellingen
+        // af ukendte. Retten saa baade billig OG fuldt oplyst ud - den vaerste
+        // kombination, for saa er der intet at advare om.
+        var kendt = F(1, "kendt");
+        var umappet = F(2, "umappet");
+
+        var kunKendt = R(1, "Alt kendt", (kendt, 100));
+        var medUmappet = R(2, "Har umappet", (umappet, 100));
+
+        var ctx = Ctx([M(1, kendt, "p1", 500)], new() { ["p1"] = 40m });
+
+        var menu = new MenuPlanner(new ShoppingListBuilder(Units, [])).Plan(
+            new MenuPlanner.Request(500m, 1, 4, [kunKendt, medUmappet], []),
+            ctx, new Random(13));
+
+        Assert.Equal("Alt kendt", Assert.Single(menu.Recipes).Title);
+        Assert.Equal(0, menu.UnpricedIngredients);
+    }
+
+    [Fact]
+    public void Ukendte_raavarer_rapporteres_saa_UI_et_kan_sige_det()
+    {
+        var umappet = F(1, "umappet");
+        var r = R(1, "Ret", (umappet, 100));
+
+        var menu = new MenuPlanner(new ShoppingListBuilder(Units, [])).Plan(
+            new MenuPlanner.Request(500m, 1, 4, [r], []),
+            Ctx([], []), new Random(1));
+
+        Assert.Single(menu.Recipes);
+        Assert.Equal(1, menu.UnpricedIngredients);
+        Assert.Equal(0m, menu.Cost);
+    }
 }

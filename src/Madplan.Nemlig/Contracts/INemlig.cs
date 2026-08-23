@@ -24,6 +24,28 @@ public interface INemligCatalog
                                                bool forceRefresh = false, CancellationToken ct = default);
 }
 
+/// <summary>Nemligs eget opskriftsunivers. Læsende, som resten.
+///
+/// Adskilt fra <see cref="INemligCatalog"/> fordi det er en anden slags flade
+/// med en anden risiko: katalogfladen er verificeret mod den rigtige server,
+/// mens denne er ren hypotese indtil et kald bekræfter den. Går den ned, skal
+/// opskriftsbiblioteket stadig virke.
+///
+/// Hvorfor de er interessante: nemlig knytter selv ingredienser til varenumre,
+/// fordi de skal kunne sælge dem. Holder det, er projektets sværeste problem
+/// allerede løst af dem. Se docs/nemlig-api.md §3.</summary>
+public interface INemligRecipes
+{
+    /// <summary>Søger i nemligs opskrifter. Giver kun indekset — navn, URL, tid,
+    /// portioner. Ikke ingredienserne.</summary>
+    Task<IReadOnlyList<NemligRecipe>> SearchRecipesAsync(
+        string query, int take = 20, CancellationToken ct = default);
+
+    /// <summary>Henter én opskrift med ingredienser. Det er HER hypotesen står
+    /// eller falder: er der varenumre med, er mapping-problemet løst for dem.</summary>
+    Task<NemligRecipe?> GetRecipeAsync(string recipeUrl, CancellationToken ct = default);
+}
+
 // Der er BEVIDST intet kurv-interface her.
 //
 // Appen skriver ikke til nemlig. Den læser priser og produkter, og producerer en

@@ -56,6 +56,38 @@ public class RecipeFetcher(HttpClient http, RecipeExtractor extractor)
         }
     }
 
+    /// <summary>Finder alle opskriftslinks på en oversigtsside. Henter ikke
+    /// opskrifterne — det er et separat skridt, så man kan se hvad man går i
+    /// gang med, før tredive kald sættes i sving.</summary>
+    public async Task<(IReadOnlyList<string> Links, string? Error)> FindLinksAsync(
+        string pageUrl, CancellationToken ct = default)
+    {
+        if (!Uri.TryCreate(pageUrl, UriKind.Absolute, out var uri))
+            return ([], "Ikke en gyldig adresse.");
+
+        try
+        {
+            var robots = await GetRobotsAsync(uri, ct);
+            if (!robots.IsAllowed(uri.AbsolutePath))
+                return ([], "robots.txt beder os lade være med at hente denne side.");
+
+            var html = await GetStringAsync(uri, ct);
+            var links = await new RecipeLinkFinder().FindAsync(html, pageUrl);
+
+            return links.Count == 0
+                ? ([], "Fandt ingen opskriftslinks på siden.")
+                : (links, null);
+        }
+        catch (HttpRequestException ex)
+        {
+            return ([], $"Kunne ikke hente siden: {ex.StatusCode?.ToString() ?? ex.Message}");
+        }
+        catch (TaskCanceledException)
+        {
+            return ([], "Siden svarede ikke i tide.");
+        }
+    }
+
     /// <summary>Henter mange sider efter hinanden. Sekventielt med vilje —
     /// parallel import ville være hurtigere og en dårlig måde at behandle
     /// en gratis kilde på.</summary>

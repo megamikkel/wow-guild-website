@@ -16,6 +16,51 @@
     valdemarsro.dk, madensverden.dk, sundpaabudget.dk og de fleste danske madblogs.
 </p>
 
+<h2>Fra en oversigtsside</h2>
+<p class="small muted">
+    Ét link til fx valdemarsros «Familiefavoritter» — så finder appen alle
+    opskrifterne på siden. Det er den hurtige vej til mange retter.
+</p>
+
+<div class="card">
+    <div class="field">
+        <label for="oversigt">Adresse på en oversigtsside</label>
+        <input id="oversigt" @bind="oversigtUrl" @bind:event="oninput"
+               placeholder="https://www.valdemarsro.dk/familiefavoritter/" />
+    </div>
+    <button class="btn-block" @onclick="FindLinks" disabled="@(soeger || oversigtUrl.Length == 0)">
+        @(soeger ? "Leder…" : "Find opskrifter på siden")
+    </button>
+    @if (fundetBesked is not null)
+    {
+        <p class="small muted" style="margin:.5rem 0 0">@fundetBesked</p>
+    }
+</div>
+
+<h2>Fra nemligs egne opskrifter</h2>
+<p class="small muted">
+    Nemlig knytter selv ingredienser til varenumre. Virker det, er retterne
+    prissat med det samme — uden at nogen skal vælge varer.
+    <strong>Uafprøvet endnu</strong>, så det er lige så meget en test som en import.
+</p>
+
+<div class="card">
+    <div class="row" style="gap:.5rem">
+        <input class="grow" @bind="nemligSoeg" @bind:event="oninput" placeholder="fx «kylling» eller «hverdag»" />
+        <input type="number" min="1" max="50" style="width:5rem" @bind="nemligAntal" />
+    </div>
+    <button class="btn-block" style="margin-top:.5rem" @onclick="HentFraNemlig"
+            disabled="@(koerer || !NemligAuth.IsConfigured || nemligSoeg.Length == 0)">
+        @(koerer ? "Henter…" : "Hent fra nemlig")
+    </button>
+    @if (!NemligAuth.IsConfigured)
+    {
+        <p class="small muted" style="margin:.5rem 0 0">Kræver nemlig-login i .env.</p>
+    }
+</div>
+
+<h2>Fra enkelte links</h2>
+
 <div class="card">
     <div class="field">
         <label for="urls">Adresser</label>
@@ -84,6 +129,11 @@ else
 
 @code {
     string urls = "";
+    string oversigtUrl = "";
+    string nemligSoeg = "";
+    int nemligAntal = 20;
+    bool soeger;
+    string? fundetBesked;
     readonly List<RecipeImportService.ImportResult> resultater = [];
     bool koerer;
     int umappede;
@@ -114,6 +164,43 @@ else
             });
 
             await Importer.ImportAsync(urls.Split('\n'), progress);
+            await TaelUmappede();
+        }
+        finally { koerer = false; }
+    }
+
+    async Task FindLinks()
+    {
+        soeger = true;
+        fundetBesked = null;
+        try
+        {
+            var (links, fejl) = await Importer.FindLinksAsync(oversigtUrl);
+            if (fejl is not null) { fundetBesked = fejl; return; }
+
+            // Linkene lægges i feltet nedenfor frem for at blive hentet med det
+            // samme. Man skal kunne se hvad man går i gang med, før tredive kald
+            // sættes i sving mod en fremmed side.
+            urls = string.Join('\n', links);
+            fundetBesked = $"Fandt {links.Count} opskrifter. De står nu i feltet nedenfor — " +
+                           "fjern dem I ikke vil have, og tryk Importér.";
+        }
+        finally { soeger = false; }
+    }
+
+    async Task HentFraNemlig()
+    {
+        koerer = true;
+        resultater.Clear();
+        try
+        {
+            var progress = new Progress<RecipeImportService.ImportResult>(r =>
+            {
+                resultater.Add(r);
+                InvokeAsync(StateHasChanged);
+            });
+
+            await Importer.ImportFromNemligAsync(nemligSoeg, nemligAntal, progress);
             await TaelUmappede();
         }
         finally { koerer = false; }

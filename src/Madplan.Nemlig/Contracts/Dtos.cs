@@ -65,3 +65,24 @@ public record NemligSession(string BearerToken, string XsrfToken, DateTimeOffset
 {
     public bool IsTokenFresh => DateTimeOffset.UtcNow < TokenExpiresAt.AddSeconds(-30);
 }
+
+/// <summary>En opskrift fra nemligs eget univers.
+///
+/// Hvorfor de er interessante: nemlig knytter selv ingredienser til varenumre,
+/// fordi de skal kunne sælge dem. Er <see cref="ProductIds"/> udfyldt, er
+/// projektets sværeste problem — ingrediens til vare — allerede løst af dem.
+///
+/// Hvorvidt det holder er en HYPOTESE indtil et rigtigt kald siger andet.
+/// Se docs/nemlig-api.md §3.</summary>
+public record NemligRecipe(
+    string Id,
+    string Name,
+    string? Url,
+    int? Servings,
+    string? TotalTime,
+    IReadOnlyList<string> Ingredients,
+    IReadOnlyList<string> ProductIds,
+    string? Instructions)
+{
+    public bool HasMappedProducts => ProductIds.Count > 0;
+}

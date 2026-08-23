@@ -94,3 +94,29 @@ public class RecipeExtractorTests
     public void Portionsantal_parses(string? input, int? expected)
         => Assert.Equal(expected, RecipeExtractor.ParseServingsText(input));
 }
+
+/// <summary>Startbiblioteket. En tom app er ubrugelig, og det er den eneste
+/// kilde der virker helt uden netværk.</summary>
+public class RecipeLibraryTests
+{
+    [Fact]
+    public void Biblioteket_indeholder_et_brugbart_antal_retter()
+    {
+        // Nok til at en uges menu kan sammensættes uden gentagelser, og til at
+        // rotationen over fire uger har noget at vælge imellem.
+        Assert.True(Madplan.Data.RecipeLibrary.Count >= 25,
+            $"Kun {Madplan.Data.RecipeLibrary.Count} retter — for lidt til en ugeplan med variation.");
+    }
+
+    [Fact]
+    public void Nemlig_tider_i_fritekst_parses()
+    {
+        Assert.Equal(25, Madplan.Web.Services.RecipeImportService.MinutterFra("25 min"));
+        Assert.Equal(75, Madplan.Web.Services.RecipeImportService.MinutterFra("1 t 15 min"));
+        Assert.Equal(120, Madplan.Web.Services.RecipeImportService.MinutterFra("2 t"));
+        Assert.Equal(90, Madplan.Web.Services.RecipeImportService.MinutterFra("1 time 30 minutter"));
+        Assert.Equal(45, Madplan.Web.Services.RecipeImportService.MinutterFra("45 minutter"));
+        Assert.Null(Madplan.Web.Services.RecipeImportService.MinutterFra(null));
+        Assert.Null(Madplan.Web.Services.RecipeImportService.MinutterFra("hurtig"));
+    }
+}

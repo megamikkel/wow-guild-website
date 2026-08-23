@@ -12,7 +12,7 @@ public static class UserSeed
     public static async Task EnsureUsersAsync(MadplanDbContext db, IPasswordHasher<AppUser> hasher,
                                               IConfiguration config, ILogger log)
     {
-        var household = await db.Households.FirstAsync();
+        var household = await db.Households.OrderBy(h => h.Id).FirstAsync();
 
         // MADPLAN_USERS: "navn:email:kodeord;navn:email:kodeord"
         var spec = config["MADPLAN_USERS"];

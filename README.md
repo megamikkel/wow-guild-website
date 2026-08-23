@@ -64,13 +64,24 @@ indkøbsliste virker, priserne er bare ukendte.
 
 ## Sådan bruges den
 
-1. **Importér opskrifter** — indsæt links fra valdemarsro.dk, madensverden.dk,
-   sundpaabudget.dk eller enhver side med schema.org-data.
+**30 danske hverdagsretter ligger klar fra første start** — skrevet til dette
+projekt, med en etårig ved bordet: meget lidt salt, bløde konsistenser, og en
+note til hver ret om hvad man gør anderledes til den mindste. Ingen import
+nødvendig for at komme i gang.
+
+1. **Sæt et budget** — appen sammensætter en menu der holder sig under, og
+   foretrækker retter der deler råvarer, fordi de er billigere tilsammen.
 2. **Kobl råvarer til varer** — ét klik. Appen vælger den billigste pr. enhed og
    husker valget, så samme ret koster det samme fra uge til uge.
-3. **Sæt et budget** — appen sammensætter en menu der holder sig under, og
-   foretrækker retter der deler råvarer, fordi de er billigere tilsammen.
-4. **Handl efter listen** — aggregeret på tværs af ugen, med rigtige varenumre.
+3. **Handl efter listen** — aggregeret på tværs af ugen, med rigtige varenumre.
+
+Vil I have flere retter, er der tre veje under **Retter → Importér**:
+
+| Vej | Hvad den gør |
+|---|---|
+| **Fra en oversigtsside** | Ét link til fx valdemarsros «Familiefavoritter» → appen finder alle opskrifterne på siden |
+| **Fra nemligs opskrifter** | Nemlig knytter selv ingredienser til varenumre. Virker det, er retterne prissat med det samme. **Uafprøvet endnu** |
+| **Fra enkelte links** | Indsæt adresser, én pr. linje |
 
 | Dokument | Indhold |
 |---|---|

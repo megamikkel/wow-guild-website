@@ -6,7 +6,7 @@ namespace Madplan.Nemlig;
 /// madplanlægning uden nemlig — priserne bliver bare ukendte (krav 4). At have en
 /// eksplicit implementering frem for null-checks spredt ud i UI'et betyder at
 /// den tilstand er testet frem for underforstået.</summary>
-public sealed class OfflineNemlig : INemligAuth, INemligCatalog
+public sealed class OfflineNemlig : INemligAuth, INemligCatalog, INemligRecipes
 {
     public bool IsConfigured => false;
 
@@ -24,4 +24,11 @@ public sealed class OfflineNemlig : INemligAuth, INemligCatalog
     public Task<NemligProductDetail?> GetProductAsync(string productId, string? productUrl = null,
                                                       bool forceRefresh = false, CancellationToken ct = default)
         => Task.FromResult<NemligProductDetail?>(null);
+
+    public Task<IReadOnlyList<NemligRecipe>> SearchRecipesAsync(
+        string query, int take = 20, CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyList<NemligRecipe>>([]);
+
+    public Task<NemligRecipe?> GetRecipeAsync(string recipeUrl, CancellationToken ct = default)
+        => Task.FromResult<NemligRecipe?>(null);
 }

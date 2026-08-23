@@ -24,7 +24,10 @@ if (args.Contains("smoke", StringComparer.OrdinalIgnoreCase)) builder.Logging.Cl
 builder.Configuration.AddEnvironmentVariables();
 
 var dbPath = builder.Configuration["MADPLAN_DB_PATH"] ?? "madplan.db";
-builder.Services.AddDbContext<MadplanDbContext>(o => o.UseSqlite($"Data Source={dbPath}"));
+builder.Services.AddDbContext<MadplanDbContext>(o => o
+    // Flere collection-includes i én forespørgsel giver et kartesisk produkt.
+    // Split-query som standard, så det ikke skal huskes på hvert kald.
+    .UseSqlite($"Data Source={dbPath}", sql => sql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
@@ -76,6 +79,14 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MadplanDbContext>();
     await Seed.EnsureSeededAsync(db);
+    // Første start: læg startbiblioteket ind, så appen ikke er tom.
+    if (!await db.Recipes.AnyAsync())
+    {
+        var antal = await RecipeLibrary.SeedAsync(db);
+        if (antal > 0)
+            app.Logger.LogInformation("Lagde {Antal} retter fra startbiblioteket ind.", antal);
+    }
+
     await UserSeed.EnsureUsersAsync(db,
         scope.ServiceProvider.GetRequiredService<IPasswordHasher<AppUser>>(),
         app.Configuration,

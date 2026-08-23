@@ -18,7 +18,7 @@ namespace Madplan.Nemlig;
 /// Skemaerne stammer fra eisbaw/nemlig_cli's nemlig_api.md, krydstjekket mod
 /// schourode/nemlig (2019) og hknielsen/nemlig-cli (C#, 2026). De er IKKE
 /// live-verificeret — se docs/nemlig-api.md §7 for tjeklisten der skal køres.</summary>
-public sealed class NemligClient : INemligAuth, INemligCatalog
+public sealed class NemligClient : INemligAuth, INemligCatalog, INemligRecipes
 {
     private readonly HttpClient _http;
     private readonly NemligOptions _options;
@@ -375,6 +375,144 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
             DeliveryAvailable: Bool(Prop(availability, "IsDeliveryAvailable")) ?? true,
             IsDiscounted: Bool(Prop(n, "DiscountItem")) ?? false,
             ImageUrl: Str(Prop(n, "PrimaryImage")));
+    }
+
+    // ---------- Nemligs opskrifter ----------
+
+    public async Task<IReadOnlyList<NemligRecipe>> SearchRecipesAsync(
+        string query, int take = 20, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return [];
+
+        var session = await GetSessionAsync(ct);
+        var ctx = await GetContextAsync(ct);
+
+        // Samme gateway som produktsøgningen, men vi beder om opskrifter i
+        // stedet: recipeCount styrer hvor mange der kommer med.
+        var url = $"{_options.SearchGatewayUrl}/search" +
+                  $"?query={Uri.EscapeDataString(query)}&take=1&skip=0&recipeCount={take}" +
+                  $"&timestamp={Uri.EscapeDataString(ctx.Timestamp)}" +
+                  $"&timeslotUtc={Uri.EscapeDataString(ctx.TimeslotUtc)}" +
+                  $"&deliveryZoneId={ctx.DeliveryZoneId}";
+
+        var json = await SendAsync(HttpMethod.Get, url, null, new Dictionary<string, string>
+        {
+            ["Authorization"] = $"Bearer {session.BearerToken}",
+            ["Referer"] = $"{_options.BaseUrl}/",
+        }, ct);
+
+        return [.. (Prop(json, "Recipes") as JsonArray ?? [])
+            .Select(MapRecipeIndex).Where(r => r is not null).Select(r => r!)];
+    }
+
+    private static NemligRecipe? MapRecipeIndex(JsonNode? n)
+    {
+        var id = Str(Prop(n, "Id"));
+        if (string.IsNullOrEmpty(id)) return null;
+
+        return new NemligRecipe(
+            Id: id,
+            Name: Str(Prop(n, "Name")) ?? "",
+            Url: Str(Prop(n, "Url")),
+            Servings: (int?)Dec(Prop(n, "NumberOfPersons")),
+            TotalTime: Str(Prop(n, "TotalTime")),
+            Ingredients: [],
+            ProductIds: [],
+            Instructions: null);
+    }
+
+    public async Task<NemligRecipe?> GetRecipeAsync(string recipeUrl, CancellationToken ct = default)
+    {
+        var session = await GetSessionAsync(ct);
+        var ctx = await GetContextAsync(ct);
+        var path = recipeUrl.StartsWith('/') ? recipeUrl : "/" + recipeUrl;
+
+        var json = await SendAsync(HttpMethod.Get,
+            $"{path}?GetAsJson=1&t={Uri.EscapeDataString(ctx.TimeslotUtc)}&d=1",
+            null, AuthHeaders(session), ct);
+        if (json is null) return null;
+
+        // Vi LEDER efter opskriften i stedet for at gætte hvor den ligger —
+        // samme lære som produktsiderne gav os. Kendetegnet er et objekt med
+        // et navn og en ingrediensliste.
+        var node = FindRecipeNode(json);
+        if (node is null) return null;
+
+        var (ingredienser, varenumre) = LæsIngredienser(node);
+
+        return new NemligRecipe(
+            Id: Str(Prop(node, "Id")) ?? recipeUrl,
+            Name: Str(Prop(node, "Name")) ?? Str(Prop(node, "Title")) ?? "",
+            Url: recipeUrl,
+            Servings: (int?)Dec(Prop(node, "NumberOfPersons")) ?? (int?)Dec(Prop(node, "Persons")),
+            TotalTime: Str(Prop(node, "TotalTime")),
+            Ingredients: ingredienser,
+            ProductIds: varenumre,
+            Instructions: Str(Prop(node, "Description")) ?? Str(Prop(node, "Text")));
+    }
+
+    /// <summary>Finder opskriften i en Sitecore-side: et objekt der både har et
+    /// navn og noget der ligner en ingrediensliste.</summary>
+    internal static JsonObject? FindRecipeNode(JsonNode? root)
+    {
+        if (root is null) return null;
+
+        var kø = new Queue<JsonNode>();
+        kø.Enqueue(root);
+        var besøgte = 0;
+
+        while (kø.Count > 0 && besøgte++ < 5000)
+        {
+            var node = kø.Dequeue();
+            switch (node)
+            {
+                case JsonObject obj:
+                    var harNavn = obj.ContainsKey("Name") || obj.ContainsKey("Title");
+                    var harIngredienser = IngrediensListe(obj) is not null;
+                    if (harNavn && harIngredienser) return obj;
+
+                    foreach (var (_, v) in obj) if (v is not null) kø.Enqueue(v);
+                    break;
+
+                case JsonArray arr:
+                    foreach (var item in arr) if (item is not null) kø.Enqueue(item);
+                    break;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Nemlig kan kalde listen flere ting. Vi accepterer dem alle frem
+    /// for at binde os til ét navn vi ikke har set bekræftet.</summary>
+    private static JsonArray? IngrediensListe(JsonObject obj)
+    {
+        foreach (var navn in new[] { "Ingredients", "IngredientLines", "RecipeIngredients", "Lines" })
+            if (Prop(obj, navn) is JsonArray a && a.Count > 0) return a;
+        return null;
+    }
+
+    private static (IReadOnlyList<string> Tekst, IReadOnlyList<string> Varenumre) LæsIngredienser(JsonObject node)
+    {
+        var tekst = new List<string>();
+        var varenumre = new List<string>();
+
+        foreach (var linje in IngrediensListe(node) ?? [])
+        {
+            if (linje is JsonValue) { tekst.Add(linje.ToString()); continue; }
+            if (linje is not JsonObject o) continue;
+
+            var beskrivelse = Str(Prop(o, "Text")) ?? Str(Prop(o, "Description"))
+                           ?? Str(Prop(o, "Name")) ?? Str(Prop(o, "Title"));
+            if (!string.IsNullOrWhiteSpace(beskrivelse)) tekst.Add(beskrivelse);
+
+            // Det er DEN HER linje hele hypotesen handler om.
+            var varenummer = Str(Prop(o, "ProductId")) ?? Str(Prop(o, "Id"))
+                          ?? Str(Prop(o, "VkNumber"));
+            if (!string.IsNullOrWhiteSpace(varenummer)) varenumre.Add(varenummer);
+        }
+
+        return (tekst, varenumre);
     }
 
     // ---------- Transport ----------

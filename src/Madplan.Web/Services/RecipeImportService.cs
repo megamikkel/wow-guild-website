@@ -1,6 +1,7 @@
 using Madplan.Core.Model;
 using Madplan.Core.Parsing;
 using Madplan.Data;
+using Madplan.Nemlig.Contracts;
 using Madplan.Recipes;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ public class RecipeImportService(
     MadplanDbContext db,
     RecipeFetcher fetcher,
     FoodResolver foods,
+    INemligRecipes nemligRecipes,
     ILogger<RecipeImportService> log)
 {
     public record ImportResult(string Url, string? Title, string? Error, bool Skipped)
@@ -72,9 +74,154 @@ public class RecipeImportService(
         return results;
     }
 
+    /// <summary>Finder alle opskriftslinks på en oversigtsside, så ét link kan
+    /// blive til tredive opskrifter.</summary>
+    public Task<(IReadOnlyList<string> Links, string? Error)> FindLinksAsync(
+        string pageUrl, CancellationToken ct = default) => fetcher.FindLinksAsync(pageUrl, ct);
+
+    /// <summary>Importerer fra nemligs eget opskriftsunivers.
+    ///
+    /// Er ingredienserne allerede knyttet til varenumre, gemmer vi mapningen med
+    /// det samme — så er projektets sværeste problem løst for den ret, uden at
+    /// nogen skal vælge en vare.</summary>
+    public async Task<IReadOnlyList<ImportResult>> ImportFromNemligAsync(
+        string query, int take,
+        IProgress<ImportResult>? progress = null, CancellationToken ct = default)
+    {
+        var results = new List<ImportResult>();
+
+        IReadOnlyList<NemligRecipe> fundne;
+        try
+        {
+            fundne = await nemligRecipes.SearchRecipesAsync(query, take, ct);
+        }
+        catch (NemligUnavailableException ex)
+        {
+            return [new ImportResult(query, null, ex.Message, false)];
+        }
+
+        foreach (var indeks in fundne)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (indeks.Url is null) continue;
+
+            var kilde = $"https://www.nemlig.com{indeks.Url}";
+            if (await db.Recipes.AnyAsync(r => r.SourceUrl == kilde, ct))
+            {
+                var skip = new ImportResult(kilde, indeks.Name, null, Skipped: true);
+                results.Add(skip); progress?.Report(skip);
+                continue;
+            }
+
+            try
+            {
+                var fuld = await nemligRecipes.GetRecipeAsync(indeks.Url, ct);
+                if (fuld is null || fuld.Ingredients.Count == 0)
+                {
+                    var fejl = new ImportResult(kilde, indeks.Name,
+                        "Kunne ikke læse ingredienserne.", false);
+                    results.Add(fejl); progress?.Report(fejl);
+                    continue;
+                }
+
+                await SaveNemligAsync(fuld, kilde, ct);
+                var ok = new ImportResult(kilde, fuld.Name, null, false);
+                results.Add(ok); progress?.Report(ok);
+            }
+            catch (NemligUnavailableException ex)
+            {
+                var fejl = new ImportResult(kilde, indeks.Name, ex.Message, false);
+                results.Add(fejl); progress?.Report(fejl);
+                break;   // circuit breaker har talt
+            }
+        }
+
+        return results;
+    }
+
+    private async Task SaveNemligAsync(NemligRecipe r, string kilde, CancellationToken ct)
+    {
+        var scraped = new ScrapedRecipe(
+            Title: r.Name,
+            Ingredients: r.Ingredients,
+            Instructions: r.Instructions,
+            Servings: r.Servings,
+            TotalMinutes: MinutterFra(r.TotalTime),
+            ImageUrl: null,
+            SourceUrl: kilde,
+            SourceName: "nemlig.com",
+            Author: null,
+            Categories: []);
+
+        var recipe = await SaveAsync(scraped, ct);
+
+        // Har nemlig selv koblet ingredienserne til varer, tager vi imod.
+        // Kilden markeres som Forslag: det er nemligs valg, ikke husstandens,
+        // og et menneske kan skifte varen bagefter.
+        if (!r.HasMappedProducts) return;
+
+        var ingredienser = await db.RecipeIngredients
+            .Where(i => i.RecipeId == recipe.Id && i.FoodId != null)
+            .OrderBy(i => i.SortOrder).ToListAsync(ct);
+
+        var units = await db.Units.ToListAsync(ct);
+        var stk = units.First(u => u.Abbreviation == "stk");
+
+        for (var i = 0; i < Math.Min(ingredienser.Count, r.ProductIds.Count); i++)
+        {
+            var foodId = ingredienser[i].FoodId!.Value;
+            var produktId = r.ProductIds[i];
+
+            if (await db.ProductMappings.AnyAsync(m => m.FoodId == foodId, ct)) continue;
+
+            db.ProductMappings.Add(new ProductMapping
+            {
+                FoodId = foodId,
+                NemligProductId = produktId,
+                ProductName = ingredienser[i].RawText,
+                PackageSize = 1,
+                PackageUnitId = stk.Id,
+                IsPreferred = true,
+                Source = MappingSource.Forslag,
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>«25 min», «1 t 15 min». Nemlig skriver tid som fritekst.</summary>
+    internal static int? MinutterFra(string? tekst)
+    {
+        if (string.IsNullOrWhiteSpace(tekst)) return null;
+
+        var s = tekst.ToLowerInvariant();
+        var minutter = 0;
+        var fundet = false;
+
+        for (var i = 0; i < s.Length;)
+        {
+            if (!char.IsDigit(s[i])) { i++; continue; }
+
+            var start = i;
+            while (i < s.Length && char.IsDigit(s[i])) i++;
+            var værdi = int.Parse(s[start..i]);
+
+            // Der står et mellemrum mellem tallet og enheden: «1 t 15 min».
+            // Uden dette spring blev mellemrummet læst som enheden, og en time
+            // blev til ét minut.
+            while (i < s.Length && s[i] == ' ') i++;
+
+            var erTimer = i < s.Length && s[i] is 't' or 'h';
+            minutter += erTimer ? værdi * 60 : værdi;
+            fundet = true;
+        }
+
+        return fundet && minutter > 0 ? minutter : null;
+    }
+
     private async Task<Recipe> SaveAsync(ScrapedRecipe scraped, CancellationToken ct)
     {
-        var householdId = await db.Households.Select(h => h.Id).FirstAsync(ct);
+        var householdId = await db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync(ct);
         var units = await db.Units.ToListAsync(ct);
         var stkId = units.First(u => u.Abbreviation == "stk").Id;
 

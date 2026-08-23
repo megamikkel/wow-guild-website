@@ -134,7 +134,7 @@
         fejl = null;
         try
         {
-            var householdId = await Db.Households.Select(h => h.Id).FirstAsync();
+            var householdId = await Db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync();
             var units = await Db.Units.ToListAsync();
 
             if (Id is null)
