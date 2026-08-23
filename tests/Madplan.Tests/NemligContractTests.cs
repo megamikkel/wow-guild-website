@@ -205,3 +205,77 @@ public class FindProductNodeTests
         Assert.Null(NemligClient.FindProductNode(Parse("{}"), "123"));
     }
 }
+
+/// <summary>Nemligs felter har ikke samme form overalt.
+///
+/// Et rigtigt kald mod nemlig.com væltede med «The node must be of type
+/// JsonValue»: varen BLEV fundet på produktsiden, men et felt havde en anden
+/// form end i søgesvaret, og GetValue&lt;T&gt;() kaster på uventede typer.
+///
+/// En manglende pris er noget appen kan vise som «ukendt». Et nedbrud er det
+/// ikke. Derfor læses alle felter tolerant.</summary>
+public class ToleranceTests
+{
+    private static NemligProduct? Map(string json)
+    {
+        var node = JsonNode.Parse(json);
+        var metode = typeof(NemligClient).GetMethod("MapProduct",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        return (NemligProduct?)metode.Invoke(null, [node]);
+    }
+
+    [Fact]
+    public void Et_felt_der_pludselig_er_et_objekt_vaelter_ikke()
+    {
+        // Præcis fejlformen fra det rigtige kald.
+        var p = Map("""
+            {"Id":"123","Name":"Mælk",
+             "Description":{"Text":"1 l","Html":"<b>1 l</b>"},
+             "Brand":{"Name":"Arla"},
+             "Price":9.5}
+            """);
+
+        Assert.NotNull(p);
+        Assert.Equal("Mælk", p!.Name);
+        Assert.Equal(9.5m, p.Price);
+        Assert.Equal("Arla", p.Brand);       // teksten hentes fra underfeltet
+        Assert.Null(p.Description);          // formen forstås ikke — men vi kaster ikke
+    }
+
+    [Fact]
+    public void En_pris_der_er_en_streng_laeses_alligevel()
+    {
+        var p = Map("""{"Id":"1","Name":"X","Price":"12.50","UnitPriceCalc":"25.00"}""");
+        Assert.Equal(12.50m, p!.Price);
+        Assert.Equal(25.00m, p.UnitPrice);
+    }
+
+    [Fact]
+    public void Manglende_pris_bliver_nul_ikke_et_nedbrud()
+    {
+        var p = Map("""{"Id":"1","Name":"X"}""");
+        Assert.NotNull(p);
+        Assert.Equal(0m, p!.Price);
+        Assert.Null(p.UnitPrice);
+    }
+
+    [Fact]
+    public void Availability_som_noget_uventet_giver_fornuftige_standardvaerdier()
+    {
+        var p = Map("""{"Id":"1","Name":"X","Availability":"ja"}""");
+        Assert.True(p!.InStock);            // vi antager på lager frem for at skjule varen
+        Assert.True(p.DeliveryAvailable);
+    }
+
+    [Fact]
+    public void Varenummeret_kan_ogsaa_komme_fra_VkNumber()
+    {
+        // Produktsider bruger «Id» til sidens eget id og «VkNumber» til varen.
+        var p = Map("""{"VkNumber":"5601131","Name":"Delemælk"}""");
+        Assert.Equal("5601131", p!.Id);
+    }
+
+    [Fact]
+    public void Et_objekt_helt_uden_id_er_ikke_en_vare()
+        => Assert.Null(Map("""{"Name":"Noget uden varenummer"}"""));
+}

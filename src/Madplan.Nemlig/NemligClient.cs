@@ -85,17 +85,17 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
     {
         // Trin 1: XSRF-token.
         var anti = await SendAsync(HttpMethod.Get, "/webapi/AntiForgery", null, null, ct);
-        var xsrf = anti?["Value"]?.GetValue<string>()
+        var xsrf = Str(Prop(anti, "Value"))
             ?? throw new NemligUnavailableException(NemligFailure.SchemaChanged,
                 "AntiForgery svarede uden feltet 'Value'.");
 
         // Trin 2: Bearer-token. Bemærk: dette trin kræver IKKE login, så
         // katalogopslag kan i princippet køre helt uden vores credentials.
         var token = await SendAsync(HttpMethod.Get, "/webapi/Token", null, null, ct);
-        var bearer = token?["access_token"]?.GetValue<string>()
+        var bearer = Str(Prop(token, "access_token"))
             ?? throw new NemligUnavailableException(NemligFailure.SchemaChanged,
                 "Token svarede uden feltet 'access_token'.");
-        var expiresIn = token["expires_in"]?.GetValue<int>() ?? 300;
+        var expiresIn = (int?)Dec(Prop(token, "expires_in")) ?? 300;
 
         // Trin 3: login.
         var body = new
@@ -129,12 +129,12 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
         var settings = await SendAsync(HttpMethod.Get, "/webapi/v2/AppSettings/Website", null, auth, ct);
         var page = await SendAsync(HttpMethod.Get, "/?GetAsJson=1&d=1", null, auth, ct);
 
-        var s = page?["Settings"];
+        var s = Prop(page, "Settings");
         _context = new PageContext(
-            settings?["CombinedProductsAndSitecoreTimestamp"]?.GetValue<string>() ?? "",
-            s?["TimeslotUtc"]?.GetValue<string>() ?? UrlBuilder.ComputeTimeslot(DateTime.UtcNow),
-            s?["DeliveryZoneId"]?.GetValue<int>() ?? 1,
-            s?["UserId"]?.GetValue<string>());
+            Str(Prop(settings, "CombinedProductsAndSitecoreTimestamp")) ?? "",
+            Str(Prop(s, "TimeslotUtc")) ?? UrlBuilder.ComputeTimeslot(DateTime.UtcNow),
+            (int?)Dec(Prop(s, "DeliveryZoneId")) ?? 1,
+            Str(Prop(s, "UserId")));
         return _context;
     }
 
@@ -170,7 +170,7 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
             ["Referer"] = $"{_options.BaseUrl}/",
         }, ct);
 
-        var products = (json?["Products"]?["Products"] as JsonArray ?? [])
+        var products = (Prop(Prop(json, "Products"), "Products") as JsonArray ?? [])
             .Select(MapProduct).Where(p => p is not null).Select(p => p!).ToList();
 
         _cache.Set(cacheKey, (IReadOnlyList<NemligProduct>)products, _options.PriceCacheDuration);
@@ -225,20 +225,20 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
         // dokumenteret dybere end ét eksempel, ville enhver fast placering være
         // et gæt der holder indtil de flytter rundt. At søge efter objektet med
         // det rigtige Id koster ingenting og holder uanset opbygning.
-        var node = FindProductNode(json, productId);
+        var node = FindProductNode(json, productId, url);
         if (node is null) return null;
 
         var product = MapProduct(node);
         if (product is null) return null;
 
-        var alternatives = (node["AlternativeProducts"] as JsonArray ?? [])
+        var alternatives = (Prop(node, "AlternativeProducts") as JsonArray ?? [])
             .Select(MapProduct).Where(p => p is not null).Select(p => p!).ToList();
 
         var attributes = new Dictionary<string, string>();
-        foreach (var a in node["Attributes"] as JsonArray ?? [])
+        foreach (var a in Prop(node, "Attributes") as JsonArray ?? [])
         {
-            var key = a?["Name"]?.GetValue<string>() ?? a?["Key"]?.GetValue<string>();
-            var value = a?["Value"]?.GetValue<string>();
+            var key = Str(Prop(a, "Name")) ?? Str(Prop(a, "Key"));
+            var value = Str(Prop(a, "Value"));
             if (key is not null && value is not null) attributes[key] = value;
         }
 
@@ -255,12 +255,21 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
         return found is null ? null : new NemligProductDetail(found, [], new Dictionary<string, string>());
     }
 
-    /// <summary>Finder objektet i svaret der beskriver netop denne vare: et
-    /// objekt med et «Id» der matcher, og et «Name». Bredde-først, så vi tager
-    /// det yderste match frem for et tilfældigt relateret produkt langt nede.</summary>
-    internal static JsonNode? FindProductNode(JsonNode? root, string productId)
+    /// <summary>Finder objektet i svaret der beskriver netop denne vare.
+    ///
+    /// Tre kendetegn, fordi ét ikke er nok: nemlig bruger «Id» forskelligt alt
+    /// efter kontekst — på en Sitecore-side kan det være sidens eget id, mens
+    /// varenummeret står i «VkNumber». Og URL'en kender vi allerede, fordi det
+    /// var den vi bad om. Alle tre kræver desuden et «Name», så et Sitecore-spot
+    /// med et tilfældigt sammenfaldende id ikke bliver læst som en vare.
+    ///
+    /// Bredde-først, så en relateret vare langt nede på siden ikke forveksles
+    /// med den vi bad om.</summary>
+    internal static JsonNode? FindProductNode(JsonNode? root, string productId, string? productUrl = null)
     {
         if (root is null) return null;
+
+        var ønsketSti = Normalise(productUrl);
 
         var kø = new Queue<JsonNode>();
         kø.Enqueue(root);
@@ -273,10 +282,7 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
             switch (node)
             {
                 case JsonObject obj:
-                    if (obj.TryGetPropertyValue("Id", out var id)
-                        && obj.ContainsKey("Name")
-                        && id?.ToString() == productId)
-                        return obj;
+                    if (obj.ContainsKey("Name") && Matcher(obj, productId, ønsketSti)) return obj;
 
                     foreach (var (_, value) in obj)
                         if (value is not null) kø.Enqueue(value);
@@ -292,28 +298,83 @@ public sealed class NemligClient : INemligAuth, INemligCatalog
         return null;
     }
 
+    private static bool Matcher(JsonObject obj, string productId, string? ønsketSti)
+    {
+        if (Text(obj, "Id") == productId) return true;
+        if (Text(obj, "VkNumber") == productId) return true;
+
+        return ønsketSti is not null && Normalise(Text(obj, "Url")) == ønsketSti;
+    }
+
+    private static string? Text(JsonObject obj, string key) =>
+        obj.TryGetPropertyValue(key, out var v) ? v?.ToString() : null;
+
+    private static string? Normalise(string? url) =>
+        string.IsNullOrWhiteSpace(url) ? null : url.Trim('/').ToLowerInvariant();
+
+    // ---------- Sikker læsning af nemligs JSON ----------
+    //
+    // GetValue<T>() KASTER hvis feltet ikke er den type man forventer. Nemligs
+    // søgesvar og produktsider bruger ikke samme form for de samme felter — et
+    // rigtigt kald mod nemlig væltede her med «The node must be of type
+    // JsonValue» — og de kan ændre en streng til et objekt uden varsel.
+    //
+    // Vi læser derfor tolerant: forkert form giver null, ikke en exception.
+    // En manglende pris er noget appen kan vise som «ukendt»; et nedbrud er det ikke.
+
+    /// <summary>Læser et felt uden at antage at noden er et objekt.
+    ///
+    /// Selve indekseringen «node["Felt"]» kaster hvis noden er en værdi eller en
+    /// liste — så et felt der uventet er en streng vælter opslaget FØR vi når at
+    /// læse tolerant. Det er samme fælde som GetValue, bare et lag tidligere.</summary>
+    private static JsonNode? Prop(JsonNode? n, string key) =>
+        n is JsonObject o && o.TryGetPropertyValue(key, out var v) ? v : null;
+
+    private static string? Str(JsonNode? n) => n switch
+    {
+        JsonValue v => v.ToString(),
+        null => null,
+        // Et objekt kan bære teksten i et underfelt — det gør nemlig fx for brands.
+        JsonObject o => Str(Prop(o, "Name")) ?? Str(Prop(o, "Value")),
+        _ => null,
+    };
+
+    private static decimal? Dec(JsonNode? n) =>
+        n is JsonValue v && decimal.TryParse(v.ToString(),
+            System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : null;
+
+    private static bool? Bool(JsonNode? n) => n switch
+    {
+        JsonValue v when bool.TryParse(v.ToString(), out var b) => b,
+        JsonValue v when v.ToString() is "1" => true,
+        JsonValue v when v.ToString() is "0" => false,
+        _ => null,
+    };
+
     private static NemligProduct? MapProduct(JsonNode? n)
     {
         if (n is null) return null;
-        var id = n["Id"]?.GetValue<string>();
+
+        var id = Str(Prop(n, "Id")) ?? Str(Prop(n, "VkNumber"));
         if (string.IsNullOrEmpty(id)) return null;
 
-        var availability = n["Availability"];
+        var availability = Prop(n, "Availability");
         return new NemligProduct(
             Id: id,
-            Name: n["Name"]?.GetValue<string>() ?? "",
-            Url: n["Url"]?.GetValue<string>(),
-            Brand: n["Brand"]?.GetValue<string>(),
-            Category: n["Category"]?.GetValue<string>(),
-            SubCategory: n["SubCategory"]?.GetValue<string>(),
-            Description: n["Description"]?.GetValue<string>(),
-            Price: n["Price"]?.GetValue<decimal>() ?? 0m,
-            UnitPrice: n["UnitPriceCalc"]?.GetValue<decimal>(),
-            UnitPriceLabel: n["UnitPriceLabel"]?.GetValue<string>(),
-            InStock: availability?["IsAvailableInStock"]?.GetValue<bool>() ?? true,
-            DeliveryAvailable: availability?["IsDeliveryAvailable"]?.GetValue<bool>() ?? true,
-            IsDiscounted: n["DiscountItem"]?.GetValue<bool>() ?? false,
-            ImageUrl: n["PrimaryImage"]?.GetValue<string>());
+            Name: Str(Prop(n, "Name")) ?? "",
+            Url: Str(Prop(n, "Url")),
+            Brand: Str(Prop(n, "Brand")),
+            Category: Str(Prop(n, "Category")),
+            SubCategory: Str(Prop(n, "SubCategory")),
+            Description: Str(Prop(n, "Description")),
+            Price: Dec(Prop(n, "Price")) ?? Dec(Prop(n, "UnitPrice")) ?? 0m,
+            UnitPrice: Dec(Prop(n, "UnitPriceCalc")),
+            UnitPriceLabel: Str(Prop(n, "UnitPriceLabel")),
+            InStock: Bool(Prop(availability, "IsAvailableInStock")) ?? true,
+            DeliveryAvailable: Bool(Prop(availability, "IsDeliveryAvailable")) ?? true,
+            IsDiscounted: Bool(Prop(n, "DiscountItem")) ?? false,
+            ImageUrl: Str(Prop(n, "PrimaryImage")));
     }
 
     // ---------- Transport ----------

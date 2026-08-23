@@ -180,7 +180,8 @@ public static class SmokeTest
         if (client is null || p.Url is null) return;
 
         output.WriteLine();
-        output.WriteLine("     Nemligs svar har denne form — send den videre:");
+        output.WriteLine($"     Vi ledte efter en vare med Id = {p.Id}");
+        output.WriteLine("     Nemligs svar ser sådan ud — send det videre:");
 
         try
         {
@@ -199,6 +200,13 @@ public static class SmokeTest
         }
     }
 
+    /// <summary>Felter hvis VÆRDI er sikker at vise i en fejlrapport: de
+    /// identificerer en vare, ikke en person. Alt andet vises kun som «værdi»,
+    /// så leveringsadresse, kundenummer og postnummer aldrig slipper med.</summary>
+    private static readonly HashSet<string> SikreFelter =
+        ["Id", "Name", "VkNumber", "Url", "TemplateName", "Brand", "Category",
+         "Price", "UnitPrice", "UnitPriceCalc", "UnitPriceLabel", "Description"];
+
     private static void PrintShape(TextWriter output, JsonNode node, string indent, int depth)
     {
         if (depth <= 0) return;
@@ -206,24 +214,21 @@ public static class SmokeTest
         switch (node)
         {
             case JsonObject obj:
-                foreach (var (key, value) in obj.Take(25))
+                foreach (var (key, value) in obj.Take(30))
                 {
-                    var type = value switch
+                    var beskrivelse = value switch
                     {
                         JsonObject o => $"objekt ({o.Count} felter)",
                         JsonArray a => $"liste ({a.Count})",
                         null => "null",
+                        _ when SikreFelter.Contains(key) => $"= {Kort(value.ToString())}",
                         _ => "værdi",
                     };
-                    output.WriteLine($"{indent}{key}: {type}");
-
-                    // «Id» er nøglen vi leder efter — vis hvor den ligger.
-                    if (key is "Id" or "Name" && value is not null)
-                        output.WriteLine($"{indent}  ↑ dette felt bruger vi til at genkende varen");
+                    output.WriteLine($"{indent}{key}: {beskrivelse}");
 
                     if (value is not null) PrintShape(output, value, indent + "  ", depth - 1);
                 }
-                if (obj.Count > 25) output.WriteLine($"{indent}… og {obj.Count - 25} felter mere");
+                if (obj.Count > 30) output.WriteLine($"{indent}… og {obj.Count - 30} felter mere");
                 break;
 
             case JsonArray arr when arr.Count > 0 && arr[0] is not null:
@@ -232,6 +237,9 @@ public static class SmokeTest
                 break;
         }
     }
+
+    private static string Kort(string s) =>
+        s.Length <= 60 ? s : s[..57] + "…";
 
     private static void Field(TextWriter output, string navn, bool ok, string vaerdi) =>
         output.WriteLine($"        {(ok ? "✓" : "✗")} {navn,-16} {vaerdi}");
