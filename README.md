@@ -17,11 +17,13 @@ Hobbyprojekt til eget brug. Ikke et produkt.
 til billigste vare, ugeplan, aggregeret indkøbsliste og daglig prisovervågning.
 127 tests grønne.
 
-⚠️ **Nemlig-laget er ikke live-verificeret.** Skemaerne stammer fra offentlig
-dokumentation og tre open source-klienter, ikke fra et kald mod nemlig.com —
-det var blokeret i miljøet koden blev skrevet i. **Kør etape 0 i
-[`docs/plan.md`](docs/plan.md) før du stoler på priserne.** Alt der ikke rører
-nemlig er afprøvet i en rigtig browser.
+✅ **Nemlig-integrationen er verificeret mod den rigtige nemlig.com**
+(22. august 2026): login, produktsøgning og produktdetaljer. Kør
+`dotnet run --project src\Madplan.Web -- smoke` for at tjekke den igen —
+API'et er udokumenteret og kan ændre sig uden varsel.
+
+Ikke verificeret endnu: ordrehistorik og ledige leveringsvinduer. Se
+[`docs/nemlig-api.md`](docs/nemlig-api.md) §7.
 
 ### På Windows
 

@@ -1,7 +1,16 @@
 # nemlig.com API — verificeret overblik
 
-**Status:** research + en klient bygget ovenpå (`src/Madplan.Nemlig`).
+**Status:** verificeret mod den rigtige nemlig.com 22-08-2026.
 **Dato:** 2026-08-22.
+
+> **Verificeret:** 3-trins-login, produktsøgning via gatewayen, og produktdetaljer
+> via `GetAsJson` på varens URL. Tillid **A** for de tre. Felterne `Price`,
+> `UnitPriceCalc`, `UnitPriceLabel`, `Url`, `Description` og `Availability` findes
+> og har den dokumenterede betydning; pakkestørrelsen kan udledes af pris divideret
+> med enhedspris. Ingen to-faktor blokerede login.
+>
+> **Ikke verificeret:** ordrehistorik, leveringsvinduer, nemligs egne opskrifter.
+> Se §7 og §8.
 **Vigtigt forbehold:** `nemlig.com` er blokeret af netværkspolitikken i det miljø
 denne research blev lavet i. Jeg har **ikke** kunnet lave et eneste live-kald mod
 nemlig. Alt nedenfor er udledt af kildekode og dokumentation i to offentlige repoer,

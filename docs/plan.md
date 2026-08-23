@@ -22,13 +22,24 @@ EF Core og pessimistiske hvis du ikke er.
 
 ---
 
-## Etape 0 — Verificér API'et (½ dag, ikke kode) ⚠️ MANGLER STADIG
+## Etape 0 — Verificér API'et ✅ GENNEMFØRT 22-08-2026
 
-> **Rækkefølgen blev vendt om.** Etape 1–3 er bygget først, fordi nemlig.com var
-> blokeret i det miljø koden blev skrevet i, så etape 0 ikke kunne udføres.
-> Konsekvensen er at nemlig-klienten er skrevet mod dokumenterede skemaer og
-> aldrig har talt med den rigtige server. Kontrakttests og fixtures ligger klar
-> i `tests/Madplan.Tests/Fixtures/`; opdatér dem når du har kørt tjeklisten.
+> **Rækkefølgen blev vendt om, og det kostede.** Etape 1–6 blev bygget først,
+> fordi nemlig.com var blokeret i det miljø koden blev skrevet i. Klienten var
+> derfor skrevet mod dokumenterede skemaer og havde aldrig talt med serveren.
+>
+> Verificeret 22-08-2026 med `-- smoke` mod den rigtige nemlig. **Tre kørsler,
+> tre ægte fejl** — ingen af dem kunne en test mod fixtures have fanget:
+>
+> 1. Produktsider lægger varen under `content[0]`, ikke i roden. Koden gættede
+>    på roden. Rettet ved at SØGE efter varen frem for at gætte hvor den ligger.
+> 2. `GetValue<T>()` kaster på uventede typer, og nemlig bruger ikke samme form
+>    for samme felt på søgesvar og produktsider.
+> 3. Selve indekseringen `node["Felt"]` kaster også, hvis noden er en værdi.
+>    Andet lag af samme fælde, kun fundet fordi en test provokerede det.
+>
+> Det bekræfter præmissen bag hele §7-tjeklisten: skemaer læst fra andres kode
+> er et udgangspunkt, ikke en verifikation.
 
 Kan ikke springes over. Alt i `nemlig-api.md` har tillid **B** eller lavere,
 fordi nemlig.com var blokeret i det miljø researchen kørte i. Etape 2 og 3
