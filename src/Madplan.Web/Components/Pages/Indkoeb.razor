@@ -28,7 +28,7 @@
 }
 else if (list.Lines.Count == 0)
 {
-    <p class="empty">Ingen retter på ugeplanen endnu. <a href="/">Læg nogle på.</a></p>
+    <p class="empty">Ingen retter på ugeplanen endnu. <a href="/uge">Læg nogle på.</a></p>
 }
 else
 {
@@ -166,6 +166,12 @@ else
         Appen lægger ikke selv varer i nemlig-kurven. Listen her er til at handle
         efter — varenumre og priser er nemligs egne, så det du søger efter findes.
     </div>
+
+    @* Priser hører til her frem for i fanelinjen: det er listens varer man vil
+       se prisudviklingen på, og det er ikke noget man gør hver dag. *@
+    <p class="small muted" style="text-align:center">
+        <a href="/priser">Se prisudviklingen på varerne</a>
+    </p>
 
     @if (besked is not null) { <div class="notice @beskedType">@besked</div> }
 }

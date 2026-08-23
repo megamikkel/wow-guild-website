@@ -16,7 +16,7 @@ Hobbyprojekt til eget brug. Ikke et produkt.
 **Kører.** Retter rangeret efter pris pr. portion, budgetdrevet menugenerator,
 import af opskrifter, automatisk kobling til billigste vare, ugeplan med rester,
 aggregeret indkøbsliste og daglig prisovervågning.
-185 tests grønne.
+193 tests grønne.
 
 ✅ **Nemlig-integrationen er verificeret mod den rigtige nemlig.com**
 (22. august 2026): login, produktsøgning og produktdetaljer. Kør
@@ -69,6 +69,11 @@ indkøbsliste virker, priserne er bare ukendte.
 projekt, med en etårig ved bordet: meget lidt salt, bløde konsistenser, og en
 note til hver ret om hvad man gør anderledes til den mindste. Ingen import
 nødvendig for at komme i gang.
+
+Forsiden **I dag** svarer på to ting og ikke flere: hvad spiser vi, og hvad skal
+der købes. Aftensmaden med noten til den mindste, de næste dages retter, og ét
+tal for indkøbet. Varenumre, pakkestørrelser og koblinger hører til på de andre
+faner — de er der stadig, bare ikke i vejen.
 
 1. **Se retterne efter pris** — billigst pr. portion øverst, og sæt selv flueben
    ved dem I vil have. Totalen opdateres for hvert flueben og regnes på hele
@@ -123,7 +128,7 @@ Disse gælder gennem hele projektet og er ikke til forhandling undervejs:
 | `Madplan.Nemlig` | Det eneste sted der kender nemlig. Egne DTO'er, tre interfaces |
 | `Madplan.Recipes` | Opskriftsimport. JSON-LD, microdata, robots.txt |
 | `Madplan.Web` | Blazor Server. UI, auth, auto-mapping, budgetmenu |
-| `Madplan.Tests` | 185 tests, heriblandt vagthunden mod skrivende nemlig-kald |
+| `Madplan.Tests` | 193 tests, heriblandt vagthunden mod skrivende nemlig-kald |
 
 `Core` og `Nemlig` har **nul** projektreferencer. Isolationen er noget
 compileren håndhæver, ikke en aftale man indgår med sig selv.
@@ -131,7 +136,7 @@ compileren håndhæver, ikke en aftale man indgår med sig selv.
 ## Kom i gang
 
 ```bash
-dotnet test                                  # 185 tests
+dotnet test                                  # 193 tests
 dotnet run --project src/Madplan.Web         # http://localhost:5265
 ```
 

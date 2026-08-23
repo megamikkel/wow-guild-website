@@ -241,6 +241,40 @@ nemlig** og se hvad der sker.
 
 ---
 
+## Etape 9 — En forside der ikke skræmmer ✅ BYGGET
+
+Første rigtige brugertest gav én dom: **uoverskuelig.** Appen var bygget af og
+til den der havde bygget den, og den viste sit maskinrum frem — varenumre,
+pakkestørrelser, «mangler en vare», «du køber 1 kg for at bruge 100 g».
+
+Rettelsen er ikke at fjerne noget, men at give det en forside der svarer på to
+spørgsmål og ikke flere:
+
+- **Hvad spiser vi?** Aftensmaden stort, med noten om hvad man gør anderledes
+  til den etårige. Er det en resterdag, står der hvornår retten blev lavet.
+- **Hvad skal der købes?** Antal varer og ét beløb. Selve listen er ét klik væk.
+
+Derefter de næste dages retter. **Dage uden mad samles til én linje** frem for
+at få hvert sit tomme kort — seks halvtomme kort er selve den slags rod siden
+skal fjerne.
+
+To ting der lyder som detaljer og ikke er det:
+
+- **Dagene ruller hen over ugeskiftet.** «Resten af ugen» er en blindgyde søndag
+  aften, hvor det man vil vide netop er hvad der sker i morgen. Forsiden ser på
+  de næste seks dage, uanset hvilken uge de ligger i, og linker til næste uges
+  indkøbsliste når de kommende måltider ligger der.
+- **Indkøbslisten hentes først efter at siden er tegnet.** Den slår priser op og
+  kan tale med nemlig undervejs; det må ikke være dét man venter på for at få at
+  vide hvad man skal spise.
+
+Fanelinjen blev ved fem. «I dag» kom til, og **Priser** flyttede hen til
+indkøbslisten, hvor den hører til — det er listens varer man vil se prisen på,
+og det er ikke noget man gør hver dag. Seks faner brød til to rækker og gjorde
+præcis det modsatte af det siden skal.
+
+---
+
 ## Etape 5 — Det der gør den rar (delvist bygget)
 
 - Søgning og filtre: børnevenlig, tid, vegetar, budget

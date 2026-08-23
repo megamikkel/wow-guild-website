@@ -1,0 +1,248 @@
+@page "/"
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MadplanDbContext Db
+@inject MealPlanService Plans
+@inject NavigationManager Nav
+
+<PageTitle>I dag · Madplan</PageTitle>
+
+@* Forsiden svarer på to spørgsmål og ikke flere: hvad spiser vi, og hvad skal
+   der købes. Alt om varenumre, pakkestørrelser, mapninger og enhedspriser
+   hører hjemme på de andre sider — her ville det kun være støj. Er man i
+   tvivl om noget skal med her, er svaret nej. *@
+
+@if (henter)
+{
+    <p class="empty">Henter…</p>
+}
+else if (plan is null || !AlleRetter.Any())
+{
+    <h1>Ugen er tom</h1>
+    <p class="sub">Der er ikke lagt nogen retter på endnu.</p>
+    <a class="btn btn-primary btn-block" href="/budget">Find retter der passer budgettet</a>
+    <p class="small muted" style="margin-top:1rem">
+        Eller <a href="/uge">sæt dem selv på ugen</a>.
+    </p>
+}
+else
+{
+    <h1>@Hilsen</h1>
+    <p class="sub">@Today.ToString("dddd d. MMMM", Da)</p>
+
+    @* ---------- I aften ---------- *@
+    @if (IAften is null)
+    {
+        <div class="card">
+            <div class="muted">Ingen ret på i dag.</div>
+            <a class="btn btn-quiet btn-block" style="margin-top:.5rem" href="/uge">Sæt en på</a>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="small muted">I aften@(ErRester ? " · rester" : "")</div>
+            <div style="font-size:1.35rem;font-weight:600;margin:.2rem 0 .35rem">
+                @IAften.Recipe?.Title
+            </div>
+            <div class="small muted">
+                @IAften.Servings personer
+                @if (IAften.Recipe?.TotalTimeMinutes is > 0)
+                {
+                    <text> · @IAften.Recipe.TotalTimeMinutes min</text>
+                }
+                @if (ErRester)
+                {
+                    <text> · lavet @IAften.Date.ToString("dddd", Da)</text>
+                }
+            </div>
+
+            @if (Barnenote is not null)
+            {
+                <div class="notice info" style="margin-top:.6rem">
+                    <strong>Til den mindste:</strong> @Barnenote
+                </div>
+            }
+
+            @if (IAften.Recipe is not null)
+            {
+                <a class="btn btn-quiet btn-block" style="margin-top:.6rem"
+                   href="@($"/opskrifter/{IAften.Recipe.Id}")">Se opskriften</a>
+            }
+        </div>
+    }
+
+    @* ---------- Resten af ugen ---------- *@
+    @if (Resten.Count > 0)
+    {
+        <h2>De næste dage</h2>
+
+        @* Kun dage med mad får et kort. Tomme dage fik før hver sit kort med en
+           bindestreg i, og seks halvtomme kort er præcis den slags rod siden er
+           bygget for at undgå. De samles i stedet til én linje, som samtidig
+           siger hvad man kan gøre ved det. *@
+        @foreach (var d in Resten.Where(x => x.Ret is not null))
+        {
+            <div class="card tight row between">
+                <div class="grow">
+                    <div class="@(d.Rester ? "muted" : "")">@d.Ret</div>
+                    <div class="small muted">
+                        @d.Dato.ToString("dddd", Da)@(d.Rester ? " · rester" : "")
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (TommeDage.Count > 0)
+        {
+            <p class="small muted">
+                Ingen mad @Opremset(TommeDage) — <a href="/budget">find nogle retter</a>.
+            </p>
+        }
+    }
+
+    @* ---------- Indkøb ---------- *@
+    <h2>Indkøb</h2>
+    <div class="card">
+        <div class="small muted">Uge @plan.IsoWeek</div>
+        @if (indkoeb is null)
+        {
+            <div class="small muted">Regner…</div>
+        }
+        else
+        {
+            <div class="total">
+                <span>@AntalVarer varer</span>
+                <span>@(indkoeb.KnownTotal.ToString("N0")) kr.</span>
+            </div>
+            @if (indkoeb.HasUnknownPrices)
+            {
+                <div class="small muted">Nogle varer mangler en pris, så beløbet er et mindstemål.</div>
+            }
+        }
+        <a class="btn btn-primary btn-block" style="margin-top:.6rem" href="/indkoeb">Se indkøbslisten</a>
+    </div>
+
+    @* Sidst på ugen ligger de kommende måltider i næste uges plan, og så er det
+       DEN liste man skal handle efter. Uden dette led er søndag en blindgyde. *@
+    @if (naeste is not null && naeste.Entries.Count > 0 && Resten.Any(d => d.Dato > SidsteDagIUgen))
+    {
+        <a class="btn btn-block" style="margin-bottom:.75rem"
+           href="@($"/indkoeb/{naeste.IsoYear}/{naeste.IsoWeek}")">
+            Indkøb til uge @naeste.IsoWeek
+        </a>
+    }
+
+    <p class="small muted" style="margin-top:1rem;text-align:center">
+        <a href="/uge">Hele ugen</a> · <a href="/budget">Skift retter</a>
+    </p>
+}
+
+@code {
+    record Dag(DateOnly Dato, string? Ret, bool Rester);
+
+    static readonly CultureInfo Da = new("da-DK");
+    static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+
+    MealPlan? plan;
+    MealPlan? naeste;
+    ShoppingList? indkoeb;
+    bool henter = true;
+
+    DateOnly SidsteDagIUgen => plan is null
+        ? Today
+        : MealPlanService.MondayOf(plan.IsoYear, plan.IsoWeek).AddDays(6);
+
+    /// <summary>Alle planlagte retter, denne uge og den næste under ét. Forsiden
+    /// ser på DAGE og ikke på uger — «resten af ugen» er en blindgyde søndag
+    /// aften, hvor det man vil vide netop er hvad der sker i morgen.</summary>
+    IEnumerable<MealPlanEntry> AlleRetter =>
+        (plan?.Entries ?? []).Concat(naeste?.Entries ?? []);
+
+    static string Hilsen
+    {
+        get
+        {
+            var t = DateTime.Now.Hour;
+            if (t is >= 0 and <= 9) return "Godmorgen";
+            if (t is >= 10 and <= 16) return "Goddag";
+            return "Godaften";
+        }
+    }
+
+    /// <summary>Dagens ret — enten en der laves i dag, eller resterne fra en
+    /// ret tidligere på ugen. Laves der noget i dag, vinder det: så står man
+    /// ved komfuret og ikke ved køleskabet.</summary>
+    MealPlanEntry? IAften => AlleRetter.FirstOrDefault(e => e.Date == Today)
+                          ?? AlleRetter.FirstOrDefault(e => e.IsLeftoverOn(Today));
+
+    bool ErRester => IAften is not null && IAften.Date != Today;
+
+    /// <summary>Noten om hvad man gør anderledes til den etårige. Den ligger i
+    /// slutningen af fremgangsmåden, fordi opskrifterne kom den vej ind.</summary>
+    string? Barnenote => Madplan.Core.Model.Barnenote.Laes(IAften?.Recipe?.Instructions);
+
+    /// <summary>De seks dage efter i dag, hen over ugeskiftet. Dage uden mad
+    /// tages med, så man kan se hullerne — det er tit derfor man kigger. Er der
+    /// hverken mad eller hul tilbage at vise, udelades listen helt.</summary>
+    List<Dag> Resten
+    {
+        get
+        {
+            var ud = new List<Dag>();
+            if (plan is null) return ud;
+
+            foreach (var d in Enumerable.Range(1, 6).Select(Today.AddDays))
+            {
+                var laves = AlleRetter.FirstOrDefault(e => e.Date == d);
+                if (laves is not null) { ud.Add(new Dag(d, laves.Recipe?.Title, false)); continue; }
+
+                var rest = AlleRetter.FirstOrDefault(e => e.IsLeftoverOn(d));
+                ud.Add(new Dag(d, rest?.Recipe?.Title, rest is not null));
+            }
+
+            // Syv tomme streger hjælper ingen. Er der intet planlagt forude,
+            // siger den tomme tilstand det bedre end en liste med bindestreger.
+            return ud.Any(x => x.Ret is not null) ? ud : [];
+        }
+    }
+
+    List<Dag> TommeDage => [.. Resten.Where(d => d.Ret is null)];
+
+    /// <summary>«onsdag, fredag og lørdag» — dansk opremsning med «og» til sidst.</summary>
+    static string Opremset(IReadOnlyList<Dag> dage)
+    {
+        var navne = dage.Select(d => d.Dato.ToString("dddd", Da)).ToList();
+        if (navne.Count == 1) return navne[0];
+        return string.Join(", ", navne.Take(navne.Count - 1)) + " og " + navne[^1];
+    }
+
+    int AntalVarer => indkoeb?.Lines.Count(l => l.Included) ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var householdId = await Db.Households.OrderBy(h => h.Id).Select(h => h.Id).FirstAsync();
+        var (year, week) = MealPlanService.CurrentIsoWeek();
+        plan = await Plans.GetOrCreateAsync(householdId, year, week);
+
+        var naesteMandag = MealPlanService.MondayOf(year, week).AddDays(7);
+        var (nyAar, nyUge) = MealPlanService.CurrentIsoWeek(naesteMandag);
+        naeste = await Plans.GetOrCreateAsync(householdId, nyAar, nyUge);
+
+        henter = false;
+    }
+
+    /// <summary>Indkøbslisten hentes FØRST efter at siden er tegnet. Den slår
+    /// priser op og kan tale med nemlig undervejs; det må ikke være dét man
+    /// venter på for at få at vide hvad man skal spise.</summary>
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (!first || plan is null || plan.Entries.Count == 0) return;
+
+
+        indkoeb = await Plans.BuildShoppingListAsync(plan);
+        await InvokeAsync(StateHasChanged);
+    }
+}

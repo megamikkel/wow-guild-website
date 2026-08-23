@@ -73,7 +73,7 @@ public static class RecipeLibrary
                 TotalTimeMinutes = e.Minutes,
                 // Noten til den mindste hører til i fremgangsmåden — det er dér
                 // man læser den, mens man laver maden.
-                Instructions = $"{e.Instructions}\n\nTil den etårige: {e.ChildNote}",
+                Instructions = Barnenote.Tilfoej(e.Instructions, e.ChildNote),
                 IsVegetarian = e.Vegetarian,
                 IsChildFriendly = true,
                 IsOwn = true,
