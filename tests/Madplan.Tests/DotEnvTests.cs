@@ -61,7 +61,7 @@ public class DotEnvTests : IDisposable
     public void Kommentarer_og_tomme_linjer_springes_over()
     {
         var k = Noegle("C");
-        var antal = DotEnv.Load(Skriv($"# en kommentar\n\n{k}=vaerdi\n"));
+        var (antal, _) = DotEnv.Load(Skriv($"# en kommentar\n\n{k}=vaerdi\n"));
         Assert.Equal(1, antal);
         Assert.Equal("vaerdi", Environment.GetEnvironmentVariable(k));
     }
@@ -86,7 +86,7 @@ public class DotEnvTests : IDisposable
 
     [Fact]
     public void Manglende_fil_er_ikke_en_fejl()
-        => Assert.Equal(0, DotEnv.Load(Path.Combine(_dir, "findes-ikke")));
+        => Assert.Equal(0, DotEnv.Load(Path.Combine(_dir, "findes-ikke")).Loaded);
 
     [Fact]
     public void Vroevlelinjer_ignoreres_uden_at_kaste()
@@ -94,5 +94,43 @@ public class DotEnvTests : IDisposable
         var k = Noegle("G");
         DotEnv.Load(Skriv($"bare noget tekst\n=ingen noegle\n{k}=virker"));
         Assert.Equal("virker", Environment.GetEnvironmentVariable(k));
+    }
+
+    [Fact]
+    public void Env_findes_ogsaa_naar_man_koerer_fra_en_undermappe()
+    {
+        // «dotnet run --project src/Madplan.Web» saetter arbejdsmappen til
+        // PROJEKTmappen, ikke til den mappe man staar i. Uden opadgaaende
+        // soegning ville .env i roden aldrig blive fundet.
+        var k = Noegle("DYBT");
+        File.WriteAllText(Path.Combine(_dir, ".env"), $"{k}=fundet");
+
+        var dybt = Directory.CreateDirectory(Path.Combine(_dir, "src", "App", "bin", "Debug"));
+        var foer = Directory.GetCurrentDirectory();
+        try
+        {
+            Directory.SetCurrentDirectory(dybt.FullName);
+            var r = DotEnv.LoadNearest();
+
+            Assert.True(r.Found);
+            Assert.Equal("fundet", Environment.GetEnvironmentVariable(k));
+        }
+        finally { Directory.SetCurrentDirectory(foer); }
+    }
+
+    [Fact]
+    public void Uden_nogen_env_fil_siger_resultatet_hvor_der_blev_ledt()
+    {
+        var tom = Directory.CreateDirectory(Path.Combine(_dir, "helt", "tom"));
+        var foer = Directory.GetCurrentDirectory();
+        try
+        {
+            Directory.SetCurrentDirectory(tom.FullName);
+            // Der ligger en .env i _dir, saa vi kan ikke forvente Found == false.
+            // Vi tjekker at soegestien rapporteres, saa fejlbeskeden kan bruges.
+            var r = DotEnv.LoadNearest();
+            Assert.NotEmpty(r.Searched);
+        }
+        finally { Directory.SetCurrentDirectory(foer); }
     }
 }

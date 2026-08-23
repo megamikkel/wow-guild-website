@@ -8,18 +8,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-// .env læses FØR builderen, så konfigurationen ser værdierne. Filen ligger ved
-// siden af projektet eller i mappen man kører fra — begge dele er naturlige,
-// afhængigt af om man kører «dotnet run» eller den byggede binær.
-foreach (var kandidat in new[]
-         {
-             Path.Combine(Directory.GetCurrentDirectory(), ".env"),
-             Path.Combine(AppContext.BaseDirectory, ".env"),
-             Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"),
-         })
-{
-    if (Madplan.Web.Services.DotEnv.Load(Path.GetFullPath(kandidat)) > 0) break;
-}
+// .env læses FØR builderen, så konfigurationen ser værdierne.
+var dotEnv = Madplan.Web.Services.DotEnv.LoadNearest();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,7 +69,7 @@ var app = builder.Build();
 if (args.Contains("smoke", StringComparer.OrdinalIgnoreCase))
 {
     using var smokeScope = app.Services.CreateScope();
-    return await SmokeTest.RunAsync(smokeScope.ServiceProvider, Console.Out);
+    return await SmokeTest.RunAsync(smokeScope.ServiceProvider, Console.Out, dotEnv);
 }
 
 using (var scope = app.Services.CreateScope())

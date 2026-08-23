@@ -15,7 +15,8 @@ namespace Madplan.Web.Services;
 /// liste søndag aften.</summary>
 public static class SmokeTest
 {
-    public static async Task<int> RunAsync(IServiceProvider services, TextWriter output)
+    public static async Task<int> RunAsync(
+        IServiceProvider services, TextWriter output, DotEnv.Result? dotEnv = null)
     {
         var auth = services.GetRequiredService<INemligAuth>();
         var catalog = services.GetRequiredService<INemligCatalog>();
@@ -24,11 +25,50 @@ public static class SmokeTest
         output.WriteLine("  Nemlig-diagnose");
         output.WriteLine("  ───────────────────────────────────────────────");
 
+        // Hvor kom indstillingerne fra? Det er det første man vil vide når noget
+        // ikke virker, og det er billigt at sige.
+        if (dotEnv is not null)
+        {
+            if (dotEnv.Found)
+            {
+                output.WriteLine($"  ✓  Læste {dotEnv.Path}");
+                output.WriteLine($"     {dotEnv.Loaded} udfyldte værdier: {string.Join(", ", dotEnv.Keys)}");
+            }
+            else
+            {
+                output.WriteLine("  ✗  Fandt ingen .env-fil.");
+                output.WriteLine("     Ledte i:");
+                foreach (var sti in dotEnv.Searched.Take(6)) output.WriteLine($"       {sti}");
+            }
+            output.WriteLine();
+        }
+
         if (!auth.IsConfigured)
         {
             output.WriteLine("  ✗  Ingen credentials.");
             output.WriteLine();
-            output.WriteLine("     Sæt NEMLIG_USERNAME og NEMLIG_PASSWORD i .env og prøv igen.");
+
+            if (dotEnv is { Found: true })
+            {
+                var manglerBruger = !dotEnv.Keys.Contains("NEMLIG_USERNAME");
+                var manglerKode = !dotEnv.Keys.Contains("NEMLIG_PASSWORD");
+
+                output.WriteLine($"     Filen blev læst, men {(manglerBruger && manglerKode
+                    ? "hverken NEMLIG_USERNAME eller NEMLIG_PASSWORD har en værdi"
+                    : manglerBruger ? "NEMLIG_USERNAME er tom"
+                    : manglerKode ? "NEMLIG_PASSWORD er tom"
+                    : "værdierne kom ikke igennem")}.");
+                output.WriteLine();
+                output.WriteLine("     Skriv værdien direkte efter lighedstegnet, gem, og LUK editoren:");
+                output.WriteLine("       NEMLIG_USERNAME=din@mail.dk");
+                output.WriteLine("       NEMLIG_PASSWORD=dit-kodeord");
+            }
+            else
+            {
+                output.WriteLine("     Kopiér .env.example til .env og udfyld den.");
+            }
+
+            output.WriteLine();
             output.WriteLine("     Appen kører fint uden — men uden priser.");
             output.WriteLine();
             return 1;
