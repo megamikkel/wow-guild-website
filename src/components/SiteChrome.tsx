@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { PapiBadge, PapiLogo } from "@/components/Logo";
+import { SignOutButton } from "@/components/SignOutButton";
 import { guildConfig } from "@/config/guild";
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { IS_STATIC_EXPORT } from "@/lib/render-mode";
 import { hasRole } from "@/lib/rbac";
 
 const publicNav = [
@@ -14,7 +16,9 @@ const publicNav = [
 ];
 
 export async function SiteHeader() {
-  const session = await auth();
+  // A static build has no request, so there is no session to read and no
+  // server action to bind a sign-out form to.
+  const session = IS_STATIC_EXPORT ? null : await auth();
   const role = session?.user?.role ?? "PUBLIC";
   const isMember = hasRole(role, "MEMBER");
   const isOfficer = hasRole(role, "OFFICER");
@@ -59,21 +63,8 @@ export async function SiteHeader() {
           >
             Apply
           </Link>
-          {session?.user ? (
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
-            >
-              <button
-                type="submit"
-                className="hidden rounded px-2 py-2 text-xs text-ink-muted transition-colors hover:text-ink md:block"
-                title={`Signed in as ${session.user.name}`}
-              >
-                Sign out
-              </button>
-            </form>
+          {IS_STATIC_EXPORT ? null : session?.user ? (
+            <SignOutButton title={`Signed in as ${session.user.name}`} />
           ) : (
             <Link
               href="/login"
@@ -90,7 +81,7 @@ export async function SiteHeader() {
 }
 
 export async function MobileNav() {
-  const session = await auth();
+  const session = IS_STATIC_EXPORT ? null : await auth();
   const isMember = hasRole(session?.user?.role ?? "PUBLIC", "MEMBER");
   const items = [
     { href: "/", label: "Home" },

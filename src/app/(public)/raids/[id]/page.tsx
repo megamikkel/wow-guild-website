@@ -3,13 +3,25 @@ import { notFound } from "next/navigation";
 
 import { Countdown } from "@/components/Countdown";
 import { ProgressBar, RoleGlyph, SectionHeading, StatusPill, Surface } from "@/components/ui";
-import { getRaidDetail } from "@/domain/queries";
+import { getRaidDetail, getRaids } from "@/domain/queries";
+import { IS_STATIC_EXPORT } from "@/lib/render-mode";
 import { classColorStyle } from "@/lib/wow";
 import { formatDate, formatTime } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 export const metadata: Metadata = { title: "Raid" };
+
+/**
+ * Enumerates scheduled raids so the static preview build can pre-render each
+ * detail page. The normal build renders these on demand, and must not reach
+ * for the database here — production has no connection at build time.
+ */
+export async function generateStaticParams() {
+  if (!IS_STATIC_EXPORT) return [];
+  const { upcoming, past } = await getRaids();
+  return [...upcoming, ...past].map(({ event }) => ({ id: String(event.id) }));
+}
 
 const STATUS_ORDER = ["CONFIRMED", "TENTATIVE", "BENCH", "ABSENT", "NO_RESPONSE"] as const;
 const STATUS_LABEL: Record<string, { label: string; tone: "ok" | "warn" | "muted" | "danger" | "blue" }> = {

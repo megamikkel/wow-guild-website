@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { assetPath } from "@/lib/asset-path";
+
 /**
  * The PAPI guild badge — a vintage sports-club emblem with the guild mascot.
  * The full badge carries the wordmark inside it, so at display sizes it stands
@@ -23,7 +25,7 @@ export function PapiBadge({
   const small = size <= 130;
   return (
     <Image
-      src={small ? "/brand/papi-logo-sm.png" : "/brand/papi-logo.png"}
+      src={assetPath(small ? "/brand/papi-logo-sm.png" : "/brand/papi-logo.png")}
       alt="PAPI guild badge"
       width={Math.round(size * ASPECT)}
       height={size}

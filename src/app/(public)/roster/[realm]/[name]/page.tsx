@@ -3,13 +3,25 @@ import { notFound } from "next/navigation";
 
 import { RoleGlyph, SectionHeading, StatBlock, StatusPill } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
-import { getCharacter } from "@/domain/queries";
+import { getCharacter, getRoster } from "@/domain/queries";
+import { IS_STATIC_EXPORT } from "@/lib/render-mode";
 import { classColorStyle } from "@/lib/wow";
 import { formatDate, formatRelative } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 type Params = Promise<{ realm: string; name: string }>;
+
+/**
+ * Enumerates the roster so the static preview build can pre-render a page per
+ * character. The normal build renders these on demand, and must not reach for
+ * the database here — production has no connection at build time.
+ */
+export async function generateStaticParams() {
+  if (!IS_STATIC_EXPORT) return [];
+  const roster = await getRoster();
+  return roster.map((c) => ({ realm: c.realmSlug, name: c.name }));
+}
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { name } = await params;
