@@ -97,7 +97,7 @@ else
                     </select>
                     <div class="row">
                         <button class="btn-primary grow" @onclick="() => Tilfoej(date)" disabled="@(valgtOpskrift == 0)">Læg på</button>
-                        <button class="btn-quiet" @onclick="() => addingTo = null">Fortryd</button>
+                        <button @onclick="() => addingTo = null">Fortryd</button>
                     </div>
                     @if (opskrifter.Count == 0)
                     {

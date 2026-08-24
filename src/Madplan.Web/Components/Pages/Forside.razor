@@ -42,12 +42,10 @@ else
     }
     else
     {
-        <div class="card">
-            <div class="small muted">I aften@(ErRester ? " · rester" : "")</div>
-            <div style="font-size:1.35rem;font-weight:600;margin:.2rem 0 .35rem">
-                @IAften.Recipe?.Title
-            </div>
-            <div class="small muted">
+        <div class="card hero">
+            <div class="hero-label">I aften@(ErRester ? " · rester" : "")</div>
+            <div class="hero-title">@IAften.Recipe?.Title</div>
+            <div class="hero-meta">
                 @IAften.Servings personer
                 @if (IAften.Recipe?.TotalTimeMinutes is > 0)
                 {

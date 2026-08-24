@@ -104,6 +104,20 @@ Vil I have flere retter, er der tre veje under **Retter → Importér**:
 | [`docs/arkitektur.md`](docs/arkitektur.md) | Stak-anbefaling med alternativ, datamodel, isolation af nemlig-laget, og design af ingrediens→varenummer-mappingen |
 | [`docs/plan.md`](docs/plan.md) | Etaper, åbne spørgsmål og de tre største risici |
 
+## Om udseendet
+
+Skriften er **Inter**, og den ligger i `wwwroot/fonts` — ikke bag et `<link>` til
+Google. Et sådant link ville sende vores IP-adresse til Google ved hver
+sidevisning, og det er krav 5. Prisen er 206 kB i repoet; det er den værd.
+Inter er under SIL Open Font License.
+
+Der er ingen billeder fra opskriftssiderne. Samme grund: at hente et foto fra
+valdemarsro.dk fortæller valdemarsro.dk at vi står og kigger på deres opskrift.
+Hierarkiet bæres af typografi og farve i stedet.
+
+Mørk tilstand følger telefonens indstilling. Der er ingen knap — det er ikke et
+valg nogen skal træffe to gange.
+
 ## Ufravigelige krav
 
 Disse gælder gennem hele projektet og er ikke til forhandling undervejs:

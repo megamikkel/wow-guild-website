@@ -1,0 +1,8 @@
+Inter — Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+Licensed under the SIL Open Font License, Version 1.1.
+https://openfontlicense.org
+
+Filerne her er woff2-delmængder (latin og latin-ext) hentet fra Google Fonts.
+De ligger i repoet med vilje: et <link> til fonts.googleapis.com ville sende
+vores IP-adresse til Google ved hvert sidevisning, og krav 5 i README siger at
+ingen tredjeparter får vores data.

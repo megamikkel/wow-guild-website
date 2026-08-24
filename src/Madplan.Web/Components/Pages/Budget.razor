@@ -44,7 +44,7 @@
         <button class="btn-primary grow" @onclick="Hent" disabled="@arbejder">
             @(arbejder ? "Regner…" : "Vis retter efter pris")
         </button>
-        <button class="btn-quiet" @onclick="Automatisk" disabled="@arbejder">Vælg for mig</button>
+        <button @onclick="Automatisk" disabled="@arbejder">Vælg for mig</button>
     </div>
 </div>
 

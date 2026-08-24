@@ -71,7 +71,7 @@
                 </select>
                 <div class="row">
                     <button class="btn-primary grow" @onclick="Flet" disabled="@(mergeTargetId == 0)">Flet</button>
-                    <button class="btn-quiet" @onclick="() => merging = null">Fortryd</button>
+                    <button @onclick="() => merging = null">Fortryd</button>
                 </div>
                 <p class="small muted" style="margin:0">
                     Opskrifter, aliasser og mapninger flyttes med. «@f.CanonicalName» slettes.
