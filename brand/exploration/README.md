@@ -13,3 +13,20 @@ survive as a black silhouette, colour cannot save it.
 
 Surviving geometry: compact fist, long index finger, thumb merged into the
 fist mass, −14° tilt.
+
+## Round 6 — the register correction
+
+The client's existing mark (a Pepsi trade-dress pastiche) turned out to be the
+most useful brief in the project: it revealed the register every previous
+round had missed. PAPI does not want cold geometry — it wants **warmth, pop
+and instant recognition**: the confidence of a mass-market consumer brand with
+PAPI in the middle. Bootleg energy, not a drawn joke.
+
+That register is a genre, not a trademark. Circular badges, saturated
+primaries, starbursts, ribbons and chunky wordmarks belong to nobody. The
+specific divided globe with the wave belongs to PepsiCo, and is not reusable —
+particularly on merchandise.
+
+Studies in this round: seal, lozenge, starburst, racing roundel, app plate,
+ribbon badge. The starburst carries the most personality and survives to 22px;
+the app plate is the closest bridge from the existing icon.

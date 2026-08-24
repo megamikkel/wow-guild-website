@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <title>PAPI — app plate, diagonal split</title>
+  <defs><clipPath id="plate"><rect x="12" y="12" width="176" height="176" rx="33"/></clipPath></defs>
+  <rect width="200" height="200" rx="44" fill="#FBFBFC"/>
+  <g clip-path="url(#plate)">
+    <rect x="12" y="12" width="176" height="176" fill="#ED3026"/>
+    <path d="M200 0v200H40z" fill="#397CEF"/>
+    <rect x="0" y="84" width="200" height="34" fill="#07065F"/>
+  </g>
+  <g fill="#FBFBFC" transform="translate(46 89) scale(.66)"><path fill-rule="evenodd" d="M0 0h29l9 9v17l-9 9H13v21H0V0zm13 12v11h11l3-3v-5l-3-3H13z"/><path d="M62 0h18l17 56H83L71 17 59 56H45L62 0z"/><path fill-rule="evenodd" d="M104 0h29l9 9v17l-9 9h-16v21h-13V0zm13 12v11h11l3-3v-5l-3-3h-11z"/><path d="M149 0h13v56h-13z"/></g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <title>PAPI — burst badge with ring</title>
+  <path d="M100.0 1.0L118.1 32.4L149.5 14.3L149.5 50.5L185.7 50.5L167.6 81.9L199.0 100.0L167.6 118.1L185.7 149.5L149.5 149.5L149.5 185.7L118.1 167.6L100.0 199.0L81.9 167.6L50.5 185.7L50.5 149.5L14.3 149.5L32.4 118.1L1.0 100.0L32.4 81.9L14.3 50.5L50.5 50.5L50.5 14.3L81.9 32.4Z" fill="#ED3026"/>
+  <circle cx="100" cy="100" r="70" fill="#07065F"/>
+  <circle cx="100" cy="100" r="70" fill="none" stroke="#FBFBFC" stroke-width="5"/>
+  <g fill="#FBFBFC" transform="translate(50 80) scale(.62)"><path fill-rule="evenodd" d="M0 0h29l9 9v17l-9 9H13v21H0V0zm13 12v11h11l3-3v-5l-3-3H13z"/><path d="M62 0h18l17 56H83L71 17 59 56H45L62 0z"/><path fill-rule="evenodd" d="M104 0h29l9 9v17l-9 9h-16v21h-13V0zm13 12v11h11l3-3v-5l-3-3h-11z"/><path d="M149 0h13v56h-13z"/></g>
+</svg>
