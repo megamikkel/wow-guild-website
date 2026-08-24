@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/*
+ * PAPI design tokens.
+ * Dark, exclusive, data-driven: near-black navy canvas, white content,
+ * red reserved for attention, electric blue for information/interaction.
+ */
+@theme {
+  /* Brand */
+  --color-papi-navy: #07065f;
+  --color-papi-red: #e13527;
+  --color-papi-blue: #397cef;
+  --color-papi-white: #fbfbfc;
+
+  /* Surfaces */
+  --color-canvas: #05050d;
+  --color-canvas-deep: #080812;
+  --color-surface: #0d0d1b;
+  --color-surface-2: #121225;
+  --color-surface-3: #181832;
+  --color-edge: #1e1e3a;
+  --color-edge-strong: #2a2a52;
+
+  /* Text */
+  --color-ink: #fbfbfc;
+  --color-ink-muted: #9a9ab0;
+  --color-ink-faint: #62627c;
+
+  /* Status */
+  --color-ok: #34d17b;
+  --color-warn: #f0b429;
+  --color-danger: #e13527;
+
+  /* WoW class colors (Blizzard's conventional palette) */
+  --color-class-deathknight: #c41e3a;
+  --color-class-demonhunter: #a330c9;
+  --color-class-druid: #ff7c0a;
+  --color-class-evoker: #33937f;
+  --color-class-hunter: #aad372;
+  --color-class-mage: #3fc7eb;
+  --color-class-monk: #00ff98;
+  --color-class-paladin: #f48cba;
+  --color-class-priest: #ffffff;
+  --color-class-rogue: #fff468;
+  --color-class-shaman: #0070dd;
+  --color-class-warlock: #8788ee;
+  --color-class-warrior: #c69b6d;
+
+  --font-display: var(--font-archivo), "Archivo", "Arial Black", sans-serif;
+  --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-papi-blue);
+  color: var(--color-papi-white);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-papi-blue);
+  outline-offset: 2px;
+}
+
+/* ————— PAPI signature #1: the split-line (red ━ blue) ————— */
+.split-line {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--color-papi-red) 0%,
+    var(--color-papi-red) 38%,
+    var(--color-papi-blue) 62%,
+    var(--color-papi-blue) 100%
+  );
+}
+
+.split-line-soft {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-papi-red) 55%, transparent),
+    color-mix(in srgb, var(--color-papi-blue) 55%, transparent)
+  );
+}
+
+/* ————— PAPI signature #2: live status dot ————— */
+.live-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-papi-red);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-papi-red) 60%, transparent);
+  animation: live-pulse 2s ease-out infinite;
+}
+
+.status-dot-ok {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--color-ok);
+}
+
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-papi-red) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* ————— PAPI signature #3: oversized statistics ————— */
+.stat-oversized {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+}
+
+.stat-label {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.display-heading {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+/* Subtle grid texture for hero surfaces — pure CSS, no image request. */
+.hero-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-papi-blue) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-papi-blue) 7%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
+}
+
+/* Animated progress bar fill */
+.bar-fill {
+  transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .live-dot {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
