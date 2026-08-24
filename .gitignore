@@ -38,3 +38,5 @@ coverage/
 
 # typescript build cache
 tsconfig.tsbuildinfo
+
+out/
