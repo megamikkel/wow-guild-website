@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>PAPI — The Cut Point</title>
+  <defs>
+    <clipPath id="cutTop"><path d="M-8 -8H72v14L-8 58z"/></clipPath>
+    <clipPath id="cutBottom"><path d="M-8 58L72 6v66H-8z"/></clipPath>
+    <g id="cutHand" transform="rotate(-14 32 34)">
+      <path d="M18 19h10a9 9 0 0 1 9 9v15a9 9 0 0 1-9 9H19a9 9 0 0 1-9-9V28a9 9 0 0 1 8-9z"/>
+      <rect x="32" y="23" width="27" height="12" rx="6"/>
+      <path d="M19 12h9a6 6 0 0 1 0 12h-9z"/>
+    </g>
+  </defs>
+  <g clip-path="url(#cutTop)" fill="#ED3026"><use href="#cutHand"/></g>
+  <g clip-path="url(#cutBottom)" fill="#397CEF"><use href="#cutHand"/></g>
+</svg>
