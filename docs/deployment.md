@@ -71,6 +71,40 @@ charging you.
 Integrations you have not configured degrade to "Not configured" on
 `/admin/integrations` rather than breaking anything.
 
+## The GitHub Pages preview (built, waiting on one switch)
+
+`.github/workflows/preview.yml` publishes a static preview of the public site
+to GitHub Pages — free on a public repository, no account or card. It builds
+and deploys on every push to the feature branch.
+
+It is complete and has been run. It stops at one step:
+
+```
+Create Pages site failed.
+Error: Resource not accessible by integration
+```
+
+A workflow's `GITHUB_TOKEN` can **deploy** to a Pages site but cannot
+**create** one; GitHub withholds that permission from automation by design.
+Pushing a `gh-pages` branch no longer auto-enables Pages either.
+
+**To activate it**, once, by hand:
+
+> Repository **Settings → Pages → Build and deployment → Source →
+> GitHub Actions**
+
+Then re-run the workflow (Actions tab → *Deploy preview to GitHub Pages* →
+Run workflow). The site appears at
+`https://megamikkel.github.io/wow-guild-website/` and updates on every push
+from then on. `enablement: true` in the workflow becomes a no-op once Pages
+exists, so nothing needs changing afterwards.
+
+What the preview contains: home, progression, roster (a page per character),
+raids (a page per raid) and recruitment, pre-rendered with the demo fixtures.
+What it cannot contain, because a file host runs no server: sign-in, the
+member dashboard, the officer tools, and form submission. A banner on every
+page says so, and the preview is excluded from search engines.
+
 ## Why not the others
 
 | Option | Verdict |
