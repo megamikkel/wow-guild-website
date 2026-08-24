@@ -1,46 +1,65 @@
-# Astro Starter Kit: Basics
+# PAPI — Guild Platform
+
+The digital operating system for the PAPI World of Warcraft guild: the
+website is the command center, Discord is the communication layer, and
+Battle.net, Raider.IO, Raid-Helper and Warcraft Logs deliver the data.
+
+> We don't raid to participate. We raid to progress.
+
+## Quick start
 
 ```sh
-npm create astro@latest -- --template basics
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+That's it — with no configuration the platform boots in **demo mode**: an
+embedded Postgres (PGlite) is migrated and seeded with realistic fixtures
+(roster, raids, signups, progression, applications, trials, activity), and
+three demo logins (raider / officer / admin) are available on `/login`.
 
-## 🚀 Project Structure
+## What's inside
 
-Inside of your Astro project, you'll see the following folders and files:
+| Area | Routes |
+| --- | --- |
+| Public | `/` `/progression` `/roster` `/roster/[realm]/[name]` `/raids` `/raids/[id]` `/recruitment` `/apply` |
+| Member | `/dashboard` (Discord login, MEMBER+) |
+| Officer | `/admin` `/admin/applications` `/admin/trials` `/admin/integrations` (OFFICER+) |
+| API | `/api/auth/*` (Auth.js) · `POST /api/sync` (bearer-protected background sync) |
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+**Stack**: Next.js 15 · TypeScript · Tailwind CSS 4 · PostgreSQL · Drizzle ·
+Auth.js (Discord OAuth) · Zod · Vitest. One app, no microservices, $0/month
+on free tiers.
+
+## Documentation
+
+- [Product spec](docs/product-spec.md)
+- [Architecture](docs/architecture.md) — system diagram, layering, caching
+- [Database](docs/database.md)
+- [Integrations](docs/integrations.md) — APIs, auth, rate limits, data ownership
+- [Design system](docs/design-system.md)
+- [Deployment](docs/deployment.md) — Vercel + Neon + GitHub Actions sync
+
+## Commands
+
+```sh
+npm run dev          # dev server (demo mode without config)
+npm test             # unit tests
+npm run lint         # eslint
+npm run typecheck    # tsc
+npm run build        # production build
+npm run db:generate  # regenerate migrations after schema changes
+npm run db:migrate   # apply migrations to $DATABASE_URL
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## Configuration
 
-## 🧞 Commands
+Copy `.env.example` to `.env.local` and fill in what you have. Every
+integration degrades gracefully when unconfigured; production requires
+`DATABASE_URL` and refuses to fall back to demo data silently.
 
-All commands are run from the root of the project, from a terminal:
+---
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Data powered by Raider.IO, Warcraft Logs and the Blizzard API. World of
+Warcraft is a trademark of Blizzard Entertainment; PAPI is not affiliated
+with Blizzard.
