@@ -38,8 +38,9 @@ export default async function HomePage() {
   return (
     <>
       {/* ————— HERO ————— */}
-      <section className="hero-grid relative overflow-hidden border-b border-edge/60 bg-canvas-deep">
-        <div className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:pt-28 sm:pb-24">
+      <section className="relative overflow-hidden border-b border-edge/60 bg-canvas-deep">
+        <div className="hero-grid absolute inset-0" aria-hidden />
+        <div className="relative mx-auto max-w-6xl px-4 pt-20 pb-16 sm:pt-28 sm:pb-24">
           <p className="stat-label mb-4">
             {guildConfig.region.toUpperCase()} · {guildConfig.realm.name} ·{" "}
             {guildConfig.focus.toUpperCase()}
