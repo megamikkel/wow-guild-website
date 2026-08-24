@@ -2,40 +2,91 @@
 
 Target: **0 kr./month.**
 
-| Piece | Service | Free-tier notes |
-| --- | --- | --- |
-| App | Vercel Hobby | Fluid compute, 300 s max function duration |
-| Postgres | Neon Free | 0.5 GB, 100 compute-hours/mo, scale-to-zero |
-| Sync cron | GitHub Actions `schedule` | Vercel Hobby cron is once-daily only, so Actions calls `/api/sync` every 30 min (best-effort timing; auto-disabled after 60 days of repo inactivity — any commit re-arms it) |
-| Discord notifications | Webhooks | free, no bot hosting |
+## Recommended: Vercel Hobby
 
-## Modes
+Vercel builds Next.js natively, so there is nothing to configure — no
+Dockerfile, no adapter, no build command. The Hobby plan is free, permanent
+and needs no credit card.
 
-- **Demo mode** (default in dev, or `PAPI_DEMO_MODE=true`): embedded PGlite
-  Postgres, migrated + seeded with fixtures on boot; external syncs are
-  skipped; demo logins enabled. Nothing external required.
-- **Production**: requires `DATABASE_URL`; the app **fails fast at startup**
-  if production is missing it and demo mode wasn't explicitly enabled —
-  production can never silently serve demo data.
+**The one restriction that matters:** Hobby is **non-commercial only**, and
+single-developer (no shared dashboard). A guild site qualifies; if PAPI ever
+sells merch through the site, that moves it to Pro at $20/month.
 
-## First deployment
+Free allowance, as of 2026: 100 GB data transfer, 1M function invocations,
+4 CPU-hours of active compute, 100 deployments/day, 200 projects. Exceeding a
+limit **pauses the project rather than billing you** — there is no overage on
+Hobby.
 
-1. Create a Neon project → copy the connection string.
-2. Vercel → import the GitHub repo (framework auto-detected).
-3. Set env vars from `.env.example`: `DATABASE_URL`, `AUTH_SECRET`,
-   `PAPI_SITE_URL`, `PAPI_SYNC_SECRET`, plus the Discord/Blizzard/WCL/
-   Raid-Helper credentials you have. Missing integrations degrade gracefully
-   to "Not configured" on `/admin/integrations`.
-4. Run migrations against Neon: `DATABASE_URL=… npm run db:migrate`.
-5. Discord developer portal: add redirect
-   `https://<site>/api/auth/callback/discord`.
-6. GitHub repo settings: variable `SYNC_URL=https://<site>/api/sync`,
-   secret `SYNC_SECRET=<PAPI_SYNC_SECRET>` → the scheduled workflow starts
-   syncing.
+### Path A — deploy in two minutes, no database
+
+Demo mode runs the whole platform on an embedded PGlite Postgres, seeded with
+fixtures at boot. No external services at all.
+
+1. vercel.com → **Add New… → Project** → import
+   `megamikkel/wow-guild-website` → pick branch `claude/papi-wow-guild-platform-4nxyiy`.
+2. Framework is detected as Next.js. Leave every build setting alone.
+3. Add two environment variables:
+
+   ```
+   PAPI_DEMO_MODE = true
+   AUTH_SECRET    = <output of: openssl rand -base64 32>
+   ```
+
+4. Deploy.
+
+`PAPI_DEMO_MODE=true` must be set **explicitly**. Without it the app refuses to
+start in production rather than silently serving fake data — that guard is
+deliberate (`src/lib/env.ts`).
+
+What you get: every page, the demo logins on `/login` (raider / officer /
+admin), the full recruitment pipeline. What you do not get: persistence.
+The database lives in the function's memory, so anything submitted disappears
+when the instance recycles, and each cold start re-seeds. Fine for showing
+people the site; not fine for real applications.
+
+### Path B — a real deployment
+
+Add [Neon](https://neon.com) free Postgres: 0.5 GB storage and 100
+compute-hours per project per month, no credit card, scale-to-zero after 5
+minutes idle. Limits are hard cutoffs — the database suspends rather than
+charging you.
+
+1. Create a Neon project, copy the connection string.
+2. Apply the schema from your machine:
+   ```sh
+   DATABASE_URL="postgres://…" npm run db:migrate
+   ```
+3. In Vercel set `DATABASE_URL`, `AUTH_SECRET`, `PAPI_SITE_URL`, and
+   `PAPI_SYNC_SECRET` (`openssl rand -hex 32`). Leave `PAPI_DEMO_MODE` unset
+   or `false`.
+4. Redeploy.
+5. Discord developer portal → add the OAuth redirect
+   `https://<your-domain>/api/auth/callback/discord`, then set
+   `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID` and
+   `DISCORD_ROLE_MAP`.
+6. GitHub repo settings → variable `SYNC_URL=https://<domain>/api/sync` and
+   secret `SYNC_SECRET` matching `PAPI_SYNC_SECRET`. The scheduled workflow
+   then drives the integration syncs.
+
+Integrations you have not configured degrade to "Not configured" on
+`/admin/integrations` rather than breaking anything.
+
+## Why not the others
+
+| Option | Verdict |
+| --- | --- |
+| **Netlify** | Works, but Next.js runs through an adapter — more moving parts for no gain |
+| **Cloudflare Workers** | PGlite is a native WASM module and the Node APIs this app uses are not a clean fit; demo mode in particular would fight the runtime |
+| **Render free tier** | Real container, but the free service sleeps after inactivity and cold starts run tens of seconds — poor for a recruitment page |
+| **Railway / Fly.io** | No longer meaningfully free; both moved to trial credit |
+
+If you ever want a container host anyway, add `output: "standalone"` to
+`next.config.ts` — the build already traces PGlite's WASM and the migration
+SQL correctly, verified against a standalone build.
 
 ## Local development
 
-```
+```sh
 npm install
 npm run dev        # demo mode, no configuration needed
 npm test           # vitest unit tests
@@ -44,15 +95,18 @@ npm run lint && npm run typecheck && npm run build
 
 ## Security checklist (implemented)
 
-- RBAC enforced in server layouts/pages/actions (`requireRole`) — middleware
-  is UX only
-- Secrets only in env vars; `.env*` gitignored; none in client bundles
-  (adapters are server-only modules)
+- RBAC enforced in server layouts, pages and actions (`requireRole`) —
+  middleware is UX only
+- Secrets only in env vars; `.env*` gitignored; none reach client bundles
 - Zod validation on all forms and all external API responses
-- Rate limiting + honeypot on the public application form
-- Auth.js handles OAuth state/PKCE + CSRF on auth routes; server actions are
-  origin-checked by Next.js
+- Rate limiting and a honeypot on the public application form
+- Auth.js handles OAuth state/PKCE; server actions are origin-checked by Next
 - Security headers (nosniff, frame-deny, referrer-policy) in `next.config.ts`
-- `/dashboard` + `/admin` sent `X-Robots-Tag: noindex`
+- `/dashboard` and `/admin` sent `X-Robots-Tag: noindex`
 - Audit log on administrative actions
-- Sync endpoint requires bearer secret; returns 503 if unconfigured
+- Sync endpoint requires a bearer secret; returns 503 when unconfigured
+
+**Before a real deployment**, set a real `AUTH_SECRET`. In demo mode the app
+falls back to a hardcoded development secret so it can boot with no
+configuration — that value is public, in this repository, and must never
+protect real sessions.

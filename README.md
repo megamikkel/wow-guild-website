@@ -31,6 +31,18 @@ three demo logins (raider / officer / admin) are available on `/login`.
 Auth.js (Discord OAuth) · Zod · Vitest. One app, no microservices, $0/month
 on free tiers.
 
+## Deploy
+
+Free on **Vercel Hobby** — no credit card, Next.js detected automatically.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmegamikkel%2Fwow-guild-website&env=PAPI_DEMO_MODE,AUTH_SECRET&envDescription=Set%20PAPI_DEMO_MODE%20to%20true%20for%20a%20zero-config%20demo%2C%20and%20AUTH_SECRET%20to%20a%20random%20string)
+
+Two environment variables get you a working deployment with seeded demo data:
+`PAPI_DEMO_MODE=true` and `AUTH_SECRET` (any random string). For real
+persistence, add a free [Neon](https://neon.com) Postgres and set
+`DATABASE_URL` instead. Full steps, including Discord OAuth and the scheduled
+sync, are in [docs/deployment.md](docs/deployment.md).
+
 ## Documentation
 
 - [Product spec](docs/product-spec.md)

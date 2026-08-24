@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["@electric-sql/pglite"],
+  // Demo mode reads migration SQL from disk at runtime, so the folder must be
+  // traced into the serverless bundle — nothing imports it, so tracing cannot
+  // discover it on its own.
+  outputFileTracingIncludes: {
+    "/**": ["./drizzle/**"],
+  },
   async headers() {
     return [
       {
