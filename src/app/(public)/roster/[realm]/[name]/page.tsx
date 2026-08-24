@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { RoleGlyph, SectionHeading, StatBlock, StatusPill, Surface } from "@/components/ui";
+import { RoleGlyph, SectionHeading, StatBlock, StatusPill } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
 import { getCharacter } from "@/domain/queries";
 import { classColorStyle } from "@/lib/wow";

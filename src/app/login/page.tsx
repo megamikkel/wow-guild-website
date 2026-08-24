@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { PapiLogo } from "@/components/Logo";
@@ -92,9 +93,9 @@ export default async function LoginPage({
           ) : null}
         </div>
         <p className="mt-6 text-center text-xs text-ink-faint">
-          <a href="/" className="hover:text-ink-muted">
+          <Link href="/" className="hover:text-ink-muted">
             ← Back to the public site
-          </a>
+          </Link>
         </p>
       </div>
     </main>

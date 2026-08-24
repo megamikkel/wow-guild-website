@@ -84,7 +84,7 @@ async function upsertUser(input: {
         role: input.role,
         lastLoginAt: new Date(),
       })
-      .returning({ id: tables.users.id });
+      .returning();
     return inserted[0]?.id;
   } catch (err) {
     console.error("[auth] user upsert failed", err);
