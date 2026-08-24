@@ -1,9 +1,8 @@
 /**
- * The PAPI mark — an original emblem drawn from the brand palette.
- * Two interlocking chevrons (red descending, blue ascending) forming an
- * abstract "P" negative space on navy: the same red→blue split used in the
- * site's signature line. Deliberately NOT a circle/wave — no resemblance to
- * other brands.
+ * The PAPI mark — an original emblem built from the brand palette.
+ * A single chunky "P" letterform split the way the site's signature line is:
+ * red stem, electric-blue bowl, chamfered corners for the esports edge.
+ * Geometry is tuned to stay legible down to favicon size.
  */
 export function PapiMark({ size = 32, className }: { size?: number; className?: string }) {
   return (
@@ -15,13 +14,15 @@ export function PapiMark({ size = 32, className }: { size?: number; className?: 
       aria-label="PAPI emblem"
       className={className}
     >
-      <rect x="2" y="2" width="60" height="60" rx="14" fill="#07065F" />
-      {/* red chevron — strikes down from the top left */}
-      <path d="M14 12h20l14 20-8 0-12-16H22v40h-8V12Z" fill="#E13527" />
-      {/* blue chevron — rises from the bottom right */}
-      <path d="M50 52H32L26 42h9l7 6h0V30l8 6v16Z" fill="#397CEF" />
-      {/* white counter — the P's eye */}
-      <path d="M28 22h8l6 8-6 8h-8V22Z" fill="#FBFBFC" />
+      <rect width="64" height="64" rx="14" fill="#07065F" />
+      {/* stem */}
+      <path d="M15 11h11v42H15z" fill="#E13527" />
+      {/* bowl with its counter cut out */}
+      <path
+        d="M26 11h15l8 8v15l-8 8H26V11zm0 11v10h10l2-2v-6l-2-2H26z"
+        fill="#397CEF"
+        fillRule="evenodd"
+      />
     </svg>
   );
 }
