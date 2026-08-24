@@ -35,3 +35,6 @@ coverage/
 
 # superseded Astro starter (kept locally only)
 .legacy-astro/
+
+# typescript build cache
+tsconfig.tsbuildinfo
