@@ -77,10 +77,10 @@ export default async function ApplicationDetailPage({
                 type="submit"
                 className={`rounded-md px-4 py-2.5 font-display text-xs font-bold tracking-[0.12em] uppercase transition-colors ${
                   status === "DECLINED"
-                    ? "border border-edge text-ink-muted hover:border-papi-red/50 hover:text-papi-red"
+                    ? "border border-edge text-ink-muted hover:border-stripe-red/50 hover:text-stripe-red"
                     : status === "ACCEPTED"
-                      ? "bg-ok/90 text-canvas hover:bg-ok"
-                      : "bg-papi-blue text-papi-white hover:bg-[#2f68c9]"
+                      ? "bg-ok text-white hover:bg-ok"
+                      : "bg-papi-purple text-white hover:bg-papi-indigo"
                 }`}
               >
                 Move to {status}
@@ -116,7 +116,7 @@ export default async function ApplicationDetailPage({
               <a
                 href={app.warcraftLogsUrl}
                 rel="noopener noreferrer"
-                className="font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+                className="font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
                 Warcraft Logs ↗
               </a>
@@ -125,7 +125,7 @@ export default async function ApplicationDetailPage({
               <a
                 href={app.raiderIoUrl}
                 rel="noopener noreferrer"
-                className="font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+                className="font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
                 Raider.IO ↗
               </a>
@@ -147,11 +147,11 @@ export default async function ApplicationDetailPage({
               required
               maxLength={2000}
               placeholder="Add an officer note… (never public)"
-              className="w-full rounded-md border border-edge bg-surface-2 px-3 py-2.5 text-sm placeholder:text-ink-faint focus:border-papi-blue focus:outline-none"
+              className="w-full rounded-md border border-edge bg-surface-2 px-3 py-2.5 text-sm placeholder:text-ink-faint focus:border-papi-purple focus:outline-none"
             />
             <button
               type="submit"
-              className="mt-2 rounded-md border border-papi-blue/50 px-4 py-2 font-display text-xs font-bold tracking-[0.12em] text-papi-blue uppercase hover:bg-papi-blue/10"
+              className="mt-2 rounded-md border border-papi-purple/50 px-4 py-2 font-display text-xs font-bold tracking-[0.12em] text-papi-purple uppercase hover:bg-papi-purple-wash"
             >
               Add note
             </button>

@@ -28,7 +28,7 @@ function Field({
       {children}
       {hint && !error ? <p className="mt-1 text-xs text-ink-faint">{hint}</p> : null}
       {error ? (
-        <p className="mt-1 text-xs text-papi-red" role="alert">
+        <p className="mt-1 text-xs text-stripe-red" role="alert">
           {error}
         </p>
       ) : null}
@@ -37,7 +37,7 @@ function Field({
 }
 
 const inputCls =
-  "w-full rounded-md border border-edge bg-surface-2 px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-papi-blue focus:outline-none";
+  "w-full rounded-md border border-edge bg-surface-2 px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-papi-purple focus:outline-none";
 
 export function ApplyForm() {
   const [state, formAction, pending] = useActionState(submitApplication, initialState);
@@ -52,7 +52,7 @@ export function ApplyForm() {
     <form action={formAction} className="grid gap-6" noValidate>
       {state.message && !state.ok ? (
         <p
-          className="rounded-md border border-papi-red/40 bg-papi-red/10 px-4 py-3 text-sm text-papi-red"
+          className="rounded-md border border-stripe-red/40 bg-stripe-red/10 px-4 py-3 text-sm text-stripe-red"
           role="alert"
         >
           {state.message}
@@ -166,7 +166,7 @@ export function ApplyForm() {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-papi-red px-8 py-3.5 font-display text-sm font-bold tracking-[0.12em] text-papi-white uppercase transition-colors hover:bg-[#c92d20] disabled:opacity-60"
+          className="rounded-md bg-papi-indigo px-8 py-3.5 font-display text-sm font-bold tracking-[0.12em] text-white uppercase transition-colors hover:bg-papi-purple disabled:opacity-60"
         >
           {pending ? "Submitting…" : "Submit application"}
         </button>

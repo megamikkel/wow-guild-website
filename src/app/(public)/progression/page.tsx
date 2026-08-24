@@ -41,7 +41,7 @@ export default async function ProgressionPage() {
             <Surface
               className={`grid gap-4 p-5 sm:grid-cols-[3rem_1fr_auto] sm:items-center ${
                 boss.status === "LOCKED" ? "opacity-55" : ""
-              } ${boss.status === "PROGRESS" ? "border-papi-red/50" : ""}`}
+              } ${boss.status === "PROGRESS" ? "border-stripe-red/50" : ""}`}
             >
               <span className="stat-oversized hidden text-3xl text-ink-faint sm:block">
                 {String(boss.bossSlot).padStart(2, "0")}
@@ -67,7 +67,7 @@ export default async function ProgressionPage() {
                 {boss.status === "PROGRESS" ? (
                   <div className="mt-3 max-w-xl">
                     <div className="flex items-baseline gap-4">
-                      <span className="stat-oversized text-5xl text-papi-red">
+                      <span className="stat-oversized text-5xl text-stripe-red">
                         {boss.bestPct?.toFixed(1)}%
                       </span>
                       <span className="text-sm text-ink-muted">
@@ -104,14 +104,14 @@ export default async function ProgressionPage() {
         {reports.length === 0 ? (
           <p className="text-ink-muted">No reports yet — the first one lands here after raid night.</p>
         ) : (
-          <ul className="divide-y divide-edge/60 border-y border-edge/60">
+          <ul className="divide-y divide-edge border-y border-edge">
             {reports.map((r) => (
               <li key={r.id} className="flex items-baseline justify-between gap-4 py-3">
                 <div>
                   <a
                     href={r.url}
                     rel="noopener noreferrer"
-                    className="text-sm text-papi-blue hover:underline"
+                    className="text-sm text-papi-purple hover:underline"
                   >
                     {r.title}
                   </a>

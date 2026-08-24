@@ -48,7 +48,7 @@ export default async function DashboardPage() {
       <header className="mb-10">
         <p className="stat-label mb-1">Member dashboard</p>
         <h1 className="display-heading text-4xl sm:text-5xl">
-          {greeting()}, <span className="text-papi-blue">{name}</span>.
+          {greeting()}, <span className="text-papi-purple">{name}</span>.
         </h1>
       </header>
 
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
               </div>
               <Link
                 href={`/raids/${nextRaid.event.id}`}
-                className="font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+                className="font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
                 View raid →
               </Link>
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
                     ? Math.round(character.mythicPlusScore).toLocaleString("en-GB")
                     : "—"
                 }
-                accent="blue"
+                accent="purple"
               />
               <StatBlock
                 label="Latest raid performance"
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
               />
               <Link
                 href={`/roster/${character.realmSlug}/${encodeURIComponent(character.name)}`}
-                className="font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+                className="font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
                 {character.name} — full profile →
               </Link>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
         {/* Guild activity */}
         <section>
           <SectionHeading kicker="Guild" title="Activity" />
-          <ol className="divide-y divide-edge/60 border-y border-edge/60">
+          <ol className="divide-y divide-edge border-y border-edge">
             {activity.map((a) => (
               <li key={a.id} className="py-2.5">
                 <p className="text-sm">{a.title}</p>
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
           </ol>
           <p className="mt-4 text-sm text-ink-muted">
             Boss progress:{" "}
-            <span className="font-mono text-papi-red">
+            <span className="font-mono text-stripe-red">
               {progression.progressBoss?.bestPct?.toFixed(1) ?? "—"}%
             </span>{" "}
             on {progression.progressBoss?.bossName ?? "—"}

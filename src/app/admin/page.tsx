@@ -73,7 +73,7 @@ export default async function AdminCommandPage() {
             <Link key={a.label} href={a.href}>
               <Surface
                 className={`flex items-center justify-between p-4 transition-colors hover:bg-surface-2 ${
-                  a.tone === "danger" ? "border-papi-red/40" : a.tone === "warn" ? "border-warn/40" : "border-papi-blue/40"
+                  a.tone === "danger" ? "border-stripe-red/40" : a.tone === "warn" ? "border-warn/40" : "border-papi-purple/40"
                 }`}
               >
                 <span className="font-display text-sm font-bold tracking-wide uppercase">
@@ -140,12 +140,12 @@ export default async function AdminCommandPage() {
                 <div className="flex-1">
                   <ProgressBar
                     pct={Math.min(h.pct, 100)}
-                    accent={h.pct >= 100 ? "ok" : h.pct >= 85 ? "blue" : "red"}
+                    accent={h.pct >= 100 ? "ok" : h.pct >= 85 ? "purple" : "red"}
                     label={`${h.role} roster strength`}
                   />
                 </div>
                 <span
-                  className={`w-16 text-right font-mono tabular-nums ${h.pct < 85 ? "text-papi-red" : ""}`}
+                  className={`w-16 text-right font-mono tabular-nums ${h.pct < 85 ? "text-stripe-red" : ""}`}
                 >
                   {h.pct}%{h.pct < 85 ? " ⚠" : ""}
                 </span>
@@ -179,7 +179,7 @@ export default async function AdminCommandPage() {
             </p>
             <Link
               href="/admin/applications"
-              className="mt-3 inline-block font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+              className="mt-3 inline-block font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
             >
               Open board →
             </Link>
@@ -193,7 +193,7 @@ export default async function AdminCommandPage() {
               <>
                 <p className="display-heading text-2xl">{progression.progressBoss.bossName}</p>
                 <div className="mt-2 flex items-baseline gap-4">
-                  <span className="stat-oversized text-5xl text-papi-red">
+                  <span className="stat-oversized text-5xl text-stripe-red">
                     {progression.progressBoss.bestPct?.toFixed(1)}%
                   </span>
                   <span className="text-sm text-ink-muted">

@@ -1,50 +1,65 @@
 @import "tailwindcss";
 
 /*
- * PAPI design tokens.
- * Dark, exclusive, data-driven: near-black navy canvas, white content,
- * red reserved for attention, electric blue for information/interaction.
+ * PAPI design tokens — derived from the guild badge.
+ *
+ * The mark is a vintage sports-club emblem: deep indigo, purple, cream paper
+ * and a red/white/blue athletic sock stripe. The site follows it — light,
+ * warm and printed-looking rather than dark and technical. Indigo carries
+ * the type, purple carries brand furniture, red is reserved for attention.
  */
 @theme {
-  /* Brand */
-  --color-papi-navy: #07065f;
-  --color-papi-red: #e13527;
-  --color-papi-blue: #397cef;
-  --color-papi-white: #fbfbfc;
+  /* Brand — sampled from the badge */
+  --color-papi-indigo: #0c1338;
+  --color-papi-indigo-soft: #1c2456;
+  --color-papi-purple: #5b37a0;
+  --color-papi-purple-soft: #7c5bc4;
+  --color-papi-purple-wash: #efeaf9;
+  --color-papi-cream: #f7f3ea;
+  --color-papi-white: #ffffff;
 
-  /* Surfaces */
-  --color-canvas: #05050d;
-  --color-canvas-deep: #080812;
-  --color-surface: #0d0d1b;
-  --color-surface-2: #121225;
-  --color-surface-3: #181832;
-  --color-edge: #1e1e3a;
-  --color-edge-strong: #2a2a52;
+  /* Athletic stripe (the socks) */
+  --color-stripe-red: #d1372c;
+  --color-stripe-blue: #215598;
 
-  /* Text */
-  --color-ink: #fbfbfc;
-  --color-ink-muted: #9a9ab0;
-  --color-ink-faint: #62627c;
+  /* Surfaces — light, paper-like */
+  --color-canvas: #ffffff;
+  --color-canvas-deep: #f7f3ea;
+  --color-surface: #ffffff;
+  --color-surface-2: #faf7f1;
+  --color-surface-3: #f1ece1;
+  --color-edge: #e2dccf;
+  --color-edge-strong: #cec6b4;
+
+  /* Text — indigo, not black */
+  --color-ink: #0c1338;
+  --color-ink-muted: #5a6080;
+  --color-ink-faint: #8a90a8;
 
   /* Status */
-  --color-ok: #34d17b;
-  --color-warn: #f0b429;
-  --color-danger: #e13527;
+  --color-ok: #1f7a4d;
+  --color-warn: #a8690a;
+  --color-danger: #d1372c;
 
-  /* WoW class colors (Blizzard's conventional palette) */
-  --color-class-deathknight: #c41e3a;
-  --color-class-demonhunter: #a330c9;
-  --color-class-druid: #ff7c0a;
-  --color-class-evoker: #33937f;
-  --color-class-hunter: #aad372;
-  --color-class-mage: #3fc7eb;
-  --color-class-monk: #00ff98;
-  --color-class-paladin: #f48cba;
-  --color-class-priest: #ffffff;
-  --color-class-rogue: #fff468;
-  --color-class-shaman: #0070dd;
-  --color-class-warlock: #8788ee;
-  --color-class-warrior: #c69b6d;
+  /*
+   * WoW class colours, darkened for legibility on light surfaces.
+   * Blizzard's canonical values (Priest white, Rogue yellow, Monk green)
+   * are unreadable on cream, so each is tuned to stay recognisable while
+   * clearing contrast on --color-canvas and --color-surface-2.
+   */
+  --color-class-deathknight: #a5152c;
+  --color-class-demonhunter: #7d1f9c;
+  --color-class-druid: #b8500a;
+  --color-class-evoker: #1e6b58;
+  --color-class-hunter: #4a7a1e;
+  --color-class-mage: #17708c;
+  --color-class-monk: #0f7a52;
+  --color-class-paladin: #b5487a;
+  --color-class-priest: #4d5470;
+  --color-class-rogue: #8a7208;
+  --color-class-shaman: #0b4f9e;
+  --color-class-warlock: #5a44c4;
+  --color-class-warrior: #8a6440;
 
   --font-display: var(--font-archivo), "Archivo", "Arial Black", sans-serif;
   --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
@@ -52,7 +67,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   scroll-behavior: smooth;
 }
 
@@ -65,33 +80,35 @@ body {
 }
 
 ::selection {
-  background: var(--color-papi-blue);
-  color: var(--color-papi-white);
+  background: var(--color-papi-purple);
+  color: #fff;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-papi-blue);
+  outline: 2px solid var(--color-papi-purple);
   outline-offset: 2px;
 }
 
-/* ————— PAPI signature #1: the split-line (red ━ blue) ————— */
-.split-line {
-  height: 2px;
+/* ————— PAPI signature #1: the athletic stripe —————
+   Lifted straight off the socks in the badge: red / white / blue on cream.
+   Used to close sections and underline headers, the way a club sock does. */
+.stripe {
+  height: 6px;
   background: linear-gradient(
-    90deg,
-    var(--color-papi-red) 0%,
-    var(--color-papi-red) 38%,
-    var(--color-papi-blue) 62%,
-    var(--color-papi-blue) 100%
+    to bottom,
+    var(--color-stripe-red) 0 2px,
+    var(--color-papi-cream) 2px 4px,
+    var(--color-stripe-blue) 4px 6px
   );
 }
 
-.split-line-soft {
-  height: 1px;
+.stripe-thin {
+  height: 3px;
   background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--color-papi-red) 55%, transparent),
-    color-mix(in srgb, var(--color-papi-blue) 55%, transparent)
+    to bottom,
+    var(--color-stripe-red) 0 1px,
+    transparent 1px 2px,
+    var(--color-stripe-blue) 2px 3px
   );
 }
 
@@ -101,22 +118,14 @@ body {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 9999px;
-  background: var(--color-papi-red);
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-papi-red) 60%, transparent);
+  background: var(--color-stripe-red);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-stripe-red) 60%, transparent);
   animation: live-pulse 2s ease-out infinite;
-}
-
-.status-dot-ok {
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 9999px;
-  background: var(--color-ok);
 }
 
 @keyframes live-pulse {
   0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-papi-red) 55%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-stripe-red) 55%, transparent);
   }
   70% {
     box-shadow: 0 0 0 8px transparent;
@@ -151,16 +160,31 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Subtle grid texture for hero surfaces — pure CSS, no image request. */
-.hero-grid {
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--color-papi-blue) 7%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--color-papi-blue) 7%, transparent) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
+/* Badge-style arched banner used for section kickers, echoing the wordmark
+   banner in the mark. */
+.banner {
+  display: inline-block;
+  background: var(--color-papi-indigo);
+  color: var(--color-papi-white);
+  padding: 0.35rem 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 10px 100%);
 }
 
-/* Animated progress bar fill */
+/* Cream paper texture for elevated sections — pure CSS, no image request. */
+.paper {
+  background-color: var(--color-papi-cream);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-papi-indigo) 5%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
 .bar-fill {
   transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }

@@ -16,7 +16,7 @@ export default function ApplySuccessPage() {
         <br />
         received.
       </h1>
-      <div className="split-line mt-6 mb-8 w-40" aria-hidden />
+      <div className="stripe mt-6 mb-8 w-40" aria-hidden />
       <p className="text-lg text-ink-muted">
         We&apos;ll review your application and reach out on Discord. Keep an eye on your DMs —
         and maybe warm up your keybinds.

@@ -42,7 +42,7 @@ export default async function TrialsPage() {
                 <div className="mt-2">
                   <ProgressBar
                     pct={(dayNumber / totalDays) * 100}
-                    accent="blue"
+                    accent="purple"
                     label={`${t.characterName} trial progress`}
                   />
                 </div>
@@ -73,7 +73,7 @@ export default async function TrialsPage() {
       {closed.length > 0 ? (
         <section className="mt-12">
           <SectionHeading kicker="History" title="Closed trials" />
-          <ul className="divide-y divide-edge/60 border-y border-edge/60">
+          <ul className="divide-y divide-edge border-y border-edge">
             {closed.map((t) => (
               <li key={t.id} className="flex items-center justify-between py-2.5 text-sm">
                 <span>{t.characterName}</span>

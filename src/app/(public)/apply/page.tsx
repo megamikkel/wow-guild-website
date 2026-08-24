@@ -18,7 +18,7 @@ export default function ApplyPage() {
           Five minutes, no essay questions. Officers read every application and you&apos;ll hear
           back either way.
         </p>
-        <div className="split-line mt-6 max-w-40" aria-hidden />
+        <div className="stripe mt-6 max-w-40" aria-hidden />
       </header>
       <ApplyForm />
     </div>

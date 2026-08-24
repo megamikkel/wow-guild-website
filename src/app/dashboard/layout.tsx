@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </p>
           <Link
             href="/apply"
-            className="mt-6 rounded-md bg-papi-red px-5 py-3 font-display text-sm font-bold tracking-[0.1em] text-papi-white uppercase"
+            className="mt-6 rounded-md bg-papi-indigo px-5 py-3 font-display text-sm font-bold tracking-[0.1em] text-white uppercase"
           >
             Or apply to join
           </Link>

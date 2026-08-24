@@ -46,7 +46,7 @@ export default async function ApplicationsBoardPage() {
                 ) : (
                   column.map((a) => (
                     <Link key={a.id} href={`/admin/applications/${a.id}`}>
-                      <Surface className="p-4 transition-colors hover:border-papi-blue/50">
+                      <Surface className="p-4 transition-colors hover:border-papi-purple/50">
                         <p className="font-display font-bold" style={classColorStyle(a.className)}>
                           {a.characterName}
                         </p>
@@ -70,7 +70,7 @@ export default async function ApplicationsBoardPage() {
       {done.length > 0 ? (
         <section className="mt-12">
           <SectionHeading kicker="Closed" title="Decided" />
-          <ul className="divide-y divide-edge/60 border-y border-edge/60">
+          <ul className="divide-y divide-edge border-y border-edge">
             {done.map((a) => (
               <li key={a.id}>
                 <Link

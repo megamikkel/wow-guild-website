@@ -50,7 +50,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
               key={l.label}
               href={l.href}
               rel="noopener noreferrer"
-              className="font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+              className="font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
             >
               {l.label} ↗
             </a>
@@ -64,7 +64,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
           label="Mythic+"
           value={c.mythicPlusScore ? Math.round(c.mythicPlusScore).toLocaleString("en-GB") : "—"}
           size="lg"
-          accent="blue"
+          accent="purple"
         />
         <StatBlock label="Raid" value={c.raidProgressSummary ?? "—"} size="lg" />
         <StatBlock
@@ -81,7 +81,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
           {runs.length === 0 ? (
             <p className="text-ink-muted">No recent keys on record.</p>
           ) : (
-            <ul className="divide-y divide-edge/60 border-y border-edge/60">
+            <ul className="divide-y divide-edge border-y border-edge">
               {runs.map((r) => (
                 <li key={r.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                   <div>
@@ -89,7 +89,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
                     <p className="text-xs text-ink-faint">{formatRelative(r.completedAt)}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`stat-oversized text-2xl ${r.timed ? "text-papi-blue" : "text-ink-faint"}`}>
+                    <span className={`stat-oversized text-2xl ${r.timed ? "text-papi-purple" : "text-ink-faint"}`}>
                       +{r.level}
                     </span>
                     {r.timed ? (
@@ -109,7 +109,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
           {performance.length === 0 ? (
             <p className="text-ink-muted">No parses recorded yet.</p>
           ) : (
-            <ul className="divide-y divide-edge/60 border-y border-edge/60">
+            <ul className="divide-y divide-edge border-y border-edge">
               {performance.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                   <div>

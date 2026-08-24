@@ -1,103 +1,104 @@
 # PAPI — Design System
 
-Direction: **premium esports organisation × World of Warcraft × live sports
-broadcast × raid command center.** Dark, exclusive, extremely legible,
-data-driven. Not a WordPress gaming theme, not glassmorphism, not purple
-gradients.
+The identity is led by the guild badge: a vintage sports-club emblem with the
+PAPI mascot — glasses, moustache, vest, briefs, club socks — ringed in purple
+and indigo over a banner reading **PAPI · EST. ALWAYS DAD**.
 
-## Color
+Everything else follows from that mark. The site is **light, warm and
+printed-looking**, not dark and technical: cream paper, indigo type, purple
+furniture. The joke belongs to the badge; the interface around it stays
+straight-faced so the data reads clearly.
 
-Tokens live in `src/styles/globals.css` (`@theme`).
+## Colour
+
+Tokens live in `src/styles/globals.css` (`@theme`). Every value below was
+sampled from the badge artwork rather than chosen independently.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `canvas` / `canvas-deep` | `#05050D` / `#080812` | page background |
-| `surface` / `surface-2` / `surface-3` | `#0D0D1B` / `#121225` / `#181832` | elevated panels |
-| `papi-navy` | `#07065F` | brand ground (logo, deep accents) |
-| `papi-red` | `#E13527` | **sparingly**: primary CTA, live status, HIGH priority, critical alerts, progression highlights |
-| `papi-blue` | `#397CEF` | links, selected states, information, graphs, M+ |
-| `papi-white` / `ink` | `#FBFBFC` | primary content |
-| `ink-muted` / `ink-faint` | neutral greys | secondary/tertiary text |
-| `ok` / `warn` / `danger` | green / amber / red | status — **never color alone**, always paired with a label/glyph |
+| `papi-indigo` | `#0C1338` | primary type, headers, primary buttons |
+| `papi-indigo-soft` | `#1C2456` | hovers on indigo surfaces |
+| `papi-purple` | `#5B37A0` | links, active states, brand furniture, M+ figures |
+| `papi-purple-soft` | `#7C5BC4` | secondary accents |
+| `papi-purple-wash` | `#EFEAF9` | selected chips, quiet purple fills |
+| `papi-cream` | `#F7F3EA` | the paper the badge sits on |
+| `canvas` / `surface` | `#FFFFFF` | page and card backgrounds |
+| `canvas-deep` / `surface-2` / `surface-3` | cream tints | banded sections, insets |
+| `edge` / `edge-strong` | `#E2DCCF` / `#CEC6B4` | borders — warm, never grey |
+| `ink` / `ink-muted` / `ink-faint` | indigo / `#5A6080` / `#8A90A8` | text hierarchy |
+| `stripe-red` | `#D1372C` | **sparingly**: live status, HIGH priority, critical alerts, progression |
+| `stripe-blue` | `#215598` | the stripe's second band |
+| `ok` / `warn` / `danger` | `#1F7A4D` / `#A8690A` / `#D1372C` | status, always with a label or glyph |
 
-WoW class colors are tokens (`--color-class-*`) used for character names and
-class chips.
+**WoW class colours are darkened for light backgrounds.** Blizzard's canonical
+values — Priest white, Rogue yellow, Monk green — are unreadable on white, so
+each is tuned to stay recognisable while clearing contrast on `canvas` and
+`surface-2`. They live as `--color-class-*` tokens.
 
 ## Type
 
-- **Display**: Archivo (900, uppercase, tight tracking) — headings, stats
+- **Display**: Archivo (900, uppercase, tight tracking) — headings and stats,
+  matching the heavy condensed wordmark inside the badge
 - **Body**: Inter
 - **Numbers**: JetBrains Mono, `tabular-nums` — countdowns, counts, scores
 
-Loaded via `next/font` (self-hosted at build, zero runtime requests).
+Loaded through `next/font`, self-hosted at build, no runtime font requests.
 
-## The three PAPI signatures (use consistently, nowhere else)
+## The three signatures
 
-1. **Split-line** — a red→blue hairline (`.split-line`, `.split-line-soft`).
-   Under the header, under hero, section punctuation.
-2. **Live dot** — pulsing red dot (`.live-dot`) for anything live/in
-   progress: `● RAID LIVE`, progress boss.
-3. **Oversized statistics** — `.stat-oversized` + `.stat-label`: `11.7%`,
-   `6 / 8`, `19 / 20`. One or two per screen; hierarchy over card grids.
+Use these consistently and nowhere else.
+
+1. **The athletic stripe** (`.stripe`, `.stripe-thin`) — red / cream / blue,
+   lifted straight off the mascot's club socks. It closes sections and
+   underlines the header the way a sock cuff does. This replaced the earlier
+   red→blue "split-line", which belonged to a design system the badge
+   superseded.
+2. **The banner kicker** (`.banner`) — an indigo tab with clipped corners,
+   echoing the wordmark banner across the bottom of the badge. Used for every
+   section kicker, so each heading carries a piece of the mark.
+3. **Oversized statistics** (`.stat-oversized` + `.stat-label`) — `11.7%`,
+   `6 / 8`, `18 / 20`. One or two per screen; hierarchy over card grids.
+
+`.paper` gives banded sections the cream ground with a faint dot texture — pure
+CSS, no image request.
 
 ## Principles
 
-- Few strong visual elements per page instead of 12 identical boxes.
-- Microinteractions: hover states, animated progress bars, live countdown —
-  all gated by `prefers-reduced-motion` (global override in CSS).
-- Mobile-first; bottom tab bar on mobile (`HOME RAIDS ROSTER GUILD PROFILE`),
-  top nav on desktop. Admin has its own nav.
-- Accessibility: semantic HTML, visible focus (`:focus-visible` ring),
-  WCAG-contrast tokens, labels on all form fields, `aria` on progress bars,
-  status conveyed by text+shape+color.
-- Personality in microcopy ("Quiet day. No fresh meat yet."), never at the
-  cost of clarity.
+- The badge is the hero. On the homepage it sits at full size beside the
+  headline, and moves **above** the copy on mobile so the mascot is the first
+  thing a visitor meets.
+- Few strong elements per page instead of a grid of identical boxes.
+- Microinteractions — hovers, animated progress bars, the live countdown — all
+  gated by `prefers-reduced-motion` (global override in CSS).
+- Mobile-first: bottom tab bar on mobile (`HOME RAIDS ROSTER GUILD PROFILE`),
+  top nav on desktop. Admin has its own navigation.
+- Accessibility: semantic HTML, visible focus ring, WCAG-contrast tokens,
+  labelled form fields, `aria` on progress bars. Status is never conveyed by
+  colour alone — always colour plus text or shape.
+- Personality lives in the badge and the microcopy ("Quiet day. No fresh meat
+  yet."), never at the cost of clarity.
 
-## Logo
+## Assets
 
-Original PAPI mark (`src/components/Logo.tsx`, `public/favicon.svg`): two
-interlocking chevrons — red descending, blue ascending — forming a "P"
-counter on navy, echoing the split-line. Deliberately distinct from any
-existing brand (the old circle/wave logo was a Pepsi pastiche and was
-retired).
-
----
-
-## Dropping in a new logo
-
-The identity is deliberately centralised, so replacing the mark is a small,
-contained change rather than a rebuild. Four places, in order:
-
-| What | Where |
+| File | Use |
 | --- | --- |
-| Brand colours | `src/styles/globals.css` → `@theme` block (`--color-papi-*`, surfaces, ink) |
-| The mark + wordmark | `src/components/Logo.tsx` (`PapiMark`, `PapiWordmark`, `PapiLogo`) |
-| Favicon / tab icon | `public/favicon.svg` |
-| Signature motifs | `.split-line`, `.live-dot`, `.stat-oversized` in `globals.css` |
+| `public/brand/papi-logo.png` | display master (1000px tall), hero and large lockups |
+| `public/brand/papi-logo-sm.png` | 260px variant for navigation, footer, small contexts |
+| `public/brand/papi-logo-180.png` | Apple touch icon |
+| `public/brand/papi-og.png` | 1200×630 social card |
+| `public/favicon.svg` | badge reduced to ring + banner; the mascot cannot read at 16px |
 
-Nothing else in the app hardcodes a brand colour — every component reads the
-tokens, so re-pointing the `@theme` values re-skins the entire site. (The one
-deliberate exception is Discord's own `#5865F2` on the sign-in button, which
-must stay Discord's blue.)
+`PapiBadge` in `src/components/Logo.tsx` picks the small source automatically
+at ≤130px, so a 44px header badge never downloads the hero asset.
 
-### Asset requirements
+The artwork is raster. That is a real constraint: it cannot be recoloured per
+context and cannot be redrawn at arbitrary detail. If a vector version ever
+exists, swapping it in is confined to `Logo.tsx` and `favicon.svg`.
 
-**SVG, not PNG.** The mark is rendered from ~24px (favicon, roster rows) to
-hero scale, and is recoloured per context. A raster file cannot do either: it
-blurs when small and cannot be restyled. If the source is a raster image, it
-gets redrawn as clean vector before it enters the codebase.
+## Replacing the identity again
 
-Needed for a complete swap:
-
-- Primary mark as SVG, transparent background, square-ish viewBox
-- A single-colour version (`fill="currentColor"`) for monochrome contexts
-- Wordmark, if the logo has one, as a separate asset or as outlined paths
-- The exact hex values the mark uses, so the `@theme` palette can follow it
-
-### Deriving the rest from the mark
-
-Once the mark is final, the design system should be re-derived from it rather
-than kept as-is: corner radii and stroke weights matched to the mark's own
-geometry, the palette re-pointed to its colours, and the signature motifs
-replaced if the mark implies a stronger device than the current red→blue
-split-line. That is a deliberate pass, not a search-and-replace.
+Four places, in order: the `@theme` block in `src/styles/globals.css`,
+`src/components/Logo.tsx`, `public/favicon.svg`, and the signature motifs in
+`globals.css`. Nothing else hardcodes a brand colour — every component reads
+tokens, so re-pointing `@theme` re-skins the whole site. The one deliberate
+exception is Discord's own `#5865F2` on the sign-in button.

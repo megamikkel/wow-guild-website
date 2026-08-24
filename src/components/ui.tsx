@@ -15,8 +15,8 @@ export function SectionHeading({
   return (
     <div className="mb-6 flex items-end justify-between gap-4">
       <div>
-        {kicker ? <p className="stat-label mb-1">{kicker}</p> : null}
-        <h2 className="display-heading text-2xl sm:text-3xl">{title}</h2>
+        {kicker ? <p className="banner mb-2">{kicker}</p> : null}
+        <h2 className="display-heading text-2xl text-papi-indigo sm:text-3xl">{title}</h2>
       </div>
       {right ? <div className="shrink-0">{right}</div> : null}
     </div>
@@ -31,7 +31,9 @@ export function Surface({
   className?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-edge bg-surface ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-edge bg-surface shadow-[0_1px_2px_rgba(12,19,56,0.04)] ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -39,17 +41,21 @@ export function StatBlock({
   label,
   value,
   sub,
-  accent = "white",
+  accent = "ink",
   size = "md",
 }: {
   label: string;
   value: ReactNode;
   sub?: ReactNode;
-  accent?: "white" | "red" | "blue";
+  accent?: "ink" | "red" | "purple";
   size?: "md" | "lg" | "xl";
 }) {
   const color =
-    accent === "red" ? "text-papi-red" : accent === "blue" ? "text-papi-blue" : "text-ink";
+    accent === "red"
+      ? "text-stripe-red"
+      : accent === "purple"
+        ? "text-papi-purple"
+        : "text-papi-indigo";
   const sizeCls =
     size === "xl"
       ? "text-6xl sm:text-7xl"
@@ -67,15 +73,15 @@ export function StatBlock({
 
 export function ProgressBar({
   pct,
-  accent = "blue",
+  accent = "purple",
   label,
 }: {
   pct: number;
-  accent?: "blue" | "red" | "ok";
+  accent?: "purple" | "red" | "ok";
   label?: string;
 }) {
   const color =
-    accent === "red" ? "bg-papi-red" : accent === "ok" ? "bg-ok" : "bg-papi-blue";
+    accent === "red" ? "bg-stripe-red" : accent === "ok" ? "bg-ok" : "bg-papi-purple";
   const clamped = Math.max(0, Math.min(100, pct));
   return (
     <div
@@ -84,7 +90,7 @@ export function ProgressBar({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-label={label}
-      className="h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
+      className="h-2 w-full overflow-hidden rounded-full bg-surface-3"
     >
       <div className={`bar-fill h-full rounded-full ${color}`} style={{ width: `${clamped}%` }} />
     </div>
@@ -93,8 +99,8 @@ export function ProgressBar({
 
 export function PriorityBadge({ priority }: { priority: string }) {
   const styles: Record<string, string> = {
-    HIGH: "bg-papi-red/15 text-papi-red border-papi-red/40",
-    MEDIUM: "bg-papi-blue/15 text-papi-blue border-papi-blue/40",
+    HIGH: "bg-stripe-red text-white border-stripe-red",
+    MEDIUM: "bg-papi-purple-wash text-papi-purple border-papi-purple/30",
     LOW: "bg-surface-3 text-ink-muted border-edge",
     CLOSED: "bg-surface-3 text-ink-faint border-edge line-through",
   };
@@ -117,8 +123,8 @@ export function StatusPill({
   const map = {
     ok: "text-ok border-ok/40 bg-ok/10",
     warn: "text-warn border-warn/40 bg-warn/10",
-    danger: "text-papi-red border-papi-red/40 bg-papi-red/10",
-    blue: "text-papi-blue border-papi-blue/40 bg-papi-blue/10",
+    danger: "text-stripe-red border-stripe-red/40 bg-stripe-red/10",
+    blue: "text-papi-purple border-papi-purple/35 bg-papi-purple-wash",
     muted: "text-ink-muted border-edge bg-surface-3",
   } as const;
   return (
@@ -131,7 +137,7 @@ export function StatusPill({
 }
 
 export function RoleGlyph({ role, className = "" }: { role: string; className?: string }) {
-  // Simple geometric glyphs — shape + label, never color alone.
+  // Simple geometric glyphs — shape + label, never colour alone.
   const common = `inline-block ${className}`;
   if (role === "TANK")
     return (
@@ -167,9 +173,8 @@ export function CtaLink({
   const base =
     "inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 font-display text-sm font-bold tracking-[0.1em] uppercase transition-colors";
   const styles = {
-    primary: "bg-papi-red text-papi-white hover:bg-[#c92d20]",
-    secondary:
-      "border border-papi-blue/50 text-papi-blue hover:bg-papi-blue/10",
+    primary: "bg-papi-indigo text-white hover:bg-papi-purple",
+    secondary: "border-2 border-papi-indigo text-papi-indigo hover:bg-papi-purple-wash",
     ghost: "text-ink-muted hover:text-ink",
   } as const;
   return (

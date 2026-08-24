@@ -69,7 +69,7 @@ export default async function RosterPage({
               key={r}
               href={filterHref({ role: r })}
               className={`rounded px-3 py-1.5 font-display text-xs font-bold tracking-[0.12em] uppercase transition-colors ${
-                roleFilter === r ? "bg-papi-blue/15 text-papi-blue" : "text-ink-muted hover:text-ink"
+                roleFilter === r ? "bg-papi-purple-wash text-papi-purple" : "text-ink-muted hover:text-ink"
               }`}
               aria-current={roleFilter === r ? "true" : undefined}
             >
@@ -83,7 +83,7 @@ export default async function RosterPage({
               key={s}
               href={filterHref({ status: s })}
               className={`rounded px-3 py-1.5 font-display text-xs font-bold tracking-[0.12em] uppercase transition-colors ${
-                statusFilter === s ? "bg-papi-blue/15 text-papi-blue" : "text-ink-muted hover:text-ink"
+                statusFilter === s ? "bg-papi-purple-wash text-papi-purple" : "text-ink-muted hover:text-ink"
               }`}
               aria-current={statusFilter === s ? "true" : undefined}
             >
@@ -95,7 +95,7 @@ export default async function RosterPage({
           <Link
             href={filterHref({ class: "ALL" })}
             className={`rounded px-3 py-1.5 font-display text-xs font-bold tracking-[0.12em] uppercase ${
-              classFilter === "ALL" ? "bg-papi-blue/15 text-papi-blue" : "text-ink-muted hover:text-ink"
+              classFilter === "ALL" ? "bg-papi-purple-wash text-papi-purple" : "text-ink-muted hover:text-ink"
             }`}
           >
             All classes
@@ -136,7 +136,7 @@ export default async function RosterPage({
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-edge/50 transition-colors last:border-0 hover:bg-surface">
+                <tr key={c.id} className="border-b border-edge transition-colors last:border-0 hover:bg-surface">
                   <td className="px-4 py-3">
                     <Link
                       href={`/roster/${c.realmSlug}/${encodeURIComponent(c.name)}`}
@@ -158,7 +158,7 @@ export default async function RosterPage({
                   <td className="px-4 py-3 text-right font-mono tabular-nums">
                     {c.itemLevel ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-papi-blue tabular-nums">
+                  <td className="px-4 py-3 text-right font-mono text-papi-purple tabular-nums">
                     {c.mythicPlusScore ? Math.round(c.mythicPlusScore).toLocaleString("en-GB") : "—"}
                   </td>
                   <td className="px-4 py-3 text-ink-muted">{c.raidProgressSummary ?? "—"}</td>

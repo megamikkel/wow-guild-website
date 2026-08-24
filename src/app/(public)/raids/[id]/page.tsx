@@ -66,7 +66,7 @@ export default async function RaidDetailPage({
               <div className="mt-3">
                 <ProgressBar
                   pct={(r.confirmed / r.target) * 100}
-                  accent={r.confirmed >= r.target ? "ok" : "blue"}
+                  accent={r.confirmed >= r.target ? "ok" : "purple"}
                   label={`${role} confirmed`}
                 />
               </div>
@@ -91,7 +91,7 @@ export default async function RaidDetailPage({
                   {meta.label} · {group.length}
                 </StatusPill>
               </p>
-              <ul className="divide-y divide-edge/50 border-y border-edge/50">
+              <ul className="divide-y divide-edge border-y border-edge">
                 {group.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                     <span className="font-display font-bold" style={classColorStyle(s.className ?? "")}>

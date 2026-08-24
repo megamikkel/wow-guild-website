@@ -82,7 +82,7 @@ export default async function LoginPage({
                   >
                     <button
                       type="submit"
-                      className="w-full rounded-md border border-papi-blue/40 px-4 py-2.5 text-left font-display text-xs font-bold tracking-[0.1em] text-papi-blue uppercase transition-colors hover:bg-papi-blue/10"
+                      className="w-full rounded-md border border-papi-purple/40 px-4 py-2.5 text-left font-display text-xs font-bold tracking-[0.1em] text-papi-purple uppercase transition-colors hover:bg-papi-purple-wash"
                     >
                       {label}
                     </button>

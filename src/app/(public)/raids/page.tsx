@@ -24,7 +24,7 @@ export default async function RaidsPage() {
       ) : (
         <div className="mb-14 grid gap-4 lg:grid-cols-2">
           {upcoming.map(({ event, breakdown }, i) => (
-            <Surface key={event.id} className={`p-6 ${i === 0 ? "border-papi-blue/40" : ""}`}>
+            <Surface key={event.id} className={`p-6 ${i === 0 ? "border-papi-purple/40" : ""}`}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="stat-label">{event.difficulty}</p>
@@ -49,13 +49,13 @@ export default async function RaidsPage() {
                     </span>
                   </span>
                 ))}
-                <span className="font-mono text-papi-blue tabular-nums">
+                <span className="font-mono text-papi-purple tabular-nums">
                   {breakdown.totalConfirmed}/{breakdown.totalTarget} confirmed
                 </span>
               </div>
               <Link
                 href={`/raids/${event.id}`}
-                className="mt-4 inline-block font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+                className="mt-4 inline-block font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
                 View raid →
               </Link>
@@ -68,7 +68,7 @@ export default async function RaidsPage() {
       {past.length === 0 ? (
         <p className="text-ink-muted">No raid history yet.</p>
       ) : (
-        <ul className="divide-y divide-edge/60 border-y border-edge/60">
+        <ul className="divide-y divide-edge border-y border-edge">
           {past.map(({ event, breakdown }) => (
             <li key={event.id}>
               <Link

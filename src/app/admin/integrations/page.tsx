@@ -34,7 +34,7 @@ export default async function IntegrationsPage() {
                   : ""}
               </p>
               {i.lastError ? (
-                <p className="mt-1 max-w-lg text-xs text-papi-red">{i.lastError}</p>
+                <p className="mt-1 max-w-lg text-xs text-stripe-red">{i.lastError}</p>
               ) : null}
             </div>
             {i.state === "CONNECTED" ? (

@@ -23,12 +23,14 @@ export const metadata: Metadata = {
     template: `%s · ${guildConfig.name}`,
   },
   description: `${guildConfig.name} — ${guildConfig.focus} guild on ${guildConfig.realm.name} (${guildConfig.region.toUpperCase()}). ${guildConfig.tagline}`,
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.svg", apple: "/brand/papi-logo-180.png" },
   openGraph: {
     siteName: guildConfig.name,
     type: "website",
     locale: "en_GB",
+    images: [{ url: "/brand/papi-og.png", width: 1200, height: 630 }],
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Countdown } from "@/components/Countdown";
+import { PapiBadge } from "@/components/Logo";
 import {
   CtaLink,
   PriorityBadge,
@@ -37,48 +38,57 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ————— HERO ————— */}
-      <section className="relative overflow-hidden border-b border-edge/60 bg-canvas-deep">
-        <div className="hero-grid absolute inset-0" aria-hidden />
-        <div className="relative mx-auto max-w-6xl px-4 pt-20 pb-16 sm:pt-28 sm:pb-24">
-          <p className="stat-label mb-4">
-            {guildConfig.region.toUpperCase()} · {guildConfig.realm.name} ·{" "}
-            {guildConfig.focus.toUpperCase()}
-          </p>
-          <h1 className="display-heading text-6xl leading-none tracking-tighter sm:text-8xl">
-            PAPI
-          </h1>
-          <p className="display-heading mt-4 max-w-2xl text-2xl leading-tight text-ink sm:text-4xl">
-            We don&apos;t raid to participate.
-            <br />
-            <span className="text-papi-blue">We raid to progress.</span>
-          </p>
+      {/* ————— HERO — built around the badge ————— */}
+      <section className="paper relative overflow-hidden">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pt-14 pb-16 sm:pt-16 lg:grid-cols-[1fr_auto] lg:gap-14 lg:pb-20">
+          <div>
+            <p className="banner mb-5">
+              {guildConfig.region.toUpperCase()} · {guildConfig.realm.name} ·{" "}
+              {guildConfig.focus}
+            </p>
+            <h1 className="display-heading text-4xl leading-[0.95] tracking-tighter text-papi-indigo sm:text-6xl lg:text-7xl">
+              We don&apos;t raid
+              <br />
+              to participate.
+              <br />
+              <span className="text-papi-purple">We raid to progress.</span>
+            </h1>
 
-          <div className="mt-10 flex flex-wrap items-end gap-x-10 gap-y-6">
-            <StatBlock
-              label="Progression"
-              value={
-                <>
-                  {progression.killed}
-                  <span className="text-ink-faint">/</span>
-                  {progression.total}
-                </>
-              }
-              sub={`${guildConfig.currentTier.difficulty} · ${guildConfig.currentTier.name}`}
-              size="lg"
-              accent="red"
-            />
-            <StatBlock label="Raid days" value={schedule} sub="19:30 — 22:30 server time" size="lg" />
+            <div className="mt-9 flex flex-wrap items-end gap-x-10 gap-y-6">
+              <StatBlock
+                label="Progression"
+                value={
+                  <>
+                    {progression.killed}
+                    <span className="text-ink-faint">/</span>
+                    {progression.total}
+                  </>
+                }
+                sub={`${guildConfig.currentTier.difficulty} · ${guildConfig.currentTier.name}`}
+                size="lg"
+              />
+              <StatBlock
+                label="Raid days"
+                value={schedule}
+                sub={`${guildConfig.raidSchedule[0].start} — ${guildConfig.raidSchedule[0].end} server time`}
+                size="lg"
+                accent="purple"
+              />
+            </div>
+
+            <div className="mt-9 flex flex-wrap gap-3">
+              <CtaLink href="/apply">Apply to PAPI</CtaLink>
+              <CtaLink href="/progression" variant="secondary">
+                View progression
+              </CtaLink>
+            </div>
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-3">
-            <CtaLink href="/apply">Apply to PAPI</CtaLink>
-            <CtaLink href="/progression" variant="secondary">
-              View progression
-            </CtaLink>
+          <div className="order-first justify-self-center lg:order-none lg:justify-self-end">
+            <PapiBadge size={420} priority className="h-52 w-auto sm:h-72 lg:h-[420px]" />
           </div>
         </div>
-        <div className="split-line" aria-hidden />
+        <div className="stripe" aria-hidden />
       </section>
 
       {/* ————— NEXT RAID ————— */}
@@ -98,7 +108,7 @@ export default async function HomePage() {
                 <Countdown target={nextRaid.event.startTime.toISOString()} className="text-4xl sm:text-5xl" />
               </div>
               <p className="mt-6">
-                <span className="stat-oversized text-3xl text-papi-blue">
+                <span className="stat-oversized text-3xl text-papi-purple">
                   {nextRaid.breakdown.totalConfirmed}
                 </span>
                 <span className="stat-oversized text-3xl text-ink-faint">
@@ -122,7 +132,7 @@ export default async function HomePage() {
                     </div>
                     <ProgressBar
                       pct={(r.confirmed / r.target) * 100}
-                      accent={r.confirmed >= r.target ? "ok" : "blue"}
+                      accent={r.confirmed >= r.target ? "ok" : "purple"}
                       label={`${role} signups`}
                     />
                   </div>
@@ -130,7 +140,7 @@ export default async function HomePage() {
               })}
               <Link
                 href={`/raids/${nextRaid.event.id}`}
-                className="mt-2 font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+                className="mt-2 font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
                 View raid →
               </Link>
@@ -145,7 +155,7 @@ export default async function HomePage() {
       </section>
 
       {/* ————— PROGRESSION ————— */}
-      <section className="border-y border-edge/60 bg-canvas-deep">
+      <section className="paper border-y border-edge">
         <div className="mx-auto max-w-6xl px-4 py-14">
           <SectionHeading
             kicker="Warcraft Logs"
@@ -153,7 +163,7 @@ export default async function HomePage() {
             right={
               <Link
                 href="/progression"
-                className="font-display text-xs font-bold tracking-[0.14em] text-papi-blue uppercase hover:underline"
+                className="font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
                 Full progression →
               </Link>
@@ -172,7 +182,7 @@ export default async function HomePage() {
                 <p className="stat-label">Now progressing</p>
                 <p className="display-heading mt-1 text-2xl">{progression.progressBoss.bossName}</p>
                 <div className="mt-3 flex items-baseline gap-3">
-                  <span className="stat-oversized text-4xl text-papi-red">
+                  <span className="stat-oversized text-4xl text-stripe-red">
                     {progression.progressBoss.bestPct?.toFixed(1)}%
                   </span>
                   <span className="text-sm text-ink-muted">
@@ -230,7 +240,7 @@ export default async function HomePage() {
       {/* ————— ACTIVITY ————— */}
       <section className="mx-auto max-w-6xl px-4 pb-4">
         <SectionHeading kicker="Guild activity" title="Recent" />
-        <ol className="divide-y divide-edge/60 border-y border-edge/60">
+        <ol className="divide-y divide-edge border-y border-edge">
           {activity.map((a) => (
             <li key={a.id} className="flex items-baseline gap-4 py-3">
               <span className="w-20 shrink-0 font-mono text-xs text-ink-faint tabular-nums">

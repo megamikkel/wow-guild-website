@@ -1,5 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#07065F"/>
-  <path d="M15 11h11v42H15z" fill="#E13527"/>
-  <path d="M26 11h15l8 8v15l-8 8H26V11zm0 11v10h10l2-2v-6l-2-2H26z" fill="#397CEF" fill-rule="evenodd"/>
+  <title>PAPI</title>
+  <!-- Badge structure reduced to what survives at 16px: purple ring,
+       cream field, indigo banner. The mascot cannot read at this size. -->
+  <rect width="64" height="64" rx="12" fill="#F7F3EA"/>
+  <ellipse cx="32" cy="28" rx="23" ry="24" fill="#5B37A0"/>
+  <ellipse cx="32" cy="28" rx="18" ry="19" fill="#0C1338"/>
+  <ellipse cx="32" cy="27" rx="14" ry="15" fill="#F7F3EA"/>
+  <path d="M4 40h56v13a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z" fill="#0C1338"/>
+  <rect x="12" y="46" width="40" height="4" rx="2" fill="#F7F3EA"/>
 </svg>

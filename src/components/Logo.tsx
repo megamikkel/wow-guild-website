@@ -1,46 +1,58 @@
+import Image from "next/image";
+
 /**
- * The PAPI mark — an original emblem built from the brand palette.
- * A single chunky "P" letterform split the way the site's signature line is:
- * red stem, electric-blue bowl, chamfered corners for the esports edge.
- * Geometry is tuned to stay legible down to favicon size.
+ * The PAPI guild badge — a vintage sports-club emblem with the guild mascot.
+ * The full badge carries the wordmark inside it, so at display sizes it stands
+ * alone; the separate wordmark exists only for tight horizontal lockups
+ * (navigation) where the badge is too small to read its own type.
+ *
+ * Two source files: a display master and a light variant for small contexts,
+ * so a 38px header badge never pulls the hero-sized asset.
  */
-export function PapiMark({ size = 32, className }: { size?: number; className?: string }) {
+const ASPECT = 776 / 1163; // width / height of the badge artwork
+
+export function PapiBadge({
+  size = 44,
+  priority = false,
+  className,
+}: {
+  size?: number;
+  priority?: boolean;
+  className?: string;
+}) {
+  const small = size <= 130;
   return (
-    <svg
-      width={size}
+    <Image
+      src={small ? "/brand/papi-logo-sm.png" : "/brand/papi-logo.png"}
+      alt="PAPI guild badge"
+      width={Math.round(size * ASPECT)}
       height={size}
-      viewBox="0 0 64 64"
-      role="img"
-      aria-label="PAPI emblem"
+      priority={priority}
+      loading={priority ? undefined : "eager"}
       className={className}
-    >
-      <rect width="64" height="64" rx="14" fill="#07065F" />
-      {/* stem */}
-      <path d="M15 11h11v42H15z" fill="#E13527" />
-      {/* bowl with its counter cut out */}
-      <path
-        d="M26 11h15l8 8v15l-8 8H26V11zm0 11v10h10l2-2v-6l-2-2H26z"
-        fill="#397CEF"
-        fillRule="evenodd"
-      />
-    </svg>
+    />
   );
 }
 
 export function PapiWordmark({ className }: { className?: string }) {
   return (
-    <span className={`display-heading tracking-tight ${className ?? ""}`}>
-      <span className="text-papi-white">PAP</span>
-      <span className="text-papi-blue">I</span>
+    <span className={`display-heading tracking-tight text-papi-indigo ${className ?? ""}`}>
+      PAPI
     </span>
   );
 }
 
-export function PapiLogo({ size = 28 }: { size?: number }) {
+/** Badge + wordmark, for navigation bars. */
+export function PapiLogo({ size = 44 }: { size?: number }) {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <PapiMark size={size} />
-      <PapiWordmark className="text-xl" />
+      <PapiBadge size={size} priority />
+      <span className="flex flex-col leading-none">
+        <PapiWordmark className="text-xl" />
+        <span className="mt-1 font-display text-[8px] font-bold tracking-[0.18em] text-papi-purple uppercase">
+          Est. always dad
+        </span>
+      </span>
     </span>
   );
 }

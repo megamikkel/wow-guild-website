@@ -24,10 +24,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!hasRole(session.user.role, "OFFICER")) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 text-center">
-        <p className="stat-oversized text-7xl text-papi-red">403</p>
+        <p className="stat-oversized text-7xl text-stripe-red">403</p>
         <p className="display-heading mt-4 text-2xl">Officers only.</p>
         <p className="mt-2 text-ink-muted">This area needs an officer rank in Discord.</p>
-        <Link href="/dashboard" className="mt-8 text-papi-blue hover:underline">
+        <Link href="/dashboard" className="mt-8 text-papi-purple hover:underline">
           Back to your dashboard
         </Link>
       </main>
@@ -36,7 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-edge/60 bg-canvas/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-edge bg-canvas/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4">
           <Link href="/admin" aria-label="PAPI command">
             <PapiLogo />
@@ -68,7 +68,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </form>
           </div>
         </div>
-        <div className="split-line-soft" aria-hidden />
+        <div className="stripe-thin" aria-hidden />
       </header>
       <main className="min-h-[80vh]">{children}</main>
     </>
