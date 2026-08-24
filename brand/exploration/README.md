@@ -30,3 +30,23 @@ particularly on merchandise.
 Studies in this round: seal, lozenge, starburst, racing roundel, app plate,
 ribbon badge. The starburst carries the most personality and survives to 22px;
 the app plate is the closest bridge from the existing icon.
+
+## Round 7 — generative exploration (`generator.html`)
+
+Every earlier round failed the same way: concepts were produced by *listing*
+("objects: ring, chain, arch…"), and a list yields its most obvious members
+first. Nine rounds of first guesses are nine rounds of cliché.
+
+This round replaces curation with volume. `generator.html` produces 120 forms
+parametrically across six families — rotation (R), interference (I), gesture
+(G), subtraction (S), scale-stack (K), fragmentation (A) — from a seeded PRNG,
+rendered as one contact sheet in pure monochrome. Selection happens by looking
+at all of them, not by pre-filtering for what scales to 24px.
+
+Outcome: families S and K largely failed (parameter ranges too narrow; S
+produced near-identical rounded rings, K produced trees and mountains).
+Families I, R, G and A produced forms with genuine tension — crescents and
+eclipses, curved-arm whirls, tapered ribbons, and sliced discs.
+
+Re-run with a different seed for a fresh set; widen the parameter ranges of a
+family to push it further.
