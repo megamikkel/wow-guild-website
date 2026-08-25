@@ -128,10 +128,12 @@ Integrations you have not configured degrade to "Not configured" on
 ## The GitHub Pages preview (built, waiting on one switch)
 
 `.github/workflows/preview.yml` publishes a static preview of the public site
-to GitHub Pages — free on a public repository, no account or card. It builds
-and deploys on every push to the feature branch.
+to GitHub Pages — free on a public repository, no account or card. Cloudflare
+is the live deployment; this is a second free host, kept as a preview or a
+fallback.
 
-It is complete and has been run. It stops at one step:
+It is **manual only** (`workflow_dispatch`), because it cannot get past one
+step on its own:
 
 ```
 Create Pages site failed.
@@ -147,11 +149,16 @@ Pushing a `gh-pages` branch no longer auto-enables Pages either.
 > Repository **Settings → Pages → Build and deployment → Source →
 > GitHub Actions**
 
-Then re-run the workflow (Actions tab → *Deploy preview to GitHub Pages* →
+Then start the workflow (Actions tab → *Deploy preview to GitHub Pages* →
 Run workflow). The site appears at
-`https://megamikkel.github.io/wow-guild-website/` and updates on every push
-from then on. `enablement: true` in the workflow becomes a no-op once Pages
-exists, so nothing needs changing afterwards.
+`https://megamikkel.github.io/wow-guild-website/`. `enablement: true` in the
+workflow becomes a no-op once Pages exists, so nothing needs changing
+afterwards — and if you want it to publish on every push again, add a
+`push:` trigger back to `preview.yml`.
+
+Until that switch is flipped the workflow fails at *Configure Pages*, which is
+why it no longer runs automatically: an unavoidable red X on every merge is
+worse than a button someone presses once.
 
 What the preview contains: home, progression, roster (a page per character),
 raids (a page per raid) and recruitment, pre-rendered with the demo fixtures.
