@@ -22,6 +22,12 @@
   --color-stripe-red: #d1372c;
   --color-stripe-blue: #215598;
 
+  /* The Dad Trinity — role icons. Brighter than the stripe palette on
+     purpose: these are small marks that have to hold at 18px. */
+  --color-role-navy: #07065f;
+  --color-role-red: #ed3026;
+  --color-role-blue: #397cef;
+
   /* Surfaces — light, paper-like */
   --color-canvas: #ffffff;
   --color-canvas-deep: #f7f3ea;
@@ -92,6 +98,13 @@ body {
 /* ————— PAPI signature #1: the athletic stripe —————
    Lifted straight off the socks in the badge: red / white / blue on cream.
    Used to close sections and underline headers, the way a club sock does. */
+/* Role marks on a dark surface: white bodies, accents unchanged, no fill
+   behind the undershirt or the tape core. */
+.role-dark {
+  --role-ink: var(--color-papi-white);
+  --role-paper: transparent;
+}
+
 .stripe {
   height: 6px;
   background: linear-gradient(

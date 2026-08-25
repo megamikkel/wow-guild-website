@@ -62,6 +62,45 @@ Use these consistently and nowhere else.
 `.paper` gives banded sections the cream ground with a faint dot texture — pure
 CSS, no image request.
 
+## The Dad Trinity — role marks
+
+The three raid roles carry PAPI's own icons instead of the shield/cross/sword
+every other guild site uses. PAPI means dad, so the roles are dad logic:
+
+| Role | Mark | The line |
+| --- | --- | --- |
+| Tank | ribbed undershirt | *"Jeg tager den."* |
+| Healer | roll of duct tape | *"Det kan repareres."* |
+| DPS | cordless drill | *"Problemet skal væk."* |
+
+They read as vest, tape and drill first, and as Tank/Healer/DPS a beat later.
+That second beat is the point.
+
+Drawn as one family on a 24×24 grid in `src/components/icons/roles/`, with
+matching weights and one accent each — red neck trim, blue tape strip, red
+drill bit — so hue never has to carry the difference alone. Every mark holds
+at 18px, which is what set the level of detail: three ribs rather than eight,
+two notches on the torn tape rather than a fine zigzag, four blocks for the
+drill rather than a rendered tool.
+
+Colours are their own tokens (`--color-role-navy` `#07065f`,
+`--color-role-red` `#ed3026`, `--color-role-blue` `#397cef`) — brighter than
+the stripe palette because small marks need more contrast than large fields.
+The body indirects through `--role-ink`, so `.role-dark` flips all three to
+white on a dark surface without touching the accents. `monochrome` draws the
+whole mark in `currentColor` for inline lists.
+
+`<RoleBadge role="TANK" />` is the chip: mark plus label in a barely-there
+frame — faint navy tint, 1px border, 9px radius. The tint is deliberately the
+same for all three; three coloured pills in one column would fight the class
+colours that carry the real meaning in the roster. Pass
+`labelClassName="hidden sm:inline"` to drop the word where space is tight, as
+the roster does on mobile: the whole chip is one labelled image to assistive
+tech, so hiding the word costs nothing. Hover or tap gives the line.
+
+`RoleGlyph` draws the same marks in monochrome, so the homepage, the raid
+pages and the officer tools follow along.
+
 ## Principles
 
 - The badge is the hero. On the homepage it sits at full size beside the
@@ -75,7 +114,7 @@ CSS, no image request.
 - Accessibility: semantic HTML, visible focus ring, WCAG-contrast tokens,
   labelled form fields, `aria` on progress bars. Status is never conveyed by
   colour alone — always colour plus text or shape.
-- Personality lives in the badge and the microcopy ("Quiet day. No fresh meat
+- Personality lives in the badge, the role marks and the microcopy ("Quiet day. No fresh meat
   yet."), never at the cost of clarity.
 
 ## Assets

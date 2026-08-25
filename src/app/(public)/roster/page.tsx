@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { RoleGlyph, SectionHeading, StatusPill } from "@/components/ui";
+import { RoleBadge } from "@/components/RoleBadge";
+import { SectionHeading, StatusPill } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
 import { getRoster } from "@/domain/queries";
 import { SpecBadge } from "@/components/wow";
@@ -166,7 +167,11 @@ export default async function RosterPage({
                         >
                           {c.name}
                         </Link>
-                        <span className="ml-2 text-xs text-ink-faint">{c.realmName}</span>
+                        {/* One realm, every row — on a phone it is pure width,
+                            and it costs the role chip its place on screen. */}
+                        <span className="hidden text-xs text-ink-faint sm:ml-2 sm:inline">
+                          {c.realmName}
+                        </span>
                       </span>
                     </span>
                   </td>
@@ -174,9 +179,9 @@ export default async function RosterPage({
                     {c.specName} {c.className}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 text-ink-muted">
-                      <RoleGlyph role={c.role} /> {c.role}
-                    </span>
+                    {/* On a phone the word costs the chip its place on
+                        screen; the icon and the label both stay available. */}
+                    <RoleBadge role={c.role} labelClassName="hidden sm:inline" />
                   </td>
                   <td className="px-4 py-3 text-right font-mono tabular-nums">
                     {c.itemLevel ?? "—"}

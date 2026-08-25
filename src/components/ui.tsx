@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ROLE_ICON, roleKey } from "@/components/icons/roles";
+
 /** Small shared presentational building blocks. */
 
 export function SectionHeading({
@@ -144,27 +146,19 @@ export function StatusPill({
   );
 }
 
-export function RoleGlyph({ role, className = "" }: { role: string; className?: string }) {
-  // Simple geometric glyphs — shape + label, never colour alone.
-  const common = `inline-block ${className}`;
-  if (role === "TANK")
-    return (
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden className={common}>
-        <path d="M8 1l6 2v5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V3l6-2z" fill="currentColor" />
-      </svg>
-    );
-  if (role === "HEALER")
-    return (
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden className={common}>
-        <path d="M6 1h4v5h5v4h-5v5H6v-5H1V6h5V1z" fill="currentColor" />
-      </svg>
-    );
-  return (
-    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden className={common}>
-      <path d="M2 14L12 4l-1-2 4-1-1 4-2-1L2 14z" fill="currentColor" />
-      <path d="M2 10v4h4l-4-4z" fill="currentColor" />
-    </svg>
-  );
+export function RoleGlyph({
+  role,
+  className = "",
+  size = 16,
+}: {
+  role: string;
+  className?: string;
+  size?: number;
+}) {
+  // The Dad Trinity in monochrome — shape carries the meaning, the caller
+  // supplies the colour. Never colour alone.
+  const Icon = ROLE_ICON[roleKey(role)];
+  return <Icon size={size} monochrome className={`inline-block ${className}`} />;
 }
 
 export function CtaLink({
