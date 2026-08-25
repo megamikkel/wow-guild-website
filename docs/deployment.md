@@ -13,7 +13,7 @@ Git**, pick `megamikkel/wow-guild-website`, then set exactly:
 
 | Setting | Value |
 | --- | --- |
-| Production branch | `claude/papi-wow-guild-platform-4nxyiy` |
+| Production branch | `main` |
 | Framework preset | **None** |
 | Build command | `node scripts/build-static-preview.mjs` |
 | Build output directory | `out` |
@@ -77,7 +77,7 @@ Demo mode runs the whole platform on an embedded PGlite Postgres, seeded with
 fixtures at boot. No external services at all.
 
 1. vercel.com → **Add New… → Project** → import
-   `megamikkel/wow-guild-website` → pick branch `claude/papi-wow-guild-platform-4nxyiy`.
+   `megamikkel/wow-guild-website` → pick branch `main`.
 2. Framework is detected as Next.js. Leave every build setting alone.
 3. Add two environment variables:
 

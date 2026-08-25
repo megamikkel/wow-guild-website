@@ -10,7 +10,7 @@ name: Deploy preview to GitHub Pages
 
 on:
   push:
-    branches: [claude/papi-wow-guild-platform-4nxyiy]
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "brand/**"
