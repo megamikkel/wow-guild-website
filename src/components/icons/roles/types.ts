@@ -23,7 +23,12 @@ export type RoleIconProps = {
   title?: string;
 };
 
-export const NAVY = "var(--color-role-navy, #07065f)";
+/**
+ * The body colour indirects through --role-ink so a dark surface can flip the
+ * marks to white without touching the accents, which stay legible on both.
+ * Put `.role-dark` on any dark container; see globals.css.
+ */
+export const NAVY = "var(--role-ink, var(--color-role-navy, #07065f))";
 export const RED = "var(--color-role-red, #ed3026)";
 export const BLUE = "var(--color-role-blue, #397cef)";
-export const PAPER = "var(--color-canvas, #ffffff)";
+export const PAPER = "var(--role-paper, var(--color-canvas, #ffffff))";

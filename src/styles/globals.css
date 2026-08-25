@@ -98,6 +98,13 @@ body {
 /* ————— PAPI signature #1: the athletic stripe —————
    Lifted straight off the socks in the badge: red / white / blue on cream.
    Used to close sections and underline headers, the way a club sock does. */
+/* Role marks on a dark surface: white bodies, accents unchanged, no fill
+   behind the undershirt or the tape core. */
+.role-dark {
+  --role-ink: var(--color-papi-white);
+  --role-paper: transparent;
+}
+
 .stripe {
   height: 6px;
   background: linear-gradient(
