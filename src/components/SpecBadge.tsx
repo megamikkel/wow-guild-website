@@ -32,6 +32,8 @@ export function SpecBadge({
   const src = iconUrl ?? specIconUrl(wowClass, specName);
 
   if (src && !failed) {
+    // The class colour sits behind the icon, so a slow or missing file reads
+    // as the same tile as the fallback rather than as a white hole.
     return (
       // The URL is Blizzard's CDN, so next/image cannot optimise it and the
       // static export ships no optimiser.
@@ -45,7 +47,11 @@ export function SpecBadge({
         loading="lazy"
         onError={() => setFailed(true)}
         className="shrink-0 rounded-md border border-edge-strong"
-        style={{ width: size, height: size }}
+        style={{
+          width: size,
+          height: size,
+          background: `var(${classColorVar(wowClass)})`,
+        }}
       />
     );
   }
