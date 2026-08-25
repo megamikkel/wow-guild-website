@@ -1,0 +1,86 @@
+<style>
+body{margin:0;background:#08080F;color:#fff;font:12px Inter,system-ui,sans-serif;padding:16px}
+h1{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#8A8AA0;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:6px}
+.c{background:#13131F;border-radius:6px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative}
+.c span{position:absolute;bottom:2px;right:4px;font-size:7px;color:#44445A}
+</style><body><h1>120 former — generativ udforskning, ingen kuratering</h1><div class="grid" id="g"></div>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mulberry32(20260824);
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const R=(a,b)=>a+rnd()*(b-a);
+
+// ——— family: rotational motif ———
+function rot(){
+  const n=pick([3,4,5,6,8]), r0=R(6,22), len=R(22,40), w=R(7,20), tw=R(-25,25);
+  const motif=pick(['bar','wedge','drop','arc']);
+  let out='';
+  for(let i=0;i<n;i++){
+    const a=i*360/n;
+    let s='';
+    if(motif==='bar') s=`<rect x="${-w/2}" y="${-r0-len}" width="${w}" height="${len}" rx="${w/2}"/>`;
+    if(motif==='wedge') s=`<path d="M${-w/2} ${-r0} L${w/2} ${-r0} L0 ${-r0-len}Z"/>`;
+    if(motif==='drop') s=`<path d="M0 ${-r0} Q${w} ${-r0-len*.6} 0 ${-r0-len} Q${-w} ${-r0-len*.6} 0 ${-r0}Z"/>`;
+    if(motif==='arc') s=`<path d="M0 ${-r0} Q${len*.8} ${-r0-len*.5} ${len*.2} ${-r0-len}" fill="none" stroke="currentColor" stroke-width="${w*.7}" stroke-linecap="round"/>`;
+    out+=`<g transform="rotate(${a+tw})">${s}</g>`;
+  }
+  return `<g transform="translate(50 50)">${out}</g>`;
+}
+// ——— family: interference / boolean ———
+function inter(){
+  const r1=R(26,40), r2=R(12,36), dx=R(-26,26), dy=R(-26,26);
+  return `<path fill-rule="evenodd" d="M50 ${50-r1}a${r1} ${r1} 0 1 0 .01 0zM${50+dx} ${50+dy-r2}a${r2} ${r2} 0 1 0 .01 0z"/>`;
+}
+// ——— family: gesture ribbon ———
+function gest(){
+  const x0=R(8,30),y0=R(15,85),x3=R(60,92),y3=R(15,85);
+  const c1x=R(10,90),c1y=R(0,100),c2x=R(10,90),c2y=R(0,100);
+  const w0=R(4,20), w1=R(2,16);
+  const dx=x3-x0, dy=y3-y0, L=Math.hypot(dx,dy)||1;
+  const nx=-dy/L, ny=dx/L;
+  return `<path d="M${x0+nx*w0} ${y0+ny*w0} C${c1x+nx*w0} ${c1y+ny*w0} ${c2x+nx*w1} ${c2y+ny*w1} ${x3+nx*w1} ${y3+ny*w1} L${x3-nx*w1} ${y3-ny*w1} C${c2x-nx*w1} ${c2y-ny*w1} ${c1x-nx*w0} ${c1y-ny*w0} ${x0-nx*w0} ${y0-ny*w0}Z"/>`;
+}
+// ——— family: subtraction / offset ring ———
+function sub(){
+  const n=R(3,7)|0, rx=R(28,42), ry=R(24,42), k=R(.35,.78), ox=R(-14,14), oy=R(-14,14);
+  const sup=(cx,cy,a,b)=>{let p='';for(let i=0;i<=n*12;i++){const t=i/(n*12)*Math.PI*2;
+    const c=Math.cos(t),s=Math.sin(t);
+    const x=cx+Math.sign(c)*Math.pow(Math.abs(c),.72)*a, y=cy+Math.sign(s)*Math.pow(Math.abs(s),.72)*b;
+    p+=`${i?'L':'M'}${x.toFixed(1)} ${y.toFixed(1)}`}return p+'Z'};
+  return `<path fill-rule="evenodd" d="${sup(50,50,rx,ry)}${sup(50+ox,50+oy,rx*k,ry*k)}"/>`;
+}
+// ——— family: scale stack ———
+function stack(){
+  const n=pick([2,3,4]), sh=pick(['tri','sq','cir','dia']), ang=R(0,360), step=R(9,20), k=R(.55,.85);
+  let out='';
+  for(let i=0;i<n;i++){
+    const s=Math.pow(k,i)*R(26,36), ox=Math.cos(ang*Math.PI/180)*step*i, oy=Math.sin(ang*Math.PI/180)*step*i;
+    if(sh==='tri') out+=`<path d="M${50+ox} ${50+oy-s} L${50+ox+s*.87} ${50+oy+s*.5} L${50+ox-s*.87} ${50+oy+s*.5}Z"/>`;
+    if(sh==='sq') out+=`<rect x="${50+ox-s}" y="${50+oy-s}" width="${s*2}" height="${s*2}" rx="${s*.25}"/>`;
+    if(sh==='cir') out+=`<circle cx="${50+ox}" cy="${50+oy}" r="${s}"/>`;
+    if(sh==='dia') out+=`<path d="M${50+ox} ${50+oy-s} L${50+ox+s} ${50+oy} L${50+ox} ${50+oy+s} L${50+ox-s} ${50+oy}Z"/>`;
+  }
+  return `<g fill-rule="evenodd">${out}</g>`;
+}
+// ——— family: fragment / shard ———
+let uid=0;
+function shard(){
+  const id='m'+(uid++), cuts=pick([1,2,3]), ang=R(0,180), gap=R(4,11), base=pick(['cir','sq','tri']);
+  let bars='';
+  for(let i=0;i<cuts;i++) bars+=`<rect x="-60" y="${R(10,80)}" width="220" height="${gap}" fill="#000"/>`;
+  let b='';
+  if(base==='cir') b=`<circle cx="50" cy="50" r="40"/>`;
+  if(base==='sq') b=`<rect x="12" y="12" width="76" height="76" rx="${R(0,18)}"/>`;
+  if(base==='tri') b=`<path d="M50 8 L90 82 L10 82Z"/>`;
+  return `<defs><mask id="${id}"><rect x="-20" y="-20" width="140" height="140" fill="#fff"/><g transform="rotate(${ang} 50 50)">${bars}</g></mask></defs><g mask="url(#${id})">${b}</g>`;
+}
+const fams=[rot,inter,gest,sub,stack,shard], names=['R','I','G','S','K','A'];
+const g=document.getElementById('g');
+for(let i=0;i<120;i++){
+  const fi=i%6, body=fams[fi]();
+  const d=document.createElement('div');d.className='c';
+  d.innerHTML=`<svg viewBox="0 0 100 100" width="66" height="66" fill="currentColor" style="color:#FBFBFC">${body}</svg><span>${names[fi]}${Math.floor(i/6)+1}</span>`;
+  g.appendChild(d);
+}
+</script></body>

@@ -1,0 +1,71 @@
+name: Deploy preview to GitHub Pages
+
+# Publishes a static preview of the PUBLIC site — home, progression, roster,
+# raids, recruitment — pre-rendered with the demo fixtures. GitHub Pages serves
+# files, so authentication, the member and officer areas, and form submission
+# are not part of it; the preview says so on every page.
+#
+# Free on a public repository, and Pages is enabled by the workflow itself, so
+# no repository settings need touching by hand.
+
+on:
+  push:
+    branches: [claude/papi-wow-guild-platform-4nxyiy]
+    paths-ignore:
+      - "docs/**"
+      - "brand/**"
+      - "**/*.md"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two publishes race; let a newer commit supersede a queued one but
+# not interrupt a publish already in flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          # Turns Pages on for the repository if it is not already enabled.
+          enablement: true
+
+      - name: Build static preview
+        run: node scripts/build-static-preview.mjs
+        env:
+          # Project pages are served from /<repo>, so assets and links need
+          # that prefix compiled in.
+          PAPI_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

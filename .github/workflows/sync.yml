@@ -1,0 +1,27 @@
+name: Scheduled sync
+
+# Vercel Hobby cron only fires once per day, so GitHub Actions drives the
+# sync cadence instead ($0). Requires two repository settings:
+#   variable SYNC_URL   — e.g. https://papi.example/api/sync
+#   secret  SYNC_SECRET — same value as PAPI_SYNC_SECRET on the deployment
+# Note: scheduled workflows are best-effort (delays are normal) and GitHub
+# disables them after 60 days without repo activity.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: ${{ vars.SYNC_URL != '' }}
+    steps:
+      - name: Trigger PAPI sync
+        run: |
+          curl --fail-with-body -sS -X POST "$SYNC_URL" \
+            -H "Authorization: Bearer $SYNC_SECRET" \
+            --max-time 280
+        env:
+          SYNC_URL: ${{ vars.SYNC_URL }}
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}

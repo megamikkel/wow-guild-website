@@ -1,14 +1,45 @@
 {
-  "name": "wow-guild-website",
-  "type": "module",
-  "version": "0.0.1",
+  "name": "papi-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PAPI \u2014 World of Warcraft guild operating system",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "dev": "next dev",
+    "build": "next build",
+    "build:cloudflare": "node scripts/build-static-preview.mjs",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/lib/db/seed-cli.ts"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "@electric-sql/pglite": "^0.3.6",
+    "drizzle-orm": "^0.44.4",
+    "next": "^15.5.2",
+    "next-auth": "^5.0.0-beta.29",
+    "pg": "^8.16.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.12",
+    "@types/node": "^22.17.2",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.33.0",
+    "eslint-config-next": "^15.5.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.12",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.42.0"
   }
 }

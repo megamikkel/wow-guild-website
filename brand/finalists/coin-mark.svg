@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>PAPI — The Coin</title>
+  <circle cx="32" cy="32" r="32" fill="#07065F"/>
+  <path d="M32 0a32 32 0 0 1 32 32h-4A28 28 0 0 0 32 4z" fill="#ED3026"/>
+  <path d="M32 64A32 32 0 0 1 0 32h4a28 28 0 0 0 28 28z" fill="#397CEF"/>
+  <g fill="#fff" transform="translate(32 33) scale(.78) translate(-32 -34) rotate(-14 32 34)">
+    <path d="M18 19h10a9 9 0 0 1 9 9v15a9 9 0 0 1-9 9H19a9 9 0 0 1-9-9V28a9 9 0 0 1 8-9z"/>
+    <rect x="32" y="23" width="27" height="12" rx="6"/>
+    <path d="M19 12h9a6 6 0 0 1 0 12h-9z"/>
+  </g>
+</svg>
