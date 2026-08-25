@@ -34,19 +34,19 @@ export default async function AdminCommandPage() {
   const actions: Array<{ label: string; href: string; tone: "danger" | "warn" | "blue" }> = [];
   if (newApps.length > 0)
     actions.push({
-      label: `${newApps.length} new application${newApps.length > 1 ? "s" : ""} to triage`,
+      label: `${newApps.length} nye ansøgninger at kigge på`,
       href: "/admin/applications",
       tone: "danger",
     });
   if (trialsDue.length > 0)
     actions.push({
-      label: `${trialsDue.length} trial review${trialsDue.length > 1 ? "s" : ""} due`,
+      label: `${trialsDue.length} prøvetider skal vurderes`,
       href: "/admin/trials",
       tone: "warn",
     });
   if (missingSignups > 0 && nextRaid)
     actions.push({
-      label: `Next raid missing ${missingSignups} player${missingSignups > 1 ? "s" : ""}`,
+      label: `Der mangler ${missingSignups} til næste raid`,
       href: `/raids/${nextRaid.event.id}`,
       tone: "blue",
     });
@@ -55,15 +55,15 @@ export default async function AdminCommandPage() {
     <div className="mx-auto max-w-6xl px-4 py-12">
       <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="stat-label mb-1">Officer command center</p>
-          <h1 className="display-heading text-4xl sm:text-5xl">PAPI Command</h1>
+          <p className="banner mb-3">Officer</p>
+          <h1 className="display-heading text-4xl text-papi-indigo sm:text-5xl">Oversigt</h1>
         </div>
         {actions.length > 0 ? (
           <StatusPill tone="danger">
-            {actions.length} action{actions.length > 1 ? "s" : ""} required
+            {actions.length} ting kræver din opmærksomhed
           </StatusPill>
         ) : (
-          <StatusPill tone="ok">All clear</StatusPill>
+          <StatusPill tone="ok">Alt er fint</StatusPill>
         )}
       </header>
 
@@ -88,7 +88,7 @@ export default async function AdminCommandPage() {
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section>
-          <SectionHeading kicker="Raid" title="Next raid" />
+          <SectionHeading kicker="Raid" title="Næste raid" />
           {nextRaid ? (
             <Surface className="p-6">
               <div className="flex items-baseline justify-between">
@@ -102,8 +102,8 @@ export default async function AdminCommandPage() {
               <p className="mt-1 text-sm text-ink-muted">
                 {formatRelative(nextRaid.event.startTime)}
                 {missingSignups > 0
-                  ? ` · missing ${missingSignups} (${nextRaid.breakdown.noResponse} no response, ${nextRaid.breakdown.absent} absent)`
-                  : " · full house"}
+                  ? ` · mangler ${missingSignups} (${nextRaid.breakdown.noResponse} uden svar, ${nextRaid.breakdown.absent} kan ikke)`
+                  : " · fuldt hus"}
               </p>
               <div className="mt-4 grid gap-2">
                 {(["TANK", "HEALER", "DPS"] as const).map((role) => {
@@ -127,12 +127,12 @@ export default async function AdminCommandPage() {
               </div>
             </Surface>
           ) : (
-            <p className="text-ink-muted">Nothing scheduled.</p>
+            <p className="text-ink-muted">Der er ikke sat noget op.</p>
           )}
         </section>
 
         <section>
-          <SectionHeading kicker="Roster" title="Roster health" />
+          <SectionHeading kicker="Roster" title="Hvordan ser rosteret ud" />
           <Surface className="grid gap-4 p-6">
             {health.map((h) => (
               <div key={h.role} className="flex items-center gap-3 text-sm">
@@ -152,13 +152,13 @@ export default async function AdminCommandPage() {
               </div>
             ))}
             <p className="text-xs text-ink-faint">
-              Active raiders + trials vs. target composition.
+              Aktive raidere og folk på prøve, målt mod den ønskede sammensætning.
             </p>
           </Surface>
         </section>
 
         <section>
-          <SectionHeading kicker="Recruitment" title="Pipeline" />
+          <SectionHeading kicker="Rekruttering" title="Ansøgninger" />
           <Surface className="p-6">
             <div className="flex flex-wrap gap-x-8 gap-y-3">
               {(["NEW", "REVIEW", "INTERVIEW", "TRIAL"] as const).map((s) => (
@@ -172,22 +172,22 @@ export default async function AdminCommandPage() {
             </div>
             <p className="mt-4 text-sm text-ink-muted">
               {inReview.length > 0
-                ? `${inReview.length} waiting on a reviewer.`
+                ? `${inReview.length} venter på at blive kigget på.`
                 : newApps.length === 0
-                  ? "Quiet day. No fresh meat yet."
-                  : "Fresh applications await triage."}
+                  ? "Stille dag. Intet nyt kød endnu."
+                  : "Der ligger nye ansøgninger."}
             </p>
             <Link
               href="/admin/applications"
               className="mt-3 inline-block font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
             >
-              Open board →
+              Åbn oversigten →
             </Link>
           </Surface>
         </section>
 
         <section>
-          <SectionHeading kicker="Progression" title="Progress" />
+          <SectionHeading kicker="Fremgang" title="Hvor er vi"/>
           <Surface className="p-6">
             {progression.progressBoss ? (
               <>
@@ -197,18 +197,18 @@ export default async function AdminCommandPage() {
                     {progression.progressBoss.bestPct?.toFixed(1)}%
                   </span>
                   <span className="text-sm text-ink-muted">
-                    {progression.progressBoss.pulls} pulls
+                    {progression.progressBoss.pulls} forsøg
                   </span>
                 </div>
               </>
             ) : (
               <p className="text-ink-muted">
-                {progression.killed}/{progression.total} — between bosses.
+                {progression.killed}/{progression.total} — mellem to bosser.
               </p>
             )}
             <p className="mt-3 text-sm text-ink-muted">
-              Active trials: {activeTrials.length}
-              {trialsDue.length > 0 ? ` · ${trialsDue.length} review due` : ""}
+              På prøve: {activeTrials.length}
+              {trialsDue.length > 0 ? ` · ${trialsDue.length} skal vurderes` : ""}
             </p>
           </Surface>
         </section>

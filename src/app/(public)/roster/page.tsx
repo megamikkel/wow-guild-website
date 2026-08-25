@@ -52,11 +52,11 @@ export default async function RosterPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <SectionHeading
-        kicker={`${roster.length} characters`}
-        title="Roster"
+        kicker={`${roster.length} karakterer`}
+        title="Vores roster"
         right={
           <p className="text-xs text-ink-faint">
-            Synced from Blizzard &amp; Raider.IO
+            Hentet fra Blizzard og Raider.IO
           </p>
         }
       />
@@ -98,7 +98,7 @@ export default async function RosterPage({
               classFilter === "ALL" ? "bg-papi-purple-wash text-papi-purple" : "text-ink-muted hover:text-ink"
             }`}
           >
-            All classes
+            Alle klasser
           </Link>
           {classes.map((cls) => (
             <Link
@@ -118,20 +118,20 @@ export default async function RosterPage({
 
       {filtered.length === 0 ? (
         <p className="py-16 text-center text-ink-muted">
-          Nobody matches that filter. Even our bench isn&apos;t that deep.
+          Ingen matcher det filter. Så dyb er vores bænk heller ikke.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-edge">
           <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-edge bg-surface text-left">
-                <th className="stat-label px-4 py-3 font-bold">Character</th>
+                <th className="stat-label px-4 py-3 font-bold">Karakter</th>
                 <th className="stat-label px-4 py-3 font-bold">Spec</th>
-                <th className="stat-label px-4 py-3 font-bold">Role</th>
+                <th className="stat-label px-4 py-3 font-bold">Rolle</th>
                 <th className="stat-label px-4 py-3 text-right font-bold">ilvl</th>
                 <th className="stat-label px-4 py-3 text-right font-bold">M+</th>
                 <th className="stat-label px-4 py-3 font-bold">Raid</th>
-                <th className="stat-label px-4 py-3 font-bold">Rank</th>
+                <th className="stat-label px-4 py-3 font-bold">Rang</th>
               </tr>
             </thead>
             <tbody>
@@ -164,7 +164,7 @@ export default async function RosterPage({
                   <td className="px-4 py-3 text-ink-muted">{c.raidProgressSummary ?? "—"}</td>
                   <td className="px-4 py-3">
                     {c.rosterStatus === "TRIAL" ? (
-                      <StatusPill tone="blue">Trial</StatusPill>
+                      <StatusPill tone="blue">På prøve</StatusPill>
                     ) : (
                       <span className="text-ink-muted">{c.guildRank}</span>
                     )}

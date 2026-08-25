@@ -18,9 +18,9 @@ export default async function RaidsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
-      <SectionHeading kicker="Raid-Helper" title="Upcoming raids" />
+      <SectionHeading kicker="Raid-Helper" title="Kommende raids" />
       {upcoming.length === 0 ? (
-        <p className="mb-12 text-ink-muted">Nothing scheduled right now. Enjoy the reset.</p>
+        <p className="mb-12 text-ink-muted">Der er ikke sat noget op lige nu. Nyd pausen.</p>
       ) : (
         <div className="mb-14 grid gap-4 lg:grid-cols-2">
           {upcoming.map(({ event, breakdown }, i) => (
@@ -50,23 +50,23 @@ export default async function RaidsPage() {
                   </span>
                 ))}
                 <span className="font-mono text-papi-purple tabular-nums">
-                  {breakdown.totalConfirmed}/{breakdown.totalTarget} confirmed
+                  {breakdown.totalConfirmed}/{breakdown.totalTarget} tilmeldt
                 </span>
               </div>
               <Link
                 href={`/raids/${event.id}`}
                 className="mt-4 inline-block font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
-                View raid →
+                Se raidet →
               </Link>
             </Surface>
           ))}
         </div>
       )}
 
-      <SectionHeading kicker="History" title="Previous raids" />
+      <SectionHeading kicker="Historik" title="Tidligere raids" />
       {past.length === 0 ? (
-        <p className="text-ink-muted">No raid history yet.</p>
+        <p className="text-ink-muted">Ingen raid-historik endnu.</p>
       ) : (
         <ul className="divide-y divide-edge border-y border-edge">
           {past.map(({ event, breakdown }) => (
@@ -83,7 +83,7 @@ export default async function RaidsPage() {
                   <p className="text-xs text-ink-faint">{formatDate(event.startTime)}</p>
                 </div>
                 <span className="font-mono text-xs text-ink-muted tabular-nums">
-                  {breakdown.totalConfirmed} attended
+                  {breakdown.totalConfirmed} deltog
                 </span>
               </Link>
             </li>

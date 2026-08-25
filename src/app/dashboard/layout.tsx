@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth";
 import { hasRole } from "@/lib/rbac";
 
 export const metadata: Metadata = {
-  title: "Dashboard",
+  title: "Min side",
   robots: { index: false, follow: false },
 };
 
@@ -20,16 +20,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <>
         <SiteHeader />
         <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-start justify-center px-4">
-          <h1 className="display-heading text-3xl">Almost in.</h1>
+          <h1 className="display-heading text-3xl">Næsten inde.</h1>
           <p className="mt-3 text-ink-muted">
-            You&apos;re signed in with Discord, but you&apos;re not a verified member of the PAPI
-            Discord server yet. Join the server (or poke an officer) and sign in again.
+            Du er logget ind med Discord, men du står ikke som medlem af PAPI&apos;s
+            Discord-server endnu. Hop ind på serveren — eller prik til en officer — og log
+            ind igen.
           </p>
           <Link
             href="/apply"
             className="mt-6 rounded-md bg-papi-indigo px-5 py-3 font-display text-sm font-bold tracking-[0.1em] text-white uppercase"
           >
-            Or apply to join
+            Eller søg om plads
           </Link>
         </main>
         <SiteFooter />

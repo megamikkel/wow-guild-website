@@ -5,6 +5,7 @@ import { RoleGlyph, SectionHeading, StatBlock, StatusPill } from "@/components/u
 import { guildConfig } from "@/config/guild";
 import { getCharacter, getRoster } from "@/domain/queries";
 import { IS_STATIC_EXPORT } from "@/lib/render-mode";
+import { ItemLevel } from "@/components/wow";
 import { classColorStyle } from "@/lib/wow";
 import { formatDate, formatRelative } from "@/lib/format";
 
@@ -25,7 +26,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { name } = await params;
-  return { title: `${decodeURIComponent(name)} — Character` };
+  return { title: `${decodeURIComponent(name)} — Karakter` };
 }
 
 export default async function CharacterPage({ params }: { params: Params }) {
@@ -50,7 +51,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
           <h1 className="display-heading text-5xl sm:text-6xl" style={classColorStyle(c.className)}>
             {c.name}
           </h1>
-          {c.rosterStatus === "TRIAL" ? <StatusPill tone="blue">Trial</StatusPill> : null}
+          {c.rosterStatus === "TRIAL" ? <StatusPill tone="blue">På prøve</StatusPill> : null}
         </div>
         <p className="mt-2 flex items-center gap-2 text-ink-muted">
           <RoleGlyph role={c.role} />
@@ -71,7 +72,7 @@ export default async function CharacterPage({ params }: { params: Params }) {
       </header>
 
       <div className="mb-12 grid grid-cols-2 gap-8 sm:grid-cols-4">
-        <StatBlock label="Item level" value={c.itemLevel ?? "—"} size="lg" />
+        <StatBlock label="Item level" value={<ItemLevel value={c.itemLevel} />} size="lg" />
         <StatBlock
           label="Mythic+"
           value={c.mythicPlusScore ? Math.round(c.mythicPlusScore).toLocaleString("en-GB") : "—"}
@@ -80,18 +81,18 @@ export default async function CharacterPage({ params }: { params: Params }) {
         />
         <StatBlock label="Raid" value={c.raidProgressSummary ?? "—"} size="lg" />
         <StatBlock
-          label="Attendance"
+          label="Fremmøde"
           value={c.attendancePct != null ? `${Math.round(c.attendancePct)}%` : "—"}
           size="lg"
-          sub={c.avgPerformance != null ? `${Math.round(c.avgPerformance)} avg performance` : undefined}
+          sub={c.avgPerformance != null ? `${Math.round(c.avgPerformance)} i snit` : undefined}
         />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-2">
         <section>
-          <SectionHeading kicker="Raider.IO" title="Recent Mythic+" />
+          <SectionHeading kicker="Raider.IO" title="Seneste Mythic+" />
           {runs.length === 0 ? (
-            <p className="text-ink-muted">No recent keys on record.</p>
+            <p className="text-ink-muted">Ingen keys registreret endnu.</p>
           ) : (
             <ul className="divide-y divide-edge border-y border-edge">
               {runs.map((r) => (
@@ -105,9 +106,9 @@ export default async function CharacterPage({ params }: { params: Params }) {
                       +{r.level}
                     </span>
                     {r.timed ? (
-                      <StatusPill tone="ok">Timed</StatusPill>
+                      <StatusPill tone="ok">I tide</StatusPill>
                     ) : (
-                      <StatusPill tone="muted">Over</StatusPill>
+                      <StatusPill tone="muted">Over tid</StatusPill>
                     )}
                   </div>
                 </li>
@@ -117,9 +118,9 @@ export default async function CharacterPage({ params }: { params: Params }) {
         </section>
 
         <section>
-          <SectionHeading kicker="Warcraft Logs" title="Recent performance" />
+          <SectionHeading kicker="Warcraft Logs" title="Seneste indsats" />
           {performance.length === 0 ? (
-            <p className="text-ink-muted">No parses recorded yet.</p>
+            <p className="text-ink-muted">Ingen parses registreret endnu.</p>
           ) : (
             <ul className="divide-y divide-edge border-y border-edge">
               {performance.map((p) => (

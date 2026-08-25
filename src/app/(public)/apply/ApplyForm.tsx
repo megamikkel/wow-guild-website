@@ -60,16 +60,16 @@ export function ApplyForm() {
       ) : null}
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <Field label="Discord" name="discordName" error={err.discordName} hint="e.g. frostmage">
+        <Field label="Discord" name="discordName" error={err.discordName} hint="fx frostmage">
           <input id="discordName" name="discordName" required maxLength={64} className={inputCls} />
         </Field>
-        <Field label="Character" name="characterName" error={err.characterName}>
+        <Field label="Karakter" name="characterName" error={err.characterName}>
           <input id="characterName" name="characterName" required maxLength={24} className={inputCls} />
         </Field>
         <Field label="Realm" name="realm" error={err.realm}>
           <input id="realm" name="realm" required maxLength={64} className={inputCls} />
         </Field>
-        <Field label="Class" name="className" error={err.className}>
+        <Field label="Klasse" name="className" error={err.className}>
           <select
             id="className"
             name="className"
@@ -78,7 +78,7 @@ export function ApplyForm() {
             value={className}
             onChange={(e) => setClassName(e.target.value)}
           >
-            <option value="">Select class…</option>
+            <option value="">Vælg klasse…</option>
             {CLASS_NAMES.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -86,9 +86,9 @@ export function ApplyForm() {
             ))}
           </select>
         </Field>
-        <Field label="Main spec" name="specName" error={err.specName}>
+        <Field label="Hovedspec" name="specName" error={err.specName}>
           <select id="specName" name="specName" required className={inputCls} disabled={!className}>
-            <option value="">{className ? "Select spec…" : "Pick a class first"}</option>
+            <option value="">{className ? "Vælg spec…" : "Vælg en klasse først"}</option>
             {specs.map((s) => (
               <option key={s.name} value={s.name}>
                 {s.name} ({s.role.toLowerCase()})
@@ -96,14 +96,14 @@ export function ApplyForm() {
             ))}
           </select>
         </Field>
-        <Field label="Alternative specs" name="altSpecs" error={err.altSpecs} hint="Optional">
+        <Field label="Andre specs" name="altSpecs" error={err.altSpecs} hint="Valgfrit">
           <input id="altSpecs" name="altSpecs" maxLength={120} className={inputCls} />
         </Field>
         <Field
           label="Warcraft Logs"
           name="warcraftLogsUrl"
           error={err.warcraftLogsUrl}
-          hint="Link to your character — optional but it helps"
+          hint="Link til din karakter — valgfrit, men det hjælper"
         >
           <input
             id="warcraftLogsUrl"
@@ -113,7 +113,7 @@ export function ApplyForm() {
             className={inputCls}
           />
         </Field>
-        <Field label="Raider.IO" name="raiderIoUrl" error={err.raiderIoUrl} hint="Optional">
+        <Field label="Raider.IO" name="raiderIoUrl" error={err.raiderIoUrl} hint="Valgfrit">
           <input
             id="raiderIoUrl"
             name="raiderIoUrl"
@@ -124,10 +124,10 @@ export function ApplyForm() {
         </Field>
       </div>
 
-      <Field label="Previous guild" name="previousGuild" error={err.previousGuild} hint="Optional">
+      <Field label="Tidligere guild" name="previousGuild" error={err.previousGuild} hint="Valgfrit">
         <input id="previousGuild" name="previousGuild" maxLength={100} className={inputCls} />
       </Field>
-      <Field label="Raid experience" name="raidExperience" error={err.raidExperience}>
+      <Field label="Raid-erfaring" name="raidExperience" error={err.raidExperience}>
         <textarea
           id="raidExperience"
           name="raidExperience"
@@ -135,24 +135,24 @@ export function ApplyForm() {
           rows={3}
           maxLength={2000}
           className={inputCls}
-          placeholder="Tiers cleared, roles, anything that shows where you've been."
+          placeholder="Hvad har du spillet, hvor længe, og hvad har du prøvet?"
         />
       </Field>
       <Field
-        label="Availability"
+        label="Hvornår kan du"
         name="availability"
         error={err.availability}
-        hint="We raid Wednesday + Sunday, 19:30–22:30"
+        hint="Vi raider onsdag og søndag, 19:30–22:30"
       >
         <input id="availability" name="availability" required maxLength={300} className={inputCls} />
       </Field>
-      <Field label="What do you expect from a guild?" name="expectations" error={err.expectations} hint="Optional">
+      <Field label="Hvad forventer du af en guild?" name="expectations" error={err.expectations} hint="Valgfrit">
         <textarea id="expectations" name="expectations" rows={2} maxLength={2000} className={inputCls} />
       </Field>
-      <Field label="Why PAPI?" name="whyPapi" error={err.whyPapi}>
+      <Field label="Hvorfor PAPI?" name="whyPapi" error={err.whyPapi}>
         <textarea id="whyPapi" name="whyPapi" required rows={3} maxLength={2000} className={inputCls} />
       </Field>
-      <Field label="Anything else?" name="comment" error={err.comment} hint="Optional">
+      <Field label="Andet vi skal vide?" name="comment" error={err.comment} hint="Valgfrit">
         <textarea id="comment" name="comment" rows={2} maxLength={2000} className={inputCls} />
       </Field>
 
@@ -168,7 +168,7 @@ export function ApplyForm() {
           disabled={pending}
           className="rounded-md bg-papi-indigo px-8 py-3.5 font-display text-sm font-bold tracking-[0.12em] text-white uppercase transition-colors hover:bg-papi-purple disabled:opacity-60"
         >
-          {pending ? "Submitting…" : "Submit application"}
+          {pending ? "Sender…" : "Send ansøgning"}
         </button>
       </div>
     </form>

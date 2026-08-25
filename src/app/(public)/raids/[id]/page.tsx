@@ -5,6 +5,7 @@ import { Countdown } from "@/components/Countdown";
 import { ProgressBar, RoleGlyph, SectionHeading, StatusPill, Surface } from "@/components/ui";
 import { getRaidDetail, getRaids } from "@/domain/queries";
 import { IS_STATIC_EXPORT } from "@/lib/render-mode";
+import { DifficultyBadge, ROLE_DA } from "@/components/wow";
 import { classColorStyle } from "@/lib/wow";
 import { formatDate, formatTime } from "@/lib/format";
 
@@ -25,11 +26,11 @@ export async function generateStaticParams() {
 
 const STATUS_ORDER = ["CONFIRMED", "TENTATIVE", "BENCH", "ABSENT", "NO_RESPONSE"] as const;
 const STATUS_LABEL: Record<string, { label: string; tone: "ok" | "warn" | "muted" | "danger" | "blue" }> = {
-  CONFIRMED: { label: "Confirmed", tone: "ok" },
-  TENTATIVE: { label: "Tentative", tone: "warn" },
-  BENCH: { label: "Bench", tone: "blue" },
-  ABSENT: { label: "Absent", tone: "danger" },
-  NO_RESPONSE: { label: "No response", tone: "muted" },
+  CONFIRMED: { label: "Kommer", tone: "ok" },
+  TENTATIVE: { label: "Måske", tone: "warn" },
+  BENCH: { label: "Bænk", tone: "blue" },
+  ABSENT: { label: "Kan ikke", tone: "danger" },
+  NO_RESPONSE: { label: "Intet svar", tone: "muted" },
 };
 
 export default async function RaidDetailPage({
@@ -48,7 +49,7 @@ export default async function RaidDetailPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <header className="mb-10">
-        <p className="stat-label">{event.difficulty}</p>
+        <DifficultyBadge difficulty={event.difficulty} />
         <h1 className="display-heading mt-1 text-4xl sm:text-5xl">
           {event.targetBoss ?? event.title}
         </h1>
@@ -69,7 +70,7 @@ export default async function RaidDetailPage({
           return (
             <Surface key={role} className="p-5">
               <p className="stat-label flex items-center gap-2">
-                <RoleGlyph role={role} /> {role}S
+                <RoleGlyph role={role} /> {ROLE_DA[role]}
               </p>
               <p className="stat-oversized mt-2 text-4xl">
                 {r.confirmed}
@@ -88,8 +89,8 @@ export default async function RaidDetailPage({
       </div>
 
       <SectionHeading
-        kicker={`${breakdown.totalConfirmed} / ${breakdown.totalTarget} confirmed`}
-        title="Signups"
+        kicker={`${breakdown.totalConfirmed} / ${breakdown.totalTarget} tilmeldt`}
+        title="Tilmeldinger"
       />
       <div className="grid gap-8 md:grid-cols-2">
         {STATUS_ORDER.map((status) => {
@@ -121,7 +122,7 @@ export default async function RaidDetailPage({
         })}
       </div>
       <p className="mt-10 text-xs text-ink-faint">
-        Signups are managed in Discord via Raid-Helper — this page mirrors them read-only.
+        Tilmeldinger sker i Discord via Raid-Helper. Denne side viser dem bare.
       </p>
     </div>
   );

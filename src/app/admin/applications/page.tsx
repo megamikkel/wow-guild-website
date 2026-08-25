@@ -9,12 +9,12 @@ import { formatRelative } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 const COLUMN_LABEL: Record<string, string> = {
-  NEW: "New",
-  REVIEW: "Review",
-  INTERVIEW: "Interview",
-  TRIAL: "Trial",
-  ACCEPTED: "Accepted",
-  DECLINED: "Declined",
+  NEW: "Nye",
+  REVIEW: "Kigges igennem",
+  INTERVIEW: "Til samtale",
+  TRIAL: "På prøve",
+  ACCEPTED: "Optaget",
+  DECLINED: "Afvist",
 };
 
 export default async function ApplicationsBoardPage() {
@@ -25,8 +25,8 @@ export default async function ApplicationsBoardPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <SectionHeading
-        kicker={`${applications.length} total`}
-        title="Recruitment pipeline"
+        kicker={`${applications.length} i alt`}
+        title="Ansøgninger"
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -41,7 +41,7 @@ export default async function ApplicationsBoardPage() {
               <div className="grid gap-2">
                 {column.length === 0 ? (
                   <p className="rounded-lg border border-dashed border-edge p-4 text-center text-xs text-ink-faint">
-                    {status === "NEW" ? "Quiet day. No fresh meat yet." : "Empty"}
+                    {status === "NEW" ? "Stille dag. Intet nyt kød endnu." : "Tom"}
                   </p>
                 ) : (
                   column.map((a) => (
@@ -69,7 +69,7 @@ export default async function ApplicationsBoardPage() {
 
       {done.length > 0 ? (
         <section className="mt-12">
-          <SectionHeading kicker="Closed" title="Decided" />
+          <SectionHeading kicker="Afsluttet" title="Besluttet" />
           <ul className="divide-y divide-edge border-y border-edge">
             {done.map((a) => (
               <li key={a.id}>

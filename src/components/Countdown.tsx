@@ -25,7 +25,7 @@ export function Countdown({ target, className = "" }: { target: string; classNam
     return (
       <span className={`inline-flex items-center gap-2 ${className}`}>
         <span className="live-dot" aria-hidden />
-        <span className="stat-oversized text-stripe-red">RAID LIVE</span>
+        <span className="stat-oversized text-stripe-red">RAIDET ER I GANG</span>
       </span>
     );
   }

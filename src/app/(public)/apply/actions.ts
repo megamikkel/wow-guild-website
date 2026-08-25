@@ -25,7 +25,7 @@ export async function submitApplication(
   if (!limited.ok) {
     return {
       ok: false,
-      message: `Easy there. Try again in ${Math.ceil(limited.retryAfterSec / 60)} minutes.`,
+      message: `Rolig nu. Prøv igen om ${Math.ceil(limited.retryAfterSec / 60)} minutter.`,
     };
   }
 
@@ -37,7 +37,7 @@ export async function submitApplication(
       const key = String(issue.path[0] ?? "form");
       if (!errors[key]) errors[key] = issue.message;
     }
-    return { ok: false, errors, message: "A few fields need another look." };
+    return { ok: false, errors, message: "Et par felter skal lige rettes." };
   }
   const data = parsed.data;
 

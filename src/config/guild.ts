@@ -9,20 +9,27 @@
 
 export const guildConfig = {
   name: "PAPI",
-  tagline: "We don't raid to participate. We raid to progress.",
+  /**
+   * Frank Hvams mest kendte replik fra Klovn. Sætter tonen: vi er casuals,
+   * vi spiller for hyggens skyld, og vi tager os ikke selv højtideligt.
+   */
+  tagline: "Skal vi ikke hygge-hygge lidt?",
+  taglineLong: "To aftener om ugen. Så er der også tid til resten.",
   region: "eu" as const,
   /** PLACEHOLDER — set the real realm slug + display name. */
   realm: { slug: "tarren-mill", name: "Tarren Mill" },
   faction: "Horde" as const,
+  factionDa: "Horde" as const,
   locale: "en_GB",
   timezone: "Europe/Copenhagen",
 
   raidSchedule: [
-    { day: "Wednesday", start: "19:30", end: "22:30" },
-    { day: "Sunday", start: "19:30", end: "22:30" },
+    { day: "Onsdag", short: "ONS", start: "19:30", end: "22:30" },
+    { day: "Søndag", short: "SØN", start: "19:30", end: "22:30" },
   ],
 
-  focus: "Mythic Raiding",
+  focus: "Casual raiding",
+  focusLong: "Afslappet raiding et par aftener om ugen",
 
   /** Target raid composition, used for signup breakdowns and roster health. */
   rosterTargets: { TANK: 2, HEALER: 4, DPS: 14 } as Record<"TANK" | "HEALER" | "DPS", number>,
@@ -32,7 +39,8 @@ export const guildConfig = {
     name: "Eternal Citadel",
     shortName: "EC",
     bossCount: 8,
-    difficulty: "Mythic" as const,
+    /** Sværhedsgrad som WoW selv navngiver den. */
+    difficulty: "Heroic" as const,
   },
 
   socials: {

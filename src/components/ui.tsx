@@ -97,6 +97,14 @@ export function ProgressBar({
   );
 }
 
+/** Recruitment priority, in the words an officer would actually use. */
+const PRIORITY_DA: Record<string, string> = {
+  HIGH: "Søges",
+  MEDIUM: "Måske",
+  LOW: "Lav",
+  CLOSED: "Lukket",
+};
+
 export function PriorityBadge({ priority }: { priority: string }) {
   const styles: Record<string, string> = {
     HIGH: "bg-stripe-red text-white border-stripe-red",
@@ -108,7 +116,7 @@ export function PriorityBadge({ priority }: { priority: string }) {
     <span
       className={`inline-flex items-center rounded border px-2 py-0.5 font-display text-[11px] font-bold tracking-[0.14em] ${styles[priority] ?? styles.LOW}`}
     >
-      {priority}
+      {PRIORITY_DA[priority] ?? priority}
     </span>
   );
 }

@@ -20,15 +20,15 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.PAPI_SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: `${guildConfig.name} — ${guildConfig.focus} Guild`,
+    default: `${guildConfig.name} — WoW-guild på ${guildConfig.realm.name}`,
     template: `%s · ${guildConfig.name}`,
   },
-  description: `${guildConfig.name} — ${guildConfig.focus} guild on ${guildConfig.realm.name} (${guildConfig.region.toUpperCase()}). ${guildConfig.tagline}`,
+  description: `${guildConfig.name} er en dansk World of Warcraft-guild på ${guildConfig.realm.name} (${guildConfig.region.toUpperCase()}). ${guildConfig.focusLong}. ${guildConfig.tagline}`,
   icons: { icon: assetPath("/favicon.svg"), apple: assetPath("/brand/papi-logo-180.png") },
   openGraph: {
     siteName: guildConfig.name,
     type: "website",
-    locale: "en_GB",
+    locale: "da_DK",
     images: [{ url: assetPath("/brand/papi-og.png"), width: 1200, height: 630 }],
   },
   twitter: { card: "summary_large_image" },
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="en"
+      lang="da"
       className={`${archivo.variable} ${inter.variable} ${jetbrains.variable}`}
     >
       <body className="min-h-screen bg-canvas text-ink antialiased">{children}</body>
