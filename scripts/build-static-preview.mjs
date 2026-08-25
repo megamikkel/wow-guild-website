@@ -185,6 +185,27 @@ execSync("npx next build", {
   },
 });
 
+// Static hosts serve files, so the security headers declared in
+// next.config.ts — which Next applies at request time — never run. Cloudflare
+// Pages and Netlify both read a _headers file; hosts that do not simply
+// ignore it, so emitting it is safe everywhere.
+mkdirSync(join(root, "out"), { recursive: true });
+writeFileSync(
+  join(root, "out/_headers"),
+  `/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/brand/*
+  Cache-Control: public, max-age=86400
+`,
+);
+
 // The preview should not compete with the real site in search results, and a
 // preview of demo data has nothing worth indexing.
 writeFileSync(join(root, "out/robots.txt"), "User-agent: *\nDisallow: /\n");

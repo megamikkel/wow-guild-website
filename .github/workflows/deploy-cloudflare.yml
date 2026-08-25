@@ -1,0 +1,51 @@
+name: Deploy to Cloudflare Pages
+
+# Optional. Cloudflare Pages can build straight from this repository with no
+# secrets at all — see docs/deployment.md — and that is the recommended route.
+#
+# This workflow exists for the case where you would rather GitHub build and
+# push the result. It needs two repository secrets:
+#   CLOUDFLARE_API_TOKEN   — a token with the "Cloudflare Pages — Edit" template
+#   CLOUDFLARE_ACCOUNT_ID  — from any Cloudflare dashboard URL
+# Without them the workflow skips rather than failing.
+
+on:
+  push:
+    branches: [claude/papi-wow-guild-platform-4nxyiy]
+    paths-ignore:
+      - "docs/**"
+      - "brand/**"
+      - "**/*.md"
+  workflow_dispatch: {}
+
+concurrency:
+  group: cloudflare-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ vars.CLOUDFLARE_PROJECT_NAME != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build static site
+        run: node scripts/build-static-preview.mjs
+
+      - name: Publish
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy out
+            --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }}
+            --branch=main

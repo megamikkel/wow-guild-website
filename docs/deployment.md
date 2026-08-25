@@ -2,7 +2,45 @@
 
 Target: **0 kr./month.**
 
-## Recommended: Vercel Hobby
+## Fastest route: Cloudflare Pages (static)
+
+Cloudflare Pages builds this repository directly — **no secrets, no tokens, no
+GitHub Actions involved**. Free tier: unlimited requests and bandwidth, 500
+builds per month, custom domains included.
+
+In the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect to
+Git**, pick `megamikkel/wow-guild-website`, then set exactly:
+
+| Setting | Value |
+| --- | --- |
+| Production branch | `claude/papi-wow-guild-platform-4nxyiy` |
+| Framework preset | **None** |
+| Build command | `node scripts/build-static-preview.mjs` |
+| Build output directory | `out` |
+
+Nothing else. The build script sets its own environment. Deploy, and the site
+is live at `<project>.pages.dev`, rebuilt on every push.
+
+**What ships:** home, progression, roster with a page per character, raids with
+a page per raid, and recruitment — pre-rendered from the demo fixtures, with
+`_headers` restoring the security headers that `next.config.ts` can only apply
+at request time.
+
+**What cannot:** a static host runs no server, so sign-in, the member
+dashboard, the officer tools and form submission are absent. A banner on every
+page says so, and the build is excluded from search engines. For those, the
+site needs a Node runtime — see Vercel below.
+
+### Alternative: let GitHub build and push it
+
+`.github/workflows/deploy-cloudflare.yml` does the same thing from CI. It needs
+a repository **variable** `CLOUDFLARE_PROJECT_NAME` (the workflow skips without
+it) and two **secrets**: `CLOUDFLARE_API_TOKEN` — created from the
+"Cloudflare Pages — Edit" template — and `CLOUDFLARE_ACCOUNT_ID`, which is the
+hex string in any dashboard URL. Use this only if you would rather not give
+Cloudflare access to the repository; the direct connection above is simpler.
+
+## Full application: Vercel Hobby
 
 Vercel builds Next.js natively, so there is nothing to configure — no
 Dockerfile, no adapter, no build command. The Hobby plan is free, permanent
@@ -110,7 +148,7 @@ page says so, and the preview is excluded from search engines.
 | Option | Verdict |
 | --- | --- |
 | **Netlify** | Works, but Next.js runs through an adapter — more moving parts for no gain |
-| **Cloudflare Workers** | PGlite is a native WASM module and the Node APIs this app uses are not a clean fit; demo mode in particular would fight the runtime |
+| **Cloudflare Workers** (the full app, not Pages) | Would need `@opennextjs/cloudflare` plus D1 or Hyperdrive, and PGlite's filesystem-backed migrations do not survive the Workers runtime. Cloudflare *Pages* serves the static site perfectly well — see above |
 | **Render free tier** | Real container, but the free service sleeps after inactivity and cold starts run tens of seconds — poor for a recruitment page |
 | **Railway / Fly.io** | No longer meaningfully free; both moved to trial credit |
 
