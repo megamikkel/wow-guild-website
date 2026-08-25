@@ -95,6 +95,11 @@ export const characters = pgTable(
     region: text("region").notNull().default("eu"),
     className: text("class_name").notNull(),
     specName: text("spec_name").notNull(),
+    /**
+     * Spec icon on Blizzard's CDN, resolved through their media API by the
+     * sync job. Their artwork is never stored here — only the URL they serve.
+     */
+    specIconUrl: text("spec_icon_url"),
     role: characterRoleEnum("role").notNull(),
     rosterStatus: rosterStatusEnum("roster_status").notNull().default("MEMBER"),
     guildRank: text("guild_rank"),

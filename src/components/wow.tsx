@@ -1,4 +1,4 @@
-import { WOW_CLASSES } from "@/lib/wow";
+import { classColorVar, specAbbr, WOW_CLASSES } from "@/lib/wow";
 
 /**
  * WoW-flavoured presentation pieces. Everything here is drawn from the game's
@@ -67,6 +67,62 @@ export function ItemLevel({ value }: { value: number | null }) {
   return (
     <span className="font-mono font-bold tabular-nums" style={{ color: "#b8500a" }}>
       {value}
+    </span>
+  );
+}
+
+/**
+ * Identifies a spec at a glance: the class colour as the ground, the spec's
+ * three-letter shorthand as players write it in Discord.
+ *
+ * When a Blizzard icon URL is available it is shown instead — resolved through
+ * Blizzard's own media API and served from their CDN, which is what that API
+ * exists for. Their artwork is never copied into this repository.
+ */
+export function SpecBadge({
+  className: wowClass,
+  specName,
+  iconUrl,
+  size = 28,
+}: {
+  className: string;
+  specName: string;
+  iconUrl?: string | null;
+  size?: number;
+}) {
+  const label = `${specName} ${wowClass}`;
+  if (iconUrl) {
+    // The URL points at Blizzard's CDN and is only known at runtime, so
+    // next/image cannot optimise it and the static export has no optimiser.
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={iconUrl}
+        alt={label}
+        width={size}
+        height={size}
+        loading="lazy"
+        className="shrink-0 rounded-md border border-edge-strong"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      role="img"
+      className="inline-flex shrink-0 items-center justify-center rounded-md border font-display font-bold text-white"
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.34,
+        letterSpacing: "0.02em",
+        background: `var(${classColorVar(wowClass)})`,
+        borderColor: "rgba(12,19,56,0.25)",
+      }}
+    >
+      {specAbbr(specName)}
     </span>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { RoleGlyph, SectionHeading, StatusPill } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
 import { getRoster } from "@/domain/queries";
+import { SpecBadge } from "@/components/wow";
 import { classColorStyle } from "@/lib/wow";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,18 @@ export const metadata: Metadata = {
 
 const ROLE_FILTERS = ["ALL", "TANK", "HEALER", "DPS"] as const;
 const STATUS_FILTERS = ["ALL", "RAIDER", "TRIAL", "MEMBER", "ALT"] as const;
+
+/** Filter labels in Danish; the values stay the database's own. */
+const FILTER_DA: Record<string, string> = {
+  ALL: "Alle",
+  TANK: "Tanks",
+  HEALER: "Healere",
+  DPS: "DPS",
+  RAIDER: "Raidere",
+  TRIAL: "På prøve",
+  MEMBER: "Medlemmer",
+  ALT: "Alts",
+};
 
 export default async function RosterPage({
   searchParams,
@@ -73,7 +86,7 @@ export default async function RosterPage({
               }`}
               aria-current={roleFilter === r ? "true" : undefined}
             >
-              {r}
+              {FILTER_DA[r]}
             </Link>
           ))}
         </div>
@@ -87,7 +100,7 @@ export default async function RosterPage({
               }`}
               aria-current={statusFilter === s ? "true" : undefined}
             >
-              {s}
+              {FILTER_DA[s]}
             </Link>
           ))}
         </div>
@@ -138,14 +151,24 @@ export default async function RosterPage({
               {filtered.map((c) => (
                 <tr key={c.id} className="border-b border-edge transition-colors last:border-0 hover:bg-surface">
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/roster/${c.realmSlug}/${encodeURIComponent(c.name)}`}
-                      className="font-display font-bold hover:underline"
-                      style={classColorStyle(c.className)}
-                    >
-                      {c.name}
-                    </Link>
-                    <span className="ml-2 text-xs text-ink-faint">{c.realmName}</span>
+                    <span className="flex items-center gap-2.5">
+                      <SpecBadge
+                        className={c.className}
+                        specName={c.specName}
+                        iconUrl={c.specIconUrl}
+                        size={30}
+                      />
+                      <span>
+                        <Link
+                          href={`/roster/${c.realmSlug}/${encodeURIComponent(c.name)}`}
+                          className="font-display font-bold hover:underline"
+                          style={classColorStyle(c.className)}
+                        >
+                          {c.name}
+                        </Link>
+                        <span className="ml-2 text-xs text-ink-faint">{c.realmName}</span>
+                      </span>
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-ink-muted">
                     {c.specName} {c.className}

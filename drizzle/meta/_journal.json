@@ -8,6 +8,13 @@
       "when": 1787590183502,
       "tag": "0000_volatile_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787667267229,
+      "tag": "0001_spicy_zemo",
+      "breakpoints": true
     }
   ]
 }

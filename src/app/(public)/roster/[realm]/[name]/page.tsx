@@ -5,7 +5,7 @@ import { RoleGlyph, SectionHeading, StatBlock, StatusPill } from "@/components/u
 import { guildConfig } from "@/config/guild";
 import { getCharacter, getRoster } from "@/domain/queries";
 import { IS_STATIC_EXPORT } from "@/lib/render-mode";
-import { ItemLevel } from "@/components/wow";
+import { ItemLevel, SpecBadge } from "@/components/wow";
 import { classColorStyle } from "@/lib/wow";
 import { formatDate, formatRelative } from "@/lib/format";
 
@@ -47,7 +47,13 @@ export default async function CharacterPage({ params }: { params: Params }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <header className="mb-10">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4">
+          <SpecBadge
+            className={c.className}
+            specName={c.specName}
+            iconUrl={c.specIconUrl}
+            size={56}
+          />
           <h1 className="display-heading text-5xl sm:text-6xl" style={classColorStyle(c.className)}>
             {c.name}
           </h1>
