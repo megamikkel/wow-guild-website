@@ -70,18 +70,24 @@ every other guild site uses. PAPI means dad, so the roles are dad logic:
 | Role | Mark | The line |
 | --- | --- | --- |
 | Tank | ribbed undershirt | *"Jeg tager den."* |
-| Healer | roll of duct tape | *"Det kan repareres."* |
+| Healer | plaster | *"Det kan repareres."* |
 | DPS | cordless drill | *"Problemet skal væk."* |
 
-They read as vest, tape and drill first, and as Tank/Healer/DPS a beat later.
+They read as vest, plaster and drill first, and as Tank/Healer/DPS a beat
+later.
 That second beat is the point.
 
 Drawn as one family on a 24×24 grid in `src/components/icons/roles/`, with
-matching weights and one accent each — red neck trim, blue tape strip, red
+matching weights and one accent each — red neck trim, blue plaster pad, red
 drill bit — so hue never has to carry the difference alone. Every mark holds
 at 18px, which is what set the level of detail: three ribs rather than eight,
-two notches on the torn tape rather than a fine zigzag, four blocks for the
-drill rather than a rendered tool.
+four perforations on the plaster rather than a printed weave, four blocks for
+the drill rather than a rendered tool.
+
+The healer mark started as a roll of duct tape and was thrown out: concentric
+rings read as a target or a shield, which is the exact cliché the set exists to
+avoid. A plaster has a silhouette nothing else in the family can be mistaken
+for, and the tilt is what sells it — laid flat it is a battery.
 
 Colours are their own tokens (`--color-role-navy` `#07065f`,
 `--color-role-red` `#ed3026`, `--color-role-blue` `#397cef`) — brighter than
