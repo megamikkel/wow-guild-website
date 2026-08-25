@@ -179,7 +179,9 @@ export default async function RosterPage({
                     {c.specName} {c.className}
                   </td>
                   <td className="px-4 py-3">
-                    <RoleBadge role={c.role} />
+                    {/* On a phone the word costs the chip its place on
+                        screen; the icon and the label both stay available. */}
+                    <RoleBadge role={c.role} labelClassName="hidden sm:inline" />
                   </td>
                   <td className="px-4 py-3 text-right font-mono tabular-nums">
                     {c.itemLevel ?? "—"}
