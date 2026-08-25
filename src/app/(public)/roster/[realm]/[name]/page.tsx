@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { RoleGlyph, SectionHeading, StatBlock, StatusPill } from "@/components/ui";
+import { RoleBadge } from "@/components/RoleBadge";
+import { SectionHeading, StatBlock, StatusPill } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
 import { getCharacter, getRoster } from "@/domain/queries";
 import { IS_STATIC_EXPORT } from "@/lib/render-mode";
@@ -59,9 +60,11 @@ export default async function CharacterPage({ params }: { params: Params }) {
           </h1>
           {c.rosterStatus === "TRIAL" ? <StatusPill tone="blue">På prøve</StatusPill> : null}
         </div>
-        <p className="mt-2 flex items-center gap-2 text-ink-muted">
-          <RoleGlyph role={c.role} />
-          {c.specName} {c.className} · {c.realmName} · {c.guildRank}
+        <p className="mt-3 flex flex-wrap items-center gap-3 text-ink-muted">
+          <RoleBadge role={c.role} size={22} />
+          <span>
+            {c.specName} {c.className} · {c.realmName} · {c.guildRank}
+          </span>
         </p>
         <div className="mt-4 flex flex-wrap gap-4">
           {links.map((l) => (

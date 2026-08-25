@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { RoleGlyph, SectionHeading, StatusPill } from "@/components/ui";
+import { RoleBadge } from "@/components/RoleBadge";
+import { SectionHeading, StatusPill } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
 import { getRoster } from "@/domain/queries";
 import { SpecBadge } from "@/components/wow";
@@ -174,9 +175,7 @@ export default async function RosterPage({
                     {c.specName} {c.className}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 text-ink-muted">
-                      <RoleGlyph role={c.role} /> {c.role}
-                    </span>
+                    <RoleBadge role={c.role} />
                   </td>
                   <td className="px-4 py-3 text-right font-mono tabular-nums">
                     {c.itemLevel ?? "—"}
