@@ -167,7 +167,11 @@ export default async function RosterPage({
                         >
                           {c.name}
                         </Link>
-                        <span className="ml-2 text-xs text-ink-faint">{c.realmName}</span>
+                        {/* One realm, every row — on a phone it is pure width,
+                            and it costs the role chip its place on screen. */}
+                        <span className="hidden text-xs text-ink-faint sm:ml-2 sm:inline">
+                          {c.realmName}
+                        </span>
                       </span>
                     </span>
                   </td>
