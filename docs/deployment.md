@@ -38,17 +38,14 @@ static sites. `wrangler.jsonc` in the repository root configures exactly that:
 no server code, just `./out` uploaded as assets, with the exported `404.html`
 serving unknown paths. `npx wrangler deploy` needs no arguments.
 
-Two build settings must match it:
+`wrangler.jsonc` also declares its own `build.command`, which wrangler runs
+before uploading. That means Cloudflare's default build settings work
+untouched: whatever the dashboard runs first, `npx wrangler deploy` then
+produces `./out` itself and deploys it.
 
-| Setting | Value |
-| --- | --- |
-| Branch | `claude/papi-wow-guild-platform-4nxyiy` (or `main`, once merged) |
-| Build command | `npm run build:cloudflare` |
-| Deploy command | `npx wrangler deploy` |
-
-The default `npm run build` is the **application** build — it produces a
-Next.js server bundle, not files, so `wrangler deploy` finds nothing to upload.
-`build:cloudflare` is the one that fills `./out`.
+The dashboard's `npm run build` is the **application** build — a Next.js
+server bundle, not files. It is harmless but redundant here; setting the build
+command to `npm run build:cloudflare` skips the wasted work.
 
 ### Alternative: let GitHub build and push it
 

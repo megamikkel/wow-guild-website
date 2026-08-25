@@ -36,12 +36,23 @@ const SERVER_ONLY = [
 ];
 
 function assertSafeToRun() {
-  if (process.env.CI === "true") return;
-  const dirty = execSync("git status --porcelain", { encoding: "utf8" }).trim();
-  if (dirty) {
+  // The guard protects a developer's working tree. Every build host runs on a
+  // fresh checkout where there is nothing to lose, so skip it there — and skip
+  // it for the lockfile alone, which an install step may legitimately touch.
+  const inCI = ["CI", "WORKERS_CI", "CF_PAGES", "GITHUB_ACTIONS", "VERCEL"].some(
+    (v) => process.env[v],
+  );
+  if (inCI) return;
+
+  const dirty = execSync("git status --porcelain", { encoding: "utf8" })
+    .trim()
+    .split("\n")
+    .filter((line) => line && !line.endsWith("package-lock.json"));
+  if (dirty.length > 0) {
     console.error(
       "Refusing to run: this script deletes route directories and the working\n" +
-        "tree has uncommitted changes. Commit or stash them first.",
+        "tree has uncommitted changes. Commit or stash them first.\n\n" +
+        dirty.join("\n"),
     );
     process.exit(1);
   }

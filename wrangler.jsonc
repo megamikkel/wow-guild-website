@@ -5,6 +5,11 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "wow-guild-website",
   "compatibility_date": "2026-08-01",
+  // Runs before deploy, so the dashboard's build command does not have to be
+  // the static one. Keeps Cloudflare working with its default settings.
+  "build": {
+    "command": "npm run build:cloudflare"
+  },
   "assets": {
     "directory": "./out",
     // Serve the exported 404.html for unknown paths rather than a bare error.
