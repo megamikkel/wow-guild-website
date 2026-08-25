@@ -83,12 +83,19 @@ export async function SiteHeader() {
 export async function MobileNav() {
   const session = IS_STATIC_EXPORT ? null : await auth();
   const isMember = hasRole(session?.user?.role ?? "PUBLIC", "MEMBER");
+  // The static build has no /login and no /dashboard to send anyone to, so the
+  // fifth tab would 404. Recruiting is what the public site is for anyway.
+  const lastTab = IS_STATIC_EXPORT
+    ? { href: "/apply", label: "Søg" }
+    : isMember
+      ? { href: "/dashboard", label: "Min side" }
+      : { href: "/login", label: "Log ind" };
   const items = [
     { href: "/", label: "Forside" },
     { href: "/raids", label: "Raids" },
     { href: "/roster", label: "Roster" },
     { href: "/progression", label: "Guild" },
-    isMember ? { href: "/dashboard", label: "Min side" } : { href: "/login", label: "Log ind" },
+    lastTab,
   ];
   return (
     <nav

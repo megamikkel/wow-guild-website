@@ -136,6 +136,93 @@ export function specAbbr(specName: string): string {
   return SPEC_ABBR[specName] ?? specName.slice(0, 3).toUpperCase();
 }
 
+/**
+ * Blizzard's own icon slug for each spec, keyed by class then spec — "Frost",
+ * "Holy", "Protection" and "Restoration" all belong to more than one class, so
+ * the spec name alone is not enough.
+ *
+ * These build a URL on Blizzard's CDN. No artwork is stored in this repository;
+ * the site links to the files Blizzard already serves, which is the same thing
+ * their media API returns and the reason the icons stay current.
+ */
+export const SPEC_ICON: Record<string, Record<string, string>> = {
+  "Death Knight": {
+    Blood: "spell_deathknight_bloodpresence",
+    Frost: "spell_deathknight_frostpresence",
+    Unholy: "spell_deathknight_unholypresence",
+  },
+  "Demon Hunter": {
+    Havoc: "ability_demonhunter_specdps",
+    Vengeance: "ability_demonhunter_spectank",
+  },
+  Druid: {
+    Balance: "spell_nature_starfall",
+    Feral: "ability_druid_catform",
+    Guardian: "ability_racial_bearform",
+    Restoration: "spell_nature_healingtouch",
+  },
+  Evoker: {
+    Devastation: "classicon_evoker_devastation",
+    Preservation: "classicon_evoker_preservation",
+    Augmentation: "classicon_evoker_augmentation",
+  },
+  Hunter: {
+    "Beast Mastery": "ability_hunter_bestialdiscipline",
+    Marksmanship: "ability_hunter_focusedaim",
+    Survival: "ability_hunter_camouflage",
+  },
+  Mage: {
+    Arcane: "spell_holy_magicalsentry",
+    Fire: "spell_fire_firebolt02",
+    Frost: "spell_frost_frostbolt02",
+  },
+  Monk: {
+    Brewmaster: "spell_monk_brewmaster_spec",
+    Mistweaver: "spell_monk_mistweaver_spec",
+    Windwalker: "spell_monk_windwalker_spec",
+  },
+  Paladin: {
+    Holy: "spell_holy_holybolt",
+    Protection: "ability_paladin_shieldofthetemplar",
+    Retribution: "spell_holy_auraoflight",
+  },
+  Priest: {
+    Discipline: "spell_holy_powerwordshield",
+    Holy: "spell_holy_guardianspirit",
+    Shadow: "spell_shadow_shadowwordpain",
+  },
+  Rogue: {
+    Assassination: "ability_rogue_eviscerate",
+    Outlaw: "ability_rogue_waylay",
+    Subtlety: "ability_stealth",
+  },
+  Shaman: {
+    Elemental: "spell_nature_lightning",
+    Enhancement: "spell_shaman_improvedstormstrike",
+    Restoration: "spell_nature_magicimmunity",
+  },
+  Warlock: {
+    Affliction: "spell_shadow_deathcoil",
+    Demonology: "spell_shadow_metamorphosis",
+    Destruction: "spell_shadow_rainoffire",
+  },
+  Warrior: {
+    Arms: "ability_warrior_savageblow",
+    Fury: "ability_warrior_innerrage",
+    Protection: "ability_warrior_defensivestance",
+  },
+};
+
+/**
+ * URL for a spec's icon on Blizzard's render CDN, or null for a spec we have
+ * no slug for. The badge falls back to the class-coloured tile in that case,
+ * and also if the request fails, so a wrong slug degrades rather than breaks.
+ */
+export function specIconUrl(className: string, specName: string): string | null {
+  const slug = SPEC_ICON[className]?.[specName];
+  return slug ? `https://render.worldofwarcraft.com/eu/icons/56/${slug}.jpg` : null;
+}
+
 export function classColorVar(className: string): string {
   return WOW_CLASSES[className]?.colorVar ?? "--color-ink";
 }
