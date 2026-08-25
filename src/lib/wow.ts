@@ -112,6 +112,30 @@ export const WOW_CLASSES: Record<
 
 export const CLASS_NAMES = Object.keys(WOW_CLASSES);
 
+/**
+ * Three-letter spec abbreviations, as players write them in Discord.
+ * Used by the spec badge when no Blizzard icon URL is available.
+ */
+export const SPEC_ABBR: Record<string, string> = {
+  Blood: "BLD", Frost: "FRO", Unholy: "UNH",
+  Havoc: "HAV", Vengeance: "VEN",
+  Balance: "BAL", Feral: "FER", Guardian: "GRD", Restoration: "RES",
+  Devastation: "DEV", Preservation: "PRE", Augmentation: "AUG",
+  "Beast Mastery": "BM", Marksmanship: "MM", Survival: "SV",
+  Arcane: "ARC", Fire: "FIR",
+  Brewmaster: "BRM", Mistweaver: "MW", Windwalker: "WW",
+  Holy: "HOL", Protection: "PRT", Retribution: "RET",
+  Discipline: "DIS", Shadow: "SHA",
+  Assassination: "ASS", Outlaw: "OUT", Subtlety: "SUB",
+  Elemental: "ELE", Enhancement: "ENH",
+  Affliction: "AFF", Demonology: "DEM", Destruction: "DST",
+  Arms: "ARM", Fury: "FUR",
+};
+
+export function specAbbr(specName: string): string {
+  return SPEC_ABBR[specName] ?? specName.slice(0, 3).toUpperCase();
+}
+
 export function classColorVar(className: string): string {
   return WOW_CLASSES[className]?.colorVar ?? "--color-ink";
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "characters" ADD COLUMN "spec_icon_url" text;

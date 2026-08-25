@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
-import { CtaLink, PriorityBadge, RoleGlyph, SectionHeading, Surface } from "@/components/ui";
+import { CtaLink, PriorityBadge, SectionHeading, Surface } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
 import { getProgression, getRecruitmentNeeds } from "@/domain/queries";
+import { SpecBadge } from "@/components/wow";
 import { classColorStyle } from "@/lib/wow";
 
 export const dynamic = "force-dynamic";
@@ -38,9 +39,11 @@ export default async function RecruitmentPage() {
             className={`flex items-center justify-between gap-4 p-5 ${n.priority === "CLOSED" ? "opacity-60" : ""} ${n.priority === "HIGH" ? "border-stripe-red/40" : ""}`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-ink-muted">
-                <RoleGlyph role={n.role} />
-              </span>
+              <SpecBadge
+                className={n.className}
+                specName={n.specName ?? n.className}
+                size={38}
+              />
               <div>
                 <p className="font-display text-lg font-bold" style={classColorStyle(n.className)}>
                   {n.specName ? `${n.specName} ` : ""}

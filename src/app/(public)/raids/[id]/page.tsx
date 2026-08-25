@@ -5,7 +5,7 @@ import { Countdown } from "@/components/Countdown";
 import { ProgressBar, RoleGlyph, SectionHeading, StatusPill, Surface } from "@/components/ui";
 import { getRaidDetail, getRaids } from "@/domain/queries";
 import { IS_STATIC_EXPORT } from "@/lib/render-mode";
-import { DifficultyBadge, ROLE_DA } from "@/components/wow";
+import { DifficultyBadge, ROLE_DA, SpecBadge } from "@/components/wow";
 import { classColorStyle } from "@/lib/wow";
 import { formatDate, formatTime } from "@/lib/format";
 
@@ -107,8 +107,15 @@ export default async function RaidDetailPage({
               <ul className="divide-y divide-edge border-y border-edge">
                 {group.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                    <span className="font-display font-bold" style={classColorStyle(s.className ?? "")}>
-                      {s.name}
+                    <span className="flex items-center gap-2">
+                      <SpecBadge
+                        className={s.className ?? ""}
+                        specName={s.specName ?? ""}
+                        size={24}
+                      />
+                      <span className="font-display font-bold" style={classColorStyle(s.className ?? "")}>
+                        {s.name}
+                      </span>
                     </span>
                     <span className="flex items-center gap-2 text-xs text-ink-muted">
                       {s.role ? <RoleGlyph role={s.role} /> : null}

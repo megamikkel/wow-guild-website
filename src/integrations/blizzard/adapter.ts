@@ -79,6 +79,59 @@ export async function fetchGuildRoster() {
   return rosterSchema.parse(await res.json());
 }
 
+const specIndexSchema = z.object({
+  character_specializations: z.array(z.object({ id: z.number(), name: z.string() })),
+});
+const specMediaSchema = z.object({
+  assets: z.array(z.object({ key: z.string(), value: z.string() })),
+});
+
+/**
+ * Resolves spec name → icon URL through Blizzard's media API.
+ *
+ * The API returns a URL on Blizzard's own CDN; that URL is what gets stored
+ * and rendered. Their artwork is never copied into this repository, which is
+ * both the correct reading of their terms and the reason the icons stay
+ * current when Blizzard changes them.
+ *
+ * Cached for the process lifetime — the spec list changes once an expansion.
+ */
+let specIconCache: Map<string, string> | null = null;
+
+export async function fetchSpecIcons(): Promise<Map<string, string>> {
+  if (specIconCache) return specIconCache;
+  const token = await getAccessToken();
+  const { region, locale } = guildConfig;
+  const headers = { Authorization: `Bearer ${token}` };
+  const base = `https://${region}.api.blizzard.com`;
+  const ns = `?namespace=static-${region}&locale=${locale}`;
+
+  const indexRes = await fetchWithRetry(
+    `${base}/data/wow/playable-specialization/index${ns}`,
+    { headers },
+  );
+  if (!indexRes.ok) throw new Error(`Spec index responded ${indexRes.status}`);
+  const index = specIndexSchema.parse(await indexRes.json());
+
+  const icons = new Map<string, string>();
+  for (const spec of index.character_specializations) {
+    try {
+      const mediaRes = await fetchWithRetry(
+        `${base}/data/wow/media/playable-specialization/${spec.id}${ns}`,
+        { headers },
+      );
+      if (!mediaRes.ok) continue;
+      const media = specMediaSchema.parse(await mediaRes.json());
+      const icon = media.assets.find((a) => a.key === "icon")?.value;
+      if (icon) icons.set(spec.name, icon);
+    } catch {
+      // One missing icon must not fail the roster sync.
+    }
+  }
+  specIconCache = icons;
+  return icons;
+}
+
 export async function syncBlizzardRoster(): Promise<SyncResult> {
   if (env.isDemoMode) {
     return {
@@ -101,6 +154,8 @@ export async function syncBlizzardRoster(): Promise<SyncResult> {
 
   const roster = await fetchGuildRoster();
   const db = await getDb();
+  // Icons are best-effort: a roster without them is still a roster.
+  const specIcons = await fetchSpecIcons().catch(() => new Map<string, string>());
   let upserted = 0;
 
   // Only track max-level characters; the rest is alt noise.
@@ -116,7 +171,11 @@ export async function syncBlizzardRoster(): Promise<SyncResult> {
     if (existing[0]) {
       await db
         .update(tables.characters)
-        .set({ guildRank: `Rank ${member.rank}`, syncedAt: new Date() })
+        .set({
+          guildRank: `Rank ${member.rank}`,
+          specIconUrl: specIcons.get(existing[0].specName) ?? existing[0].specIconUrl,
+          syncedAt: new Date(),
+        })
         .where(eq(tables.characters.id, existing[0].id));
     } else {
       await db.insert(tables.characters).values({
