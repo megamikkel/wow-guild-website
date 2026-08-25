@@ -31,6 +31,25 @@ dashboard, the officer tools and form submission are absent. A banner on every
 page says so, and the build is excluded from search engines. For those, the
 site needs a Node runtime — see Vercel below.
 
+### If the project was created as a Worker rather than a Page
+
+Cloudflare has merged the two products, so "Create → Workers" also serves
+static sites. `wrangler.jsonc` in the repository root configures exactly that:
+no server code, just `./out` uploaded as assets, with the exported `404.html`
+serving unknown paths. `npx wrangler deploy` needs no arguments.
+
+Two build settings must match it:
+
+| Setting | Value |
+| --- | --- |
+| Branch | `claude/papi-wow-guild-platform-4nxyiy` (or `main`, once merged) |
+| Build command | `npm run build:cloudflare` |
+| Deploy command | `npx wrangler deploy` |
+
+The default `npm run build` is the **application** build — it produces a
+Next.js server bundle, not files, so `wrangler deploy` finds nothing to upload.
+`build:cloudflare` is the one that fills `./out`.
+
 ### Alternative: let GitHub build and push it
 
 `.github/workflows/deploy-cloudflare.yml` does the same thing from CI. It needs

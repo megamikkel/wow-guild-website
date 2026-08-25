@@ -1,0 +1,13 @@
+{
+  // Static-only Worker: no server code, just the exported site in ./out.
+  // `npx wrangler deploy` reads this and uploads the directory. The build
+  // that fills ./out is `npm run build:cloudflare`.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "wow-guild-website",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "./out",
+    // Serve the exported 404.html for unknown paths rather than a bare error.
+    "not_found_handling": "404-page"
+  }
+}

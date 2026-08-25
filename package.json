@@ -2,10 +2,11 @@
   "name": "papi-platform",
   "version": "0.1.0",
   "private": true,
-  "description": "PAPI — World of Warcraft guild operating system",
+  "description": "PAPI \u2014 World of Warcraft guild operating system",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "node scripts/build-static-preview.mjs",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -38,6 +39,7 @@
     "tailwindcss": "^4.1.12",
     "tsx": "^4.20.4",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.42.0"
   }
 }
