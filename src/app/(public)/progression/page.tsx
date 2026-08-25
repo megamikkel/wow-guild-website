@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import { ProgressBar, SectionHeading, StatusPill, Surface } from "@/components/ui";
 import { guildConfig } from "@/config/guild";
 import { getProgression, getRecentReports } from "@/domain/queries";
+import { DifficultyBadge } from "@/components/wow";
 import { formatDate, formatRelative } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Progression",
+  title: "Fremgang",
   description: `${guildConfig.name} raid progression in ${guildConfig.currentTier.name} (${guildConfig.currentTier.difficulty}).`,
 };
 
@@ -19,11 +20,11 @@ export default async function ProgressionPage() {
     <div className="mx-auto max-w-6xl px-4 py-12">
       <SectionHeading
         kicker={guildConfig.currentTier.name}
-        title="Current progression"
+        title="Sådan går det"
         right={
           progression.lastSyncedAt ? (
             <p className="text-xs text-ink-faint">
-              Last updated {formatRelative(progression.lastSyncedAt)}
+              Opdateret {formatRelative(progression.lastSyncedAt)}
             </p>
           ) : null
         }
@@ -32,7 +33,7 @@ export default async function ProgressionPage() {
       <p className="mb-10">
         <span className="stat-oversized text-8xl">{progression.killed}</span>
         <span className="stat-oversized text-8xl text-ink-faint"> / {progression.total}</span>
-        <span className="stat-label ml-4">{guildConfig.currentTier.difficulty}</span>
+        <span className="ml-4 inline-block align-middle"><DifficultyBadge difficulty={guildConfig.currentTier.difficulty} /></span>
       </p>
 
       <ol className="grid gap-3">
@@ -50,18 +51,18 @@ export default async function ProgressionPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="display-heading text-xl">{boss.bossName}</h2>
                   {boss.status === "KILLED" ? (
-                    <StatusPill tone="ok">✓ Killed</StatusPill>
+                    <StatusPill tone="ok">✓ Nedlagt</StatusPill>
                   ) : boss.status === "PROGRESS" ? (
                     <StatusPill tone="danger">
-                      <span className="live-dot" aria-hidden /> Progress
+                      <span className="live-dot" aria-hidden /> I gang
                     </StatusPill>
                   ) : (
-                    <StatusPill tone="muted">Locked</StatusPill>
+                    <StatusPill tone="muted">Ikke åbnet</StatusPill>
                   )}
                 </div>
                 {boss.status === "KILLED" && boss.killedAt ? (
                   <p className="mt-1 text-sm text-ink-muted">
-                    First kill {formatDate(boss.killedAt)} · {boss.pulls} pulls
+                    Første kill {formatDate(boss.killedAt)} · {boss.pulls} forsøg
                   </p>
                 ) : null}
                 {boss.status === "PROGRESS" ? (
@@ -71,9 +72,9 @@ export default async function ProgressionPage() {
                         {boss.bestPct?.toFixed(1)}%
                       </span>
                       <span className="text-sm text-ink-muted">
-                        best · {boss.pulls} pulls
+                        bedste · {boss.pulls} forsøg
                         {boss.lastRaidStartPct != null && boss.lastRaidEndPct != null
-                          ? ` · last raid ${boss.lastRaidStartPct}% → ${boss.lastRaidEndPct}%`
+                          ? ` · sidste raid ${boss.lastRaidStartPct}% → ${boss.lastRaidEndPct}%`
                           : ""}
                       </span>
                     </div>
@@ -89,7 +90,7 @@ export default async function ProgressionPage() {
               </div>
               {boss.status !== "LOCKED" ? (
                 <p className="font-mono text-sm text-ink-faint tabular-nums sm:text-right">
-                  {boss.pulls} pulls
+                  {boss.pulls} forsøg
                 </p>
               ) : (
                 <span />
@@ -100,9 +101,9 @@ export default async function ProgressionPage() {
       </ol>
 
       <section className="mt-14">
-        <SectionHeading kicker="Warcraft Logs" title="Recent reports" />
+        <SectionHeading kicker="Warcraft Logs" title="Seneste rapporter" />
         {reports.length === 0 ? (
-          <p className="text-ink-muted">No reports yet — the first one lands here after raid night.</p>
+          <p className="text-ink-muted">Ingen rapporter endnu — den første dukker op efter næste raid-aften.</p>
         ) : (
           <ul className="divide-y divide-edge border-y border-edge">
             {reports.map((r) => (

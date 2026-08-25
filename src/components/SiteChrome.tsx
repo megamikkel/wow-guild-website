@@ -8,11 +8,11 @@ import { IS_STATIC_EXPORT } from "@/lib/render-mode";
 import { hasRole } from "@/lib/rbac";
 
 const publicNav = [
-  { href: "/", label: "Home" },
+  { href: "/", label: "Forside" },
   { href: "/roster", label: "Roster" },
-  { href: "/progression", label: "Progression" },
+  { href: "/progression", label: "Fremgang" },
   { href: "/raids", label: "Raids" },
-  { href: "/recruitment", label: "Recruitment" },
+  { href: "/recruitment", label: "Bliv medlem" },
 ];
 
 export async function SiteHeader() {
@@ -44,7 +44,7 @@ export async function SiteHeader() {
               href="/dashboard"
               className="rounded px-3 py-2 font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase transition-colors hover:text-papi-indigo"
             >
-              Dashboard
+              Min side
             </Link>
           ) : null}
           {isOfficer ? (
@@ -52,7 +52,7 @@ export async function SiteHeader() {
               href="/admin"
               className="rounded px-3 py-2 font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase transition-colors hover:text-papi-indigo"
             >
-              Command
+              Officer
             </Link>
           ) : null}
         </nav>
@@ -61,7 +61,7 @@ export async function SiteHeader() {
             href="/apply"
             className="rounded-md bg-papi-indigo px-4 py-2.5 font-display text-xs font-bold tracking-[0.12em] text-white uppercase transition-colors hover:bg-papi-purple"
           >
-            Apply
+            Søg
           </Link>
           {IS_STATIC_EXPORT ? null : session?.user ? (
             <SignOutButton title={`Signed in as ${session.user.name}`} />
@@ -70,7 +70,7 @@ export async function SiteHeader() {
               href="/login"
               className="hidden px-2 py-2 text-xs text-ink-muted transition-colors hover:text-ink md:block"
             >
-              Sign in
+              Log ind
             </Link>
           )}
         </div>
@@ -84,11 +84,11 @@ export async function MobileNav() {
   const session = IS_STATIC_EXPORT ? null : await auth();
   const isMember = hasRole(session?.user?.role ?? "PUBLIC", "MEMBER");
   const items = [
-    { href: "/", label: "Home" },
+    { href: "/", label: "Forside" },
     { href: "/raids", label: "Raids" },
     { href: "/roster", label: "Roster" },
     { href: "/progression", label: "Guild" },
-    isMember ? { href: "/dashboard", label: "Profile" } : { href: "/login", label: "Sign in" },
+    isMember ? { href: "/dashboard", label: "Min side" } : { href: "/login", label: "Log ind" },
   ];
   return (
     <nav
@@ -127,18 +127,18 @@ export function SiteFooter() {
             </div>
             <div className="grid grid-cols-2 gap-8 text-sm">
               <div>
-                <p className="stat-label mb-3">Guild</p>
+                <p className="stat-label mb-3">Guilden</p>
                 <ul className="space-y-2 text-ink-muted">
                   <li><Link href="/roster" className="hover:text-papi-purple">Roster</Link></li>
-                  <li><Link href="/progression" className="hover:text-papi-purple">Progression</Link></li>
+                  <li><Link href="/progression" className="hover:text-papi-purple">Fremgang</Link></li>
                   <li><Link href="/raids" className="hover:text-papi-purple">Raids</Link></li>
                 </ul>
               </div>
               <div>
-                <p className="stat-label mb-3">Join</p>
+                <p className="stat-label mb-3">Vær med</p>
                 <ul className="space-y-2 text-ink-muted">
-                  <li><Link href="/recruitment" className="hover:text-papi-purple">Recruitment</Link></li>
-                  <li><Link href="/apply" className="hover:text-papi-purple">Apply</Link></li>
+                  <li><Link href="/recruitment" className="hover:text-papi-purple">Bliv medlem</Link></li>
+                  <li><Link href="/apply" className="hover:text-papi-purple">Søg om plads</Link></li>
                   <li>
                     <a href={guildConfig.socials.discordInvite} rel="noopener noreferrer" className="hover:text-papi-purple">
                       Discord
@@ -149,7 +149,7 @@ export function SiteFooter() {
             </div>
           </div>
           <p className="mt-10 text-xs text-ink-faint">
-            Data powered by{" "}
+            Data fra{" "}
             <a href="https://raider.io" rel="noopener noreferrer" className="underline hover:text-ink-muted">
               Raider.IO
             </a>
@@ -157,8 +157,8 @@ export function SiteFooter() {
             <a href="https://www.warcraftlogs.com" rel="noopener noreferrer" className="underline hover:text-ink-muted">
               Warcraft Logs
             </a>{" "}
-            and the Blizzard API. World of Warcraft and related marks are trademarks of Blizzard
-            Entertainment. PAPI is not affiliated with Blizzard.
+            og Blizzards API. World of Warcraft og tilhørende varemærker tilhører Blizzard
+            Entertainment. PAPI er ikke tilknyttet Blizzard.
           </p>
         </div>
       </div>

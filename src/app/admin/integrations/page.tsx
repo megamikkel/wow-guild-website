@@ -19,8 +19,8 @@ export default async function IntegrationsPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <SectionHeading
-        kicker={env.isDemoMode ? "Demo mode — fixture data" : "Live"}
-        title="Integrations"
+        kicker={env.isDemoMode ? "Demo — testdata" : "Live"}
+        title="Integrationer"
       />
       <div className="grid gap-3">
         {integrations.map((i) => (
@@ -28,9 +28,9 @@ export default async function IntegrationsPage() {
             <div>
               <p className="font-display font-bold">{LABELS[i.name] ?? i.name}</p>
               <p className="mt-0.5 text-xs text-ink-muted">
-                {i.lastSyncAt ? `Last sync ${formatRelative(i.lastSyncAt)}` : "Never synced"}
+                {i.lastSyncAt ? `Sidst hentet ${formatRelative(i.lastSyncAt)}` : "Aldrig hentet"}
                 {i.lastSuccessAt && i.lastSuccessAt.getTime() !== i.lastSyncAt?.getTime()
-                  ? ` · last success ${formatRelative(i.lastSuccessAt)}`
+                  ? ` · sidst uden fejl ${formatRelative(i.lastSuccessAt)}`
                   : ""}
               </p>
               {i.lastError ? (
@@ -38,19 +38,19 @@ export default async function IntegrationsPage() {
               ) : null}
             </div>
             {i.state === "CONNECTED" ? (
-              <StatusPill tone="ok">● Connected</StatusPill>
+              <StatusPill tone="ok">● Forbundet</StatusPill>
             ) : i.state === "DEGRADED" ? (
-              <StatusPill tone="warn">● Degraded</StatusPill>
+              <StatusPill tone="warn">● Ustabil</StatusPill>
             ) : i.state === "ERROR" ? (
-              <StatusPill tone="danger">● Error</StatusPill>
+              <StatusPill tone="danger">● Fejl</StatusPill>
             ) : (
-              <StatusPill tone="muted">Not configured</StatusPill>
+              <StatusPill tone="muted">Ikke sat op</StatusPill>
             )}
           </Surface>
         ))}
       </div>
       <p className="mt-8 text-xs text-ink-faint">
-        Diagnostics never include secrets. Sync runs via <code>POST /api/sync</code> (bearer
+        Diagnostik indeholder aldrig hemmeligheder. Synkronisering kører via <code>POST /api/sync</code> (bearer
         {" "}<code>PAPI_SYNC_SECRET</code>), typically triggered by the scheduled GitHub Action.
       </p>
     </div>

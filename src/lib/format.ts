@@ -1,18 +1,18 @@
 import { guildConfig } from "@/config/guild";
 
-const dateFmt = new Intl.DateTimeFormat("en-GB", {
+const dateFmt = new Intl.DateTimeFormat("da-DK", {
   weekday: "long",
   day: "numeric",
   month: "short",
   timeZone: guildConfig.timezone,
 });
-const timeFmt = new Intl.DateTimeFormat("en-GB", {
+const timeFmt = new Intl.DateTimeFormat("da-DK", {
   hour: "2-digit",
   minute: "2-digit",
   hour12: false,
   timeZone: guildConfig.timezone,
 });
-const dateTimeFmt = new Intl.DateTimeFormat("en-GB", {
+const dateTimeFmt = new Intl.DateTimeFormat("da-DK", {
   weekday: "short",
   day: "numeric",
   month: "short",
@@ -34,13 +34,12 @@ export function formatRelative(d: Date, now = new Date()): string {
   const hours = Math.round(abs / 3_600_000);
   const days = Math.round(abs / 86_400_000);
   let core: string;
-  if (mins < 1) core = "just now";
-  else if (mins < 60) core = `${mins} min`;
-  else if (hours < 24) core = `${hours}h`;
-  else if (days === 1) core = future ? "tomorrow" : "yesterday";
-  else core = `${days}d`;
-  if (core === "just now" || core === "tomorrow" || core === "yesterday") return core;
-  return future ? `in ${core}` : `${core} ago`;
+  if (mins < 1) return "lige nu";
+  if (mins < 60) core = `${mins} min`;
+  else if (hours < 24) core = `${hours} t`;
+  else if (days === 1) return future ? "i morgen" : "i går";
+  else core = `${days} dage`;
+  return future ? `om ${core}` : `for ${core} siden`;
 }
 
 /** "01d 04h 31m" style countdown parts. */

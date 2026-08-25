@@ -8,7 +8,7 @@ import { classColorStyle } from "@/lib/wow";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Recruitment",
+  title: "Bliv medlem",
   description: `${guildConfig.name} is recruiting for ${guildConfig.currentTier.difficulty} progression. See open spots and apply.`,
 };
 
@@ -18,17 +18,19 @@ export default async function RecruitmentPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <header className="mb-12 max-w-3xl">
-        <p className="stat-label mb-2">Recruitment</p>
-        <h1 className="display-heading text-5xl sm:text-6xl">We want you.</h1>
+        <p className="banner mb-3">Rekruttering</p>
+        <h1 className="display-heading text-5xl text-papi-indigo sm:text-6xl">
+          Vi mangler et par stykker
+        </h1>
         <p className="mt-4 text-lg text-ink-muted">
-          {guildConfig.name} raids {guildConfig.raidSchedule.map((s) => s.day).join(" and ")},{" "}
-          {guildConfig.raidSchedule[0].start}–{guildConfig.raidSchedule[0].end} server time. Two
-          nights, {progression.killed}/{progression.total} {guildConfig.currentTier.difficulty} —
-          we progress on focus, not on hours.
+          {guildConfig.name} raider {guildConfig.raidSchedule.map((s) => s.day.toLowerCase()).join(" og ")}{" "}
+          fra {guildConfig.raidSchedule[0].start} til {guildConfig.raidSchedule[0].end}. To aftener
+          om ugen, {progression.killed}/{progression.total} {guildConfig.currentTier.difficulty} — og
+          så er der fri resten af tiden. Vi spiller for at hygge os, ikke for at nå toplisten.
         </p>
       </header>
 
-      <SectionHeading kicker="Open spots" title="Current needs" />
+      <SectionHeading kicker="Ledige pladser" title="Det vi mangler" />
       <div className="mb-12 grid gap-3 sm:grid-cols-2">
         {needs.map((n) => (
           <Surface
@@ -54,26 +56,26 @@ export default async function RecruitmentPage() {
 
       <Surface className="grid gap-6 p-8 sm:grid-cols-3">
         <div>
-          <p className="stat-label mb-2">What we expect</p>
+          <p className="stat-label mb-2">Hvad vi forventer</p>
           <ul className="space-y-1.5 text-sm text-ink-muted">
-            <li>Prepared for every pull</li>
-            <li>Stable attendance on both nights</li>
-            <li>Logs you&apos;re not afraid to share</li>
-            <li>Thick skin, no ego</li>
+            <li>At du dukker op, når du har skrevet dig på</li>
+            <li>At du har styr på din egen klasse</li>
+            <li>At du siger til, hvis du ikke kan</li>
+            <li>God tone. Vi gider ikke drama</li>
           </ul>
         </div>
         <div>
-          <p className="stat-label mb-2">What you get</p>
+          <p className="stat-label mb-2">Hvad du får</p>
           <ul className="space-y-1.5 text-sm text-ink-muted">
-            <li>A roster that shows up</li>
-            <li>Officers who prepare strategy</li>
-            <li>Fair, transparent rotation</li>
-            <li>A guild that plans to still exist next tier</li>
+            <li>Faste raids to aftener om ugen</li>
+            <li>Officerer der har set videoen inden</li>
+            <li>Plads til alle, også når det går skidt</li>
+            <li>En guild der stadig er her næste tier</li>
           </ul>
         </div>
         <div className="flex flex-col items-start justify-center gap-3">
-          <CtaLink href="/apply">Apply to PAPI</CtaLink>
-          <p className="text-xs text-ink-faint">Takes ~5 minutes. We reply to every application.</p>
+          <CtaLink href="/apply">Søg om plads</CtaLink>
+          <p className="text-xs text-ink-faint">Tager cirka fem minutter. Vi svarer på alle ansøgninger.</p>
         </div>
       </Surface>
     </div>

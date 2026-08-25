@@ -7,15 +7,15 @@ import { auth, signOut } from "@/lib/auth";
 import { hasRole } from "@/lib/rbac";
 
 export const metadata: Metadata = {
-  title: "Command",
+  title: "Officer",
   robots: { index: false, follow: false },
 };
 
 const adminNav = [
-  { href: "/admin", label: "Command" },
-  { href: "/admin/applications", label: "Recruitment" },
-  { href: "/admin/trials", label: "Trials" },
-  { href: "/admin/integrations", label: "Integrations" },
+  { href: "/admin", label: "Oversigt" },
+  { href: "/admin/applications", label: "Ansøgninger" },
+  { href: "/admin/trials", label: "Prøvetid" },
+  { href: "/admin/integrations", label: "Integrationer" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -25,10 +25,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 text-center">
         <p className="stat-oversized text-7xl text-stripe-red">403</p>
-        <p className="display-heading mt-4 text-2xl">Officers only.</p>
-        <p className="mt-2 text-ink-muted">This area needs an officer rank in Discord.</p>
+        <p className="display-heading mt-4 text-2xl">Kun for officerer.</p>
+        <p className="mt-2 text-ink-muted">Det her område kræver officer-rang i Discord.</p>
         <Link href="/dashboard" className="mt-8 text-papi-purple hover:underline">
-          Back to your dashboard
+          Tilbage til din side
         </Link>
       </main>
     );
@@ -54,7 +54,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </nav>
           <div className="flex shrink-0 items-center gap-3">
             <Link href="/" className="hidden text-xs text-ink-muted hover:text-ink sm:block">
-              Public site
+              Sitet
             </Link>
             <form
               action={async () => {
@@ -63,7 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               }}
             >
               <button type="submit" className="text-xs text-ink-muted hover:text-ink">
-                Sign out
+                Log ud
               </button>
             </form>
           </div>

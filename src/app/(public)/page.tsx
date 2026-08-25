@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Countdown } from "@/components/Countdown";
 import { PapiBadge } from "@/components/Logo";
+import { ClassSpectrum, DifficultyBadge, ROLE_COLOR, ROLE_DA } from "@/components/wow";
 import {
   CtaLink,
   PriorityBadge,
@@ -32,7 +33,7 @@ export default async function HomePage() {
   ]);
 
   const schedule = guildConfig.raidSchedule
-    .map((s) => s.day.slice(0, 3).toUpperCase())
+    .map((s) => s.short)
     .join(" + ");
   const openNeeds = needs.filter((n) => n.priority !== "CLOSED");
 
@@ -43,20 +44,25 @@ export default async function HomePage() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pt-14 pb-16 sm:pt-16 lg:grid-cols-[1fr_auto] lg:gap-14 lg:pb-20">
           <div>
             <p className="banner mb-5">
-              {guildConfig.region.toUpperCase()} · {guildConfig.realm.name} ·{" "}
-              {guildConfig.focus}
+              {guildConfig.realm.name} · {guildConfig.factionDa} ·{" "}
+              {guildConfig.region.toUpperCase()}
             </p>
             <h1 className="display-heading text-4xl leading-[0.95] tracking-tighter text-papi-indigo sm:text-6xl lg:text-7xl">
-              We don&apos;t raid
+              Skal vi ikke
               <br />
-              to participate.
+              <span className="text-papi-purple">hygge-hygge</span>
               <br />
-              <span className="text-papi-purple">We raid to progress.</span>
+              lidt?
             </h1>
+
+            <p className="mt-5 max-w-xl text-lg text-ink-muted">
+              {guildConfig.focusLong}. Vi spiller for hyggens skyld, ikke for at nå
+              toplisten — og der skal være tid til at få ungerne i seng.
+            </p>
 
             <div className="mt-9 flex flex-wrap items-end gap-x-10 gap-y-6">
               <StatBlock
-                label="Progression"
+                label="Fremgang"
                 value={
                   <>
                     {progression.killed}
@@ -68,18 +74,18 @@ export default async function HomePage() {
                 size="lg"
               />
               <StatBlock
-                label="Raid days"
+                label="Raid-aftener"
                 value={schedule}
-                sub={`${guildConfig.raidSchedule[0].start} — ${guildConfig.raidSchedule[0].end} server time`}
+                sub={`${guildConfig.raidSchedule[0].start} — ${guildConfig.raidSchedule[0].end}`}
                 size="lg"
                 accent="purple"
               />
             </div>
 
             <div className="mt-9 flex flex-wrap gap-3">
-              <CtaLink href="/apply">Apply to PAPI</CtaLink>
+              <CtaLink href="/apply">Søg om plads</CtaLink>
               <CtaLink href="/progression" variant="secondary">
-                View progression
+                Se vores fremgang
               </CtaLink>
             </div>
           </div>
@@ -88,16 +94,16 @@ export default async function HomePage() {
             <PapiBadge size={420} priority className="h-52 w-auto sm:h-72 lg:h-[420px]" />
           </div>
         </div>
-        <div className="stripe" aria-hidden />
+        <ClassSpectrum />
       </section>
 
       {/* ————— NEXT RAID ————— */}
       <section className="mx-auto max-w-6xl px-4 py-14">
-        <SectionHeading kicker="Live from Raid-Helper" title="Next raid" />
+        <SectionHeading kicker="Fra Raid-Helper" title="Næste raid" />
         {nextRaid ? (
           <Surface className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.4fr_1fr]">
             <div>
-              <p className="stat-label">{nextRaid.event.difficulty}</p>
+              <DifficultyBadge difficulty={nextRaid.event.difficulty} />
               <p className="display-heading mt-1 text-3xl sm:text-4xl">
                 {nextRaid.event.targetBoss ?? nextRaid.event.title}
               </p>
@@ -114,7 +120,7 @@ export default async function HomePage() {
                 <span className="stat-oversized text-3xl text-ink-faint">
                   {" "}/ {nextRaid.breakdown.totalTarget}
                 </span>{" "}
-                <span className="stat-label ml-2">confirmed</span>
+                <span className="stat-label ml-2">tilmeldt</span>
               </p>
             </div>
             <div className="flex flex-col justify-center gap-4">
@@ -124,7 +130,10 @@ export default async function HomePage() {
                   <div key={role}>
                     <div className="mb-1.5 flex items-center justify-between text-sm">
                       <span className="inline-flex items-center gap-2 font-display text-xs font-bold tracking-[0.14em] text-ink-muted uppercase">
-                        <RoleGlyph role={role} /> {role}
+                        <span style={{ color: ROLE_COLOR[role] }}>
+                          <RoleGlyph role={role} />
+                        </span>{" "}
+                        {ROLE_DA[role]}
                       </span>
                       <span className="font-mono tabular-nums">
                         {r.confirmed} / {r.target}
@@ -142,14 +151,14 @@ export default async function HomePage() {
                 href={`/raids/${nextRaid.event.id}`}
                 className="mt-2 font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
-                View raid →
+                Se raidet →
               </Link>
             </div>
           </Surface>
         ) : (
           <Surface className="p-8 text-ink-muted">
-            No raid on the calendar right now. The next one lands here the moment it&apos;s
-            scheduled.
+            Ingen raids i kalenderen lige nu. Det næste dukker op her, så snart det er
+            sat op.
           </Surface>
         )}
       </section>
@@ -159,13 +168,13 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-14">
           <SectionHeading
             kicker="Warcraft Logs"
-            title="Current progression"
+            title="Den er faktisk ikke helt dårlig"
             right={
               <Link
                 href="/progression"
                 className="font-display text-xs font-bold tracking-[0.14em] text-papi-purple uppercase hover:underline"
               >
-                Full progression →
+                Hele oversigten →
               </Link>
             }
           />
@@ -175,18 +184,18 @@ export default async function HomePage() {
                 {progression.killed}
               </span>
               <span className="stat-oversized text-7xl text-ink-faint sm:text-8xl"> / {progression.total}</span>
-              <span className="stat-label ml-4">{guildConfig.currentTier.difficulty}</span>
+              <span className="ml-4 inline-block align-middle"><DifficultyBadge difficulty={guildConfig.currentTier.difficulty} /></span>
             </p>
             {progression.progressBoss ? (
               <div className="min-w-56 flex-1">
-                <p className="stat-label">Now progressing</p>
+                <p className="stat-label">Vi er i gang med</p>
                 <p className="display-heading mt-1 text-2xl">{progression.progressBoss.bossName}</p>
                 <div className="mt-3 flex items-baseline gap-3">
                   <span className="stat-oversized text-4xl text-stripe-red">
                     {progression.progressBoss.bestPct?.toFixed(1)}%
                   </span>
                   <span className="text-sm text-ink-muted">
-                    best pull · {progression.progressBoss.pulls} pulls
+                    bedste forsøg · {progression.progressBoss.pulls} forsøg
                   </span>
                 </div>
                 <div className="mt-3">
@@ -204,7 +213,7 @@ export default async function HomePage() {
 
       {/* ————— RECRUITMENT ————— */}
       <section className="mx-auto max-w-6xl px-4 py-14">
-        <SectionHeading kicker="Recruitment" title="We want you." />
+        <SectionHeading kicker="Rekruttering" title="Vi mangler et par stykker" />
         <div className="grid gap-3 sm:grid-cols-2">
           {needs.map((n) => (
             <Surface
@@ -228,18 +237,18 @@ export default async function HomePage() {
           ))}
         </div>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <CtaLink href="/apply">Apply to PAPI</CtaLink>
+          <CtaLink href="/apply">Søg om plads</CtaLink>
           <p className="text-sm text-ink-muted">
             {openNeeds.length > 0
-              ? "Exceptional players outside these needs are always considered."
-              : "Roster is full right now — exceptional applications still get read."}
+              ? "Spiller du noget andet? Skriv alligevel — vi kigger på alle."
+              : "Vi er fyldt op lige nu, men vi læser stadig hver ansøgning."}
           </p>
         </div>
       </section>
 
       {/* ————— ACTIVITY ————— */}
       <section className="mx-auto max-w-6xl px-4 pb-4">
-        <SectionHeading kicker="Guild activity" title="Recent" />
+        <SectionHeading kicker="Hvad der sker" title="Seneste" />
         <ol className="divide-y divide-edge border-y border-edge">
           {activity.map((a) => (
             <li key={a.id} className="flex items-baseline gap-4 py-3">

@@ -20,12 +20,12 @@ const STATUS_TONE: Record<string, "ok" | "warn" | "danger" | "blue" | "muted"> =
 };
 
 const FIELDS: Array<[label: string, key: "previousGuild" | "raidExperience" | "availability" | "expectations" | "whyPapi" | "comment"]> = [
-  ["Previous guild", "previousGuild"],
-  ["Raid experience", "raidExperience"],
-  ["Availability", "availability"],
-  ["Expectations", "expectations"],
-  ["Why PAPI", "whyPapi"],
-  ["Comment", "comment"],
+  ["Tidligere guild", "previousGuild"],
+  ["Raid-erfaring", "raidExperience"],
+  ["Hvornår kan du", "availability"],
+  ["Forventninger", "expectations"],
+  ["Hvorfor PAPI", "whyPapi"],
+  ["Kommentar", "comment"],
 ];
 
 export default async function ApplicationDetailPage({
@@ -47,7 +47,7 @@ export default async function ApplicationDetailPage({
         href="/admin/applications"
         className="font-display text-xs font-bold tracking-[0.14em] text-ink-muted uppercase hover:text-ink"
       >
-        ← Board
+        ← Oversigt
       </Link>
 
       <header className="mt-4 mb-8 flex flex-wrap items-center justify-between gap-4">
@@ -60,7 +60,7 @@ export default async function ApplicationDetailPage({
             {app.specName} {app.className} · {app.realm} · @{app.discordName}
           </p>
           <p className="mt-1 text-xs text-ink-faint">
-            Applied {formatDateTime(app.createdAt)} ({formatRelative(app.createdAt)})
+            Ansøgte {formatDateTime(app.createdAt)} ({formatRelative(app.createdAt)})
           </p>
         </div>
         <StatusPill tone={STATUS_TONE[app.status] ?? "muted"}>{app.status}</StatusPill>
@@ -83,7 +83,7 @@ export default async function ApplicationDetailPage({
                       : "bg-papi-purple text-white hover:bg-papi-indigo"
                 }`}
               >
-                Move to {status}
+                Flyt til {status}
               </button>
             </form>
           ))}
@@ -92,7 +92,7 @@ export default async function ApplicationDetailPage({
 
       <div className="grid gap-10 md:grid-cols-[1.4fr_1fr]">
         <section>
-          <SectionHeading kicker="Application" title="Answers" />
+          <SectionHeading kicker="Ansøgning" title="Svar" />
           <dl className="grid gap-5">
             {FIELDS.map(([label, key]) => {
               const value = app[key];
@@ -106,7 +106,7 @@ export default async function ApplicationDetailPage({
             })}
             {app.altSpecs ? (
               <div>
-                <dt className="stat-label mb-1">Alternative specs</dt>
+                <dt className="stat-label mb-1">Andre specs</dt>
                 <dd className="text-sm">{app.altSpecs}</dd>
               </div>
             ) : null}
@@ -134,11 +134,11 @@ export default async function ApplicationDetailPage({
         </section>
 
         <section>
-          <SectionHeading kicker="Officers only" title="Notes" />
+          <SectionHeading kicker="Kun officerer" title="Noter" />
           <form action={addApplicationNote} className="mb-5">
             <input type="hidden" name="id" value={app.id} />
             <label htmlFor="note-body" className="sr-only">
-              Add note
+              Tilføj note
             </label>
             <textarea
               id="note-body"
@@ -146,18 +146,18 @@ export default async function ApplicationDetailPage({
               rows={3}
               required
               maxLength={2000}
-              placeholder="Add an officer note… (never public)"
+              placeholder="Skriv en note… (aldrig offentlig)"
               className="w-full rounded-md border border-edge bg-surface-2 px-3 py-2.5 text-sm placeholder:text-ink-faint focus:border-papi-purple focus:outline-none"
             />
             <button
               type="submit"
               className="mt-2 rounded-md border border-papi-purple/50 px-4 py-2 font-display text-xs font-bold tracking-[0.12em] text-papi-purple uppercase hover:bg-papi-purple-wash"
             >
-              Add note
+              Tilføj note
             </button>
           </form>
           {notes.length === 0 ? (
-            <p className="text-sm text-ink-faint">No notes yet.</p>
+            <p className="text-sm text-ink-faint">Ingen noter endnu.</p>
           ) : (
             <ul className="grid gap-3">
               {notes.map((n) => (
