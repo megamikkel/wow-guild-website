@@ -1,3 +1,4 @@
+import type { HandType } from "./weapon-rules";
 import {
   GROUP_SLOTS,
   type GearOverride,
@@ -89,13 +90,15 @@ function pairOverrides(
 /**
  * Enumerate every legal way the character's owned items can fill a slot
  * group. Two identical items are only paired when the character owns two
- * physical copies (distinct instances). Illegal combinations that slip
- * through (e.g. an off-hand next to a two-hander) are rejected later by
- * SimulationCraft itself and dropped.
+ * physical copies (distinct instances).
+ *
+ * `handTypes` comes from the weapon probe; without it every main hand is
+ * treated as two-handed, so no off-hand pairing is ever invented.
  */
 export function generateGroupOptions(
   parsed: ParsedCharacter,
   pool: GearPool,
+  handTypes?: Map<string, HandType>,
 ): Map<SlotGroupId, GroupOption[]> {
   const result = new Map<SlotGroupId, GroupOption[]>();
 
@@ -141,9 +144,12 @@ export function generateGroupOptions(
       const ohItems = items.filter((i) => i.exportSlot === "off_hand");
       const eqMh = parsed.equipped.main_hand ?? null;
       const eqOh = parsed.equipped.off_hand ?? null;
-      const ohChoices: (ItemInstance | null)[] =
-        ohItems.length > 0 ? [...ohItems, null] : [null];
       for (const mh of mhItems) {
+        // A two-handed weapon leaves no off-hand slot to fill. The game
+        // enforces this; SimulationCraft does not, so the search must.
+        const twoHanded = (handTypes?.get(mh.instanceId) ?? "2h") === "2h";
+        const ohChoices: (ItemInstance | null)[] =
+          ohItems.length > 0 && !twoHanded ? [...ohItems, null] : [null];
         for (const oh of ohChoices) {
           const overrides: GearOverride[] = [];
           if (mh.instanceId !== eqMh?.instanceId) {

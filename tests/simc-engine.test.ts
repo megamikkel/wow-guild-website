@@ -89,6 +89,59 @@ describeEngine("optimizer against a real SimulationCraft engine", () => {
     }
   }, 900_000);
 
+  it("identifies weapon hand types from the engine itself", async () => {
+    const { probeWeaponHandTypes } = await import("@/lib/simc/weapon-rules");
+    const { parseSimcInput } = await import("@/lib/simc/parse");
+    const { buildGearPool } = await import("@/lib/simc/gear-pool");
+    const { resolveSettings } = await import("@/lib/simc/optimizer");
+
+    const parsed = parseSimcInput(fixture);
+    const pool = buildGearPool(parsed);
+    const mainHands = pool.weapon.items.filter((i) => i.exportSlot === "main_hand");
+    const probe = await probeWeaponHandTypes(
+      parsed,
+      resolveSettings("single_target"),
+      mainHands,
+    );
+
+    expect(probe.types.size).toBe(mainHands.length);
+    for (const type of probe.types.values()) {
+      expect(["1h", "2h"]).toContain(type);
+    }
+  }, 600_000);
+
+  it("never recommends an off hand alongside a two-handed weapon", async () => {
+    // SimulationCraft happily equips both and counts the off-hand stats,
+    // so this rule has to hold in the search, not in the engine.
+    clearResultCache();
+    const { parseSimcInput } = await import("@/lib/simc/parse");
+    const { buildGearPool } = await import("@/lib/simc/gear-pool");
+    const { probeWeaponHandTypes } = await import("@/lib/simc/weapon-rules");
+    const { resolveSettings } = await import("@/lib/simc/optimizer");
+
+    const parsed = parseSimcInput(fixture);
+    const pool = buildGearPool(parsed);
+    const probe = await probeWeaponHandTypes(
+      parsed,
+      resolveSettings("single_target"),
+      pool.weapon.items.filter((i) => i.exportSlot === "main_hand"),
+    );
+
+    const result = await optimizeGear({
+      input: fixture,
+      mode: "single_target",
+      settings: fastSettings,
+    });
+
+    for (const setup of result.topSetups) {
+      const mainHand = setup.gear.find((g) => g.slot === "main_hand");
+      const offHand = setup.gear.find((g) => g.slot === "off_hand");
+      if (!offHand || offHand.source === "empty") continue;
+      const instance = pool.weapon.items.find((i) => i.itemId === mainHand?.itemId);
+      expect(instance && probe.types.get(instance.instanceId)).toBe("1h");
+    }
+  }, 1_200_000);
+
   it("reuses cached results for an identical repeated search", async () => {
     clearResultCache();
     const settings = { ...fastSettings, maxCombinations: 4, verifyTop: 2 };

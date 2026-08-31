@@ -83,12 +83,13 @@ One pool per slot group. The equipped item is always a candidate. Rings and
 trinkets are enumerated as **unordered pairs** rather than per-slot picks,
 so `C(n,2)` combinations are tested and the same physical copy is never
 equipped twice; two identical items are only paired when the character owns
-two separate copies. Weapons pair each main hand with every off hand and
-with none.
+two separate copies. Weapons pair each one-handed main hand with every off
+hand and with none; a two-handed weapon is never paired with an off hand,
+see *Weapon legality* below.
 
-Combinations that turn out to be illegal (an off-hand next to a two-hander,
-an item a class cannot use) are not filtered by guesswork — SimulationCraft
-decides, see *Invalid combinations* below.
+Other illegal combinations — an item a class cannot use, for instance — are
+not filtered by guesswork; SimulationCraft decides, see *Invalid
+combinations* below.
 
 ### 3. Search (`optimizer.ts`)
 
@@ -144,7 +145,28 @@ Two setups whose difference falls inside their combined error are reported
 as effectively equal — including the winner against the current gear, where
 the result says so plainly instead of recommending a pointless gear change.
 
-### 6. Invalid combinations
+### 6. Weapon legality
+
+SimulationCraft does **not** validate that a weapon combination is legal.
+Asked to equip an off-hand alongside a two-handed weapon it does so and
+counts the off-hand's stats, which the game would never allow — measured
+at roughly +3% DPS on a real profile, i.e. a recommendation that cannot be
+equipped. So the engine cannot be the authority on this one rule.
+
+It does know each weapon's hand type, and exposes it through the
+`main_hand.2h` action expression. Before any combination is built, a short
+probe replaces the action list with a single auto-attack — once
+unconditionally, once gated on `main_hand.2h` — and runs one profileset
+per main-hand candidate. A weapon that swings in both runs is two-handed;
+one that swings only in the unconditional run is one-handed. The probe
+reads a flag; it measures nothing.
+
+Off-hands are then only ever paired with one-handed weapons. Anything the
+probe cannot resolve counts as two-handed, which only removes pairings
+from the search, so an inconclusive probe can never produce a setup the
+game would reject.
+
+### 7. Invalid combinations
 
 SimulationCraft names some invalid profilesets in its error output; those
 are dropped and the batch retried. Others — an impossible item combination,
@@ -153,7 +175,7 @@ inventing rules about what is legal, the runner **bisects the batch** until
 the offending candidates are isolated, excludes them, and reports how many
 were rejected. The engine remains the authority on what can be equipped.
 
-### 7. Caching
+### 8. Caching
 
 Every result is keyed by a hash of the character profile, gear overrides,
 mode, targets, duration, iteration count and SimulationCraft version, so an

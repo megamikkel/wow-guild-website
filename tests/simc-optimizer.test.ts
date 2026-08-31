@@ -6,7 +6,12 @@ import { describe, expect, it } from "vitest";
 import { buildGearPool, generateGroupOptions } from "@/lib/simc/gear-pool";
 import { parseSimcInput } from "@/lib/simc/parse";
 import { buildProfile, candidateLines } from "@/lib/simc/profile";
-import { buildCombinations, resolveSettings, withinError } from "@/lib/simc/optimizer";
+import {
+  buildCombinations,
+  resolveSettings,
+  simcSlotToToken,
+  withinError,
+} from "@/lib/simc/optimizer";
 import { parseArgs } from "@/lib/simc/cli";
 import { OptimizerError, type SlotGroupId } from "@/lib/simc/types";
 
@@ -105,17 +110,40 @@ describe("gear pool", () => {
     }
   });
 
-  it("pairs each main hand with every off hand and with none", () => {
-    const options = generateGroupOptions(parsed, pool).get("weapon")!;
-    // 2 main hands × (1 off hand + empty) = 4.
-    expect(options).toHaveLength(4);
-    const clearsOffHand = options.find((o) =>
-      o.overrides.some((ov) => ov.slot === "off_hand" && ov.item === null),
+  it("pairs a one-handed main hand with every off hand and with none", () => {
+    const oneHanded = new Map(
+      pool.weapon.items
+        .filter((i) => i.exportSlot === "main_hand")
+        .map((i) => [i.instanceId, "1h" as const]),
     );
-    expect(clearsOffHand).toBeUndefined(); // no off hand equipped, nothing to clear
+    const options = generateGroupOptions(parsed, pool, oneHanded).get("weapon")!;
+    // 2 one-handed main hands × (1 off hand + empty) = 4.
+    expect(options).toHaveLength(4);
     expect(
       options.some((o) => o.overrides.some((ov) => ov.slot === "off_hand" && ov.item)),
     ).toBe(true);
+  });
+
+  it("never pairs an off hand with a two-handed weapon", () => {
+    // The game forbids it and SimulationCraft does not enforce it, so the
+    // search must never generate the combination in the first place.
+    const twoHanded = new Map(
+      pool.weapon.items
+        .filter((i) => i.exportSlot === "main_hand")
+        .map((i) => [i.instanceId, "2h" as const]),
+    );
+    const options = generateGroupOptions(parsed, pool, twoHanded).get("weapon")!;
+    expect(options).toHaveLength(2); // one per main hand, no off hand
+    for (const option of options) {
+      expect(option.overrides.some((ov) => ov.slot === "off_hand" && ov.item)).toBe(false);
+    }
+  });
+
+  it("assumes two-handed when the hand type is unknown", () => {
+    const options = generateGroupOptions(parsed, pool).get("weapon")!;
+    for (const option of options) {
+      expect(option.overrides.some((ov) => ov.slot === "off_hand" && ov.item)).toBe(false);
+    }
   });
 
   it("keeps the currently equipped configuration in every group", () => {
@@ -249,5 +277,17 @@ describe("cli argument parsing", () => {
 
   it("rejects an unknown mode", () => {
     expect(() => parseArgs(["--mode", "cleave"])).toThrow(/single_target or aoe/);
+  });
+});
+
+describe("SimC slot naming", () => {
+  it("maps SimulationCraft's gear slot names onto option names", () => {
+    // simc writes `shoulder=` and `wrist=` but reports them as
+    // "shoulders" and "wrists" in its JSON gear block.
+    expect(simcSlotToToken("shoulders")).toBe("shoulder");
+    expect(simcSlotToToken("wrists")).toBe("wrist");
+    expect(simcSlotToToken("head")).toBe("head");
+    expect(simcSlotToToken("main_hand")).toBe("main_hand");
+    expect(simcSlotToToken("trinket2")).toBe("trinket2");
   });
 });
