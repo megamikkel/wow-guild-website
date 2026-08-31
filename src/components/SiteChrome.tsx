@@ -12,6 +12,9 @@ const publicNav = [
   { href: "/roster", label: "Roster" },
   { href: "/progression", label: "Fremgang" },
   { href: "/raids", label: "Raids" },
+  // The optimizer needs a server to run SimulationCraft, so it is absent
+  // from the static preview build.
+  ...(IS_STATIC_EXPORT ? [] : [{ href: "/optimizer", label: "Gear" }]),
   { href: "/recruitment", label: "Bliv medlem" },
 ];
 
@@ -139,6 +142,9 @@ export function SiteFooter() {
                   <li><Link href="/roster" className="hover:text-papi-purple">Roster</Link></li>
                   <li><Link href="/progression" className="hover:text-papi-purple">Fremgang</Link></li>
                   <li><Link href="/raids" className="hover:text-papi-purple">Raids</Link></li>
+                  {IS_STATIC_EXPORT ? null : (
+                    <li><Link href="/optimizer" className="hover:text-papi-purple">Gear optimizer</Link></li>
+                  )}
                 </ul>
               </div>
               <div>

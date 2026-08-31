@@ -29,6 +29,10 @@ const SERVER_ONLY = [
   "src/app/admin",
   "src/app/dashboard",
   "src/app/login",
+  // The gear optimizer spawns a SimulationCraft process per request, which a
+  // file host cannot do. Shipping the page without its API would leave a
+  // button that always fails, so the whole route goes.
+  "src/app/(public)/optimizer",
   // Route handlers, not pages: under output:export they need explicit static
   // segment configs. The preview writes plain files instead (see below).
   "src/app/robots.ts",

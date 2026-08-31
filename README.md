@@ -22,10 +22,10 @@ three demo logins (raider / officer / admin) are available on `/login`.
 
 | Area | Routes |
 | --- | --- |
-| Public | `/` `/progression` `/roster` `/roster/[realm]/[name]` `/raids` `/raids/[id]` `/recruitment` `/apply` |
+| Public | `/` `/progression` `/roster` `/roster/[realm]/[name]` `/raids` `/raids/[id]` `/recruitment` `/apply` `/optimizer` |
 | Member | `/dashboard` (Discord login, MEMBER+) |
 | Officer | `/admin` `/admin/applications` `/admin/trials` `/admin/integrations` (OFFICER+) |
-| API | `/api/auth/*` (Auth.js) · `POST /api/sync` (bearer-protected background sync) |
+| API | `/api/auth/*` (Auth.js) · `POST /api/sync` (bearer-protected background sync) · `/api/optimizer` (gear optimization jobs) |
 
 **Stack**: Next.js 15 · TypeScript · Tailwind CSS 4 · PostgreSQL · Drizzle ·
 Auth.js (Discord OAuth) · Zod · Vitest. One app, no microservices, $0/month
@@ -46,6 +46,7 @@ sync, are in [docs/deployment.md](docs/deployment.md).
 ## Documentation
 
 - [Product spec](docs/product-spec.md)
+- [Gear optimizer](docs/gear-optimizer.md) — `/simc` string → best owned gear, via SimulationCraft
 - [Architecture](docs/architecture.md) — system diagram, layering, caching
 - [Database](docs/database.md)
 - [Integrations](docs/integrations.md) — APIs, auth, rate limits, data ownership
@@ -62,6 +63,7 @@ npm run typecheck    # tsc
 npm run build        # production build
 npm run db:generate  # regenerate migrations after schema changes
 npm run db:migrate   # apply migrations to $DATABASE_URL
+npm run optimize     # gear optimizer CLI (needs SimulationCraft, see docs)
 ```
 
 ## Configuration

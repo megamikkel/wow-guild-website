@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx src/lib/db/seed-cli.ts"
+    "db:seed": "tsx src/lib/db/seed-cli.ts",
+    "optimize": "tsx src/lib/simc/cli.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.6",
