@@ -1,0 +1,20 @@
+# afhængigheder
+node_modules/
+
+# lokal browserprofil med Facebook-login (må ALDRIG committes)
+playwright-profile/
+auth-state/
+*.auth.json
+
+# lokal database, logs og diagnostik
+data/*
+!data/.gitkeep
+
+# hemmeligheder
+.env
+.env.*
+!.env.example
+
+# byggeartefakter
+dist/
+tsconfig.tsbuildinfo

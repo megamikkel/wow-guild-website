@@ -1,0 +1,22 @@
+[
+  {
+    "id": "group1",
+    "name": "Facebook gruppe 1",
+    "url": "GROUP_URL"
+  },
+  {
+    "id": "group2",
+    "name": "Facebook gruppe 2",
+    "url": "GROUP_URL"
+  },
+  {
+    "id": "group3",
+    "name": "Facebook gruppe 3",
+    "url": "GROUP_URL"
+  },
+  {
+    "id": "group4",
+    "name": "Facebook gruppe 4",
+    "url": "GROUP_URL"
+  }
+]

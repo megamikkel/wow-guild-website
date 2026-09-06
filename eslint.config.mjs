@@ -19,6 +19,8 @@ const eslintConfig = [
       ".legacy-astro/**",
       "drizzle/**",
       "next-env.d.ts",
+      // Selvstændigt værktøj med egen lint/typecheck/test-opsætning
+      "mintmark-facebook-radar/**",
     ],
   },
 ];

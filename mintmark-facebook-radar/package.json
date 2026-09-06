@@ -1,0 +1,39 @@
+{
+  "name": "mintmark-facebook-radar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only radar der finder opslag i danske TCG/Pokémon Facebook-grupper, hvor folk beder om pris- eller værdihjælp.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "login": "tsx src/login.ts",
+    "scan": "tsx src/scan.ts",
+    "dashboard": "tsx src/dashboard.ts",
+    "diagnose": "tsx src/diagnose.ts",
+    "classify": "tsx src/scan.ts --classify-only",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run lint && npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.2.3",
+    "playwright": "^1.63.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^22.19.0",
+    "eslint": "^10.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^3.2.4"
+  }
+}
