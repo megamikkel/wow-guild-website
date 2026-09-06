@@ -33,6 +33,7 @@ npm run dashboard
 | `npm run dashboard` | Starter review-interfacet på <http://localhost:3742>.                                           |
 | `npm run classify`  | Klassificerer kun opslag der endnu ikke er klassificeret (uden at åbne browseren).             |
 | `npm run diagnose`  | Diagnostic mode: gemmer sanitiseret DOM, screenshot og parser-oversigt i `data/diagnostics/`.   |
+| `npm run try`       | Prøver classifieren af på tekster uden Facebook og uden database. Se nedenfor.                  |
 | `npm run check`     | Lint + TypeScript-check + tests.                                                                |
 
 Intet Facebook-password gemmes nogensinde – hverken i kode, `.env` eller database.
@@ -82,6 +83,18 @@ Kategorier: `PRICE_HELP`, `VALUATION_HELP`, `MARKET_HELP`, `PRODUCT_SEARCH` (kan
 relevante) samt `SALE_ONLY`, `BUY_ONLY`, `TRADE_ONLY`, `OTHER` (aldrig relevante).
 At ordet "pris" forekommer gør ikke et opslag relevant: "Pris 900 kr." er `SALE_ONLY`,
 "Er 900 kr. en fair pris?" er `PRICE_HELP`. Vi optimerer efter høj precision.
+
+### Prøv classifieren af på rigtige tekster
+
+Uden at åbne Facebook eller røre databasen:
+
+```bash
+npm run try -- "Er 900 kr. en fair pris?"
+npm run try -- --file opslag.txt      # ét opslag pr. linje, eller adskil med en linje med ---
+```
+
+Nyttigt til at finjustere kategorier og precision på faktiske opslag fra grupperne,
+før man kører et rigtigt scan.
 
 ## Review-interfacet
 
