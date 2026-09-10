@@ -111,6 +111,20 @@ Visninger: relevante, irrelevante, alle og forkert klassificerede. Menneskets vu
 gemmes separat fra AI'ens (`human_relevant` vs. `relevant`), og dashboardet viser antal
 analyserede opslag, AI-hits, true positives, false positives og precision.
 
+## Hvis Facebook bliver ved med at vise CAPTCHA
+
+En helt frisk browserprofil har ingen historik, og Playwrights egen Chromium ser
+fremmed ud for Facebook. Prøv din installerede Chrome i stedet ved at sætte i `.env`:
+
+```
+RADAR_BROWSER_CHANNEL=chrome
+```
+
+Understøttede værdier: `chrome`, `chrome-beta`, `msedge`, `msedge-beta`. Det er et
+valg af hvilken browser der startes, ikke maskering eller anden evasion. Værktøjet
+forsøger aldrig at omgå CAPTCHA, checkpoints eller MFA - kommer der en kontrol,
+gennemfører du den selv i vinduet.
+
 ## Hvis Facebook ændrer markup
 
 Alle Facebook-selectors ligger ét sted: `src/facebook/selectors.ts`. Kør

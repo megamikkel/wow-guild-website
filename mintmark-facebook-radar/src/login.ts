@@ -10,7 +10,7 @@ async function main(): Promise<void> {
   configureLogger({ level: config.logLevel, dir: config.logDir });
 
   log.info("Åbner Chromium til manuelt Facebook-login", { profileDir: config.profileDir });
-  const browser = await launchBrowser({ profileDir: config.profileDir, headless: false, executablePath: config.chromiumPath });
+  const browser = await launchBrowser({ profileDir: config.profileDir, headless: false, executablePath: config.chromiumPath, channel: config.browserChannel });
 
   try {
     const page = await browser.newPage();
@@ -21,6 +21,10 @@ async function main(): Promise<void> {
     console.log(" Radar gemmer INTET password - kun browserens egen session");
     console.log(` i mappen: ${config.profileDir}`);
     console.log(" Hvis Facebook beder om kode/godkendelse, så gennemfør den selv.");
+    console.log("");
+    console.log(" Kommer der CAPTCHA igen og igen, stoler Facebook ikke på");
+    console.log(" browseren. Prøv med din installerede Chrome i stedet:");
+    console.log("   sæt RADAR_BROWSER_CHANNEL=chrome i .env og kør login igen.");
     console.log("==============================================================\n");
 
     const ok = await waitForManualLogin(page, LOGIN_TIMEOUT_MS);
@@ -30,6 +34,7 @@ async function main(): Promise<void> {
       await page.waitForTimeout(3000);
     } else {
       log.warn("Login blev ikke registreret (timeout eller vinduet blev lukket). Kør `npm run login` igen.");
+      log.warn("Blev du ved med at få CAPTCHA? Sæt RADAR_BROWSER_CHANNEL=chrome i .env og prøv igen.");
     }
   } catch (err) {
     log.error("Login-flowet fejlede", errorMeta(err));

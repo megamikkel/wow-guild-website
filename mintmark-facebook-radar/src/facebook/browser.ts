@@ -7,6 +7,13 @@ export interface BrowserOptions {
   headless: boolean;
   /** Valgfri sti til Chromium-binær. Udelades normalt. */
   executablePath?: string;
+  /**
+   * Start en installeret browser ("chrome", "msedge", ...) i stedet for
+   * Playwrights egen Chromium. Facebook viser ofte færre CAPTCHA'er for en
+   * almindelig installeret browser. Dette er et valg af browser - ikke
+   * maskering, fingerprint-manipulation eller anden evasion.
+   */
+  channel?: string;
 }
 
 /**
@@ -27,7 +34,7 @@ export interface BrowserSession {
  */
 export async function launchBrowser(options: BrowserOptions): Promise<BrowserSession> {
   fs.mkdirSync(options.profileDir, { recursive: true });
-  log.info("Starter Chromium", { headless: options.headless });
+  log.info("Starter browser", { headless: options.headless, channel: options.channel ?? "playwright-chromium" });
 
   const context = await chromium.launchPersistentContext(options.profileDir, {
     headless: options.headless,
@@ -35,6 +42,7 @@ export async function launchBrowser(options: BrowserOptions): Promise<BrowserSes
     locale: "da-DK",
     timezoneId: "Europe/Copenhagen",
     ...(options.executablePath ? { executablePath: options.executablePath } : {}),
+    ...(options.channel ? { channel: options.channel } : {}),
   });
 
   // Kode der køres i siden via page.evaluate kan indeholde esbuild's

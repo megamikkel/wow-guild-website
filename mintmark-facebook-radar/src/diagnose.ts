@@ -26,7 +26,7 @@ async function main(): Promise<void> {
     throw err;
   }
 
-  const browser = await launchBrowser({ profileDir: config.profileDir, headless: config.headless, executablePath: config.chromiumPath });
+  const browser = await launchBrowser({ profileDir: config.profileDir, headless: config.headless, executablePath: config.chromiumPath, channel: config.browserChannel });
   try {
     const page = await browser.newPage();
     await page.goto(FACEBOOK_HOME, { waitUntil: "domcontentloaded", timeout: 60_000 });

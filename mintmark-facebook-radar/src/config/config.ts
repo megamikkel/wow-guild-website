@@ -22,6 +22,16 @@ export type GroupConfig = z.infer<typeof GroupSchema>;
 
 export type ClassifierKind = "anthropic" | "rules";
 
+/** Installerede browsere Playwright kan starte i stedet for sin egen Chromium. */
+export const BROWSER_CHANNELS = ["chrome", "chrome-beta", "msedge", "msedge-beta"] as const;
+export type BrowserChannel = (typeof BROWSER_CHANNELS)[number];
+
+function parseBrowserChannel(value: string | undefined): BrowserChannel | undefined {
+  const v = value?.trim().toLowerCase();
+  if (!v) return undefined;
+  return (BROWSER_CHANNELS as readonly string[]).includes(v) ? (v as BrowserChannel) : undefined;
+}
+
 export interface RadarConfig {
   projectRoot: string;
   dbPath: string;
@@ -34,6 +44,8 @@ export interface RadarConfig {
   headless: boolean;
   /** Valgfri sti til en Chromium-binær (ellers Playwrights egen) */
   chromiumPath: string | undefined;
+  /** Brug en installeret browser i stedet for Playwrights egen Chromium */
+  browserChannel: BrowserChannel | undefined;
   dashboardPort: number;
   classifier: ClassifierKind;
   llmModel: string;
@@ -82,6 +94,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): RadarConfig {
     maxPostsPerGroup: parseInt(env.RADAR_MAX_POSTS_PER_GROUP, 50),
     headless: parseBool(env.RADAR_HEADLESS, false),
     chromiumPath: env.RADAR_CHROMIUM_PATH?.trim() || undefined,
+    browserChannel: parseBrowserChannel(env.RADAR_BROWSER_CHANNEL),
     dashboardPort: parseInt(env.RADAR_PORT, 3742),
     classifier,
     llmModel: env.RADAR_LLM_MODEL?.trim() || "claude-opus-5",

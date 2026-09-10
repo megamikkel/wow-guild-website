@@ -62,4 +62,11 @@ describe("loadConfig", () => {
     expect(custom.logLevel).toBe("debug");
     expect(loadConfig({ RADAR_MAX_POSTS_PER_GROUP: "abc" }).maxPostsPerGroup).toBe(50);
   });
+
+  it("accepterer kun kendte browser-kanaler", () => {
+    expect(loadConfig({}).browserChannel).toBeUndefined();
+    expect(loadConfig({ RADAR_BROWSER_CHANNEL: "chrome" }).browserChannel).toBe("chrome");
+    expect(loadConfig({ RADAR_BROWSER_CHANNEL: "MSEdge" }).browserChannel).toBe("msedge");
+    expect(loadConfig({ RADAR_BROWSER_CHANNEL: "firefox" }).browserChannel).toBeUndefined();
+  });
 });
