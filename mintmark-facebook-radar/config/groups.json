@@ -1,22 +1,22 @@
 [
   {
     "id": "group1",
-    "name": "Facebook gruppe 1",
-    "url": "GROUP_URL"
+    "name": "Gruppe 1",
+    "url": "https://www.facebook.com/groups/505877030676787/"
   },
   {
     "id": "group2",
-    "name": "Facebook gruppe 2",
-    "url": "GROUP_URL"
+    "name": "Gruppe 2",
+    "url": "https://www.facebook.com/groups/297327757306828/"
   },
   {
     "id": "group3",
-    "name": "Facebook gruppe 3",
-    "url": "GROUP_URL"
+    "name": "Gruppe 3",
+    "url": "https://www.facebook.com/groups/1118700098549833/"
   },
   {
     "id": "group4",
-    "name": "Facebook gruppe 4",
+    "name": "Gruppe 4",
     "url": "GROUP_URL"
   }
 ]
